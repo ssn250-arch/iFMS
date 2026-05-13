@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { jsPDF } from "jspdf";
-import "jspdf-autotable";
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import './index.css';
 
 const formInputClass = "block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-[15px] font-semibold text-slate-800 shadow-sm transition-all duration-300 placeholder:text-slate-400 placeholder:font-medium focus:border-blue-500 focus:outline-none focus:ring-[4px] focus:ring-blue-500/10 hover:border-slate-300";
 const formLabelClass = "block text-[13px] font-bold uppercase tracking-wider text-slate-500 mb-2 ml-1";
+
 const unitOptions = [
     "Pengurusan Tertinggi", "BKKL", "BPPA", "BPPL", "CESS", "BPSM", 
     "Unit Kewangan", "Unit Perkhidmatan", "Unit Pentadbiran", 
     "TE", "TKR", "TELCOM", "TPPU", "TAUTO", "TKIM", "TFSLOG"
 ];
+
 const peperiksaanRoles = [
     "Penggubal Soalan/Skema Jawapan",
     "AJK Pemilihan Soalan/Skema Jawapan",
@@ -89,6 +91,31 @@ const pegawaiDatabase = [
     { nama: "Lynn Noell Ending", bahagian: "TFSLOG", jawatan: "PPLV DV5", noTel: "" }
 ];
 
+const malaysiaAirports = [
+    { code: 'KUL', name: 'Kuala Lumpur (KLIA)' },
+    { code: 'SZB', name: 'Subang (Skypark)' },
+    { code: 'SDK', name: 'Sandakan' },
+    { code: 'BKI', name: 'Kota Kinabalu' },
+    { code: 'TWU', name: 'Tawau' },
+    { code: 'LDU', name: 'Lahad Datu' },
+    { code: 'KCH', name: 'Kuching' },
+    { code: 'MYY', name: 'Miri' },
+    { code: 'BTU', name: 'Bintulu' },
+    { code: 'SBW', name: 'Sibu' },
+    { code: 'PEN', name: 'Pulau Pinang' },
+    { code: 'JHB', name: 'Johor Bahru (Senai)' },
+    { code: 'LGK', name: 'Langkawi' },
+    { code: 'KBR', name: 'Kota Bharu' },
+    { code: 'TGG', name: 'Kuala Terengganu' },
+    { code: 'KUA', name: 'Kuantan' },
+    { code: 'AOR', name: 'Alor Setar' },
+    { code: 'LBU', name: 'Labuan' },
+    { code: 'IPH', name: 'Ipoh' },
+    { code: 'SIN', name: 'Singapura (Changi)' },
+    { code: 'BPN', name: 'Balikpapan' },
+    { code: 'JED', name: 'Jeddah' }
+];
+
 const UniversalSelect = ({ wrapperId, name, value, label, options, onChange, placeholder, classNameAddon = "", disabled = false }) => (
     <div className={`relative group ${label ? '' : 'mt-0'}`}>
         {label && <label className={formLabelClass}>{label}</label>}
@@ -144,29 +171,27 @@ const ModernTimePicker = ({ wrapperId, name, value, label, onChange, slim = fals
     );
 };
 
-const malaysiaAirports = [
-    { code: 'KUL', name: 'Kuala Lumpur (KLIA)' },
-    { code: 'SZB', name: 'Subang (Skypark)' },
-    { code: 'SDK', name: 'Sandakan' },
-    { code: 'BKI', name: 'Kota Kinabalu' },
-    { code: 'TWU', name: 'Tawau' },
-    { code: 'LDU', name: 'Lahad Datu' },
-    { code: 'KCH', name: 'Kuching' },
-    { code: 'MYY', name: 'Miri' },
-    { code: 'BTU', name: 'Bintulu' },
-    { code: 'SBW', name: 'Sibu' },
-    { code: 'PEN', name: 'Pulau Pinang' },
-    { code: 'JHB', name: 'Johor Bahru (Senai)' },
-    { code: 'LGK', name: 'Langkawi' },
-    { code: 'KBR', name: 'Kota Bharu' },
-    { code: 'TGG', name: 'Kuala Terengganu' },
-    { code: 'KUA', name: 'Kuantan' },
-    { code: 'AOR', name: 'Alor Setar' },
-    { code: 'LBU', name: 'Labuan' },
-    { code: 'IPH', name: 'Ipoh' },
-    { code: 'SIN', name: 'Singapura (Changi)' },
-    { code: 'BPN', name: 'Balikpapan' },
-    { code: 'JED', name: 'Jeddah' }
+const LockIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+);
+const EditIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+);
+const UnlockIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+);
+const PlaneTakeoffIcon = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.2-1.1.7l-1.2 3.3c-.2.5.1 1.1.6 1.2l6.2 1.5-3.3 3.3-3.2-.8c-.4-.1-.8.1-1 .5l-.8 1.6c-.2.4 0 .9.4 1.1l4.8 2.4 2.4 4.8c.2.4.7.6 1.1.4l1.6-.8c.4-.2.6-.6.5-1l-.8-3.2 3.3-3.3 1.5 6.2c.1.5.7.8 1.2.6l3.3-1.2c.5-.2.8-.6.7-1.1z"/></svg>
+);
+const PlaneLandingIcon = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className} style={{transform: "scaleX(-1)"}}><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.2-1.1.7l-1.2 3.3c-.2.5.1 1.1.6 1.2l6.2 1.5-3.3 3.3-3.2-.8c-.4-.1-.8.1-1 .5l-.8 1.6c-.2.4 0 .9.4 1.1l4.8 2.4 2.4 4.8c.2.4.7.6 1.1.4l1.6-.8c.4-.2.6-.6.5-1l-.8-3.2 3.3-3.3 1.5 6.2c.1.5.7.8 1.2.6l3.3-1.2c.5-.2.8-.6.7-1.1z"/></svg>
+);
+
+const quickTemplates = [
+    { label: "Mesyuarat", icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>, tujuan: "Menghadiri Mesyuarat Rasmi", perjalanan: "Kereta Sendiri" },
+    { label: "Kursus", icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>, tujuan: "Menghadiri Kursus/Latihan", perjalanan: "Kapal Terbang" },
+    { label: "Lawatan", icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>, tujuan: "Lawatan Sambil Belajar", perjalanan: "Kereta Jabatan" },
+    { label: "Bengkel", icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>, tujuan: "Menghadiri Bengkel", perjalanan: "Lain-lain" }
 ];
 
 function App() {
@@ -182,7 +207,7 @@ function App() {
         jenisCuti: 'Cuti Rehat', cutiDari: today, cutiHingga: today, catatanCuti: '', ketuaSokongan: '', pegawaiPelulus: '',
         perananPeperiksaan: [], tandatangan: null 
     });
-
+    
     const [preloadedLogo, setPreloadedLogo] = useState(null);
     const [isLogoLoading, setIsLogoLoading] = useState(true);
     const [isKnownStaff, setIsKnownStaff] = useState(false);
@@ -201,6 +226,7 @@ function App() {
         const fetchAndConvertLogo = async () => {
             setIsLogoLoading(true);
             const googleDriveId = '13wsfzp971_SOrR41-BvWnmYGXc7m1O7n';
+            
             const urlsToTry = [
                 `https://images.weserv.nl/?url=drive.google.com/uc?id=${googleDriveId}&output=jpg`,
                 `https://api.allorigins.win/raw?url=${encodeURIComponent('https://drive.google.com/uc?export=view&id=' + googleDriveId)}`,
@@ -212,6 +238,7 @@ function App() {
                 try {
                     const img = new Image();
                     img.crossOrigin = "Anonymous";
+                    
                     await new Promise((resolve, reject) => {
                         img.onload = () => resolve();
                         img.onerror = () => reject(new Error("Gagal muat turun dari: " + url));
@@ -232,6 +259,7 @@ function App() {
                     console.warn(e.message);
                 }
             }
+            
             setIsLogoLoading(false);
         };
         
@@ -277,7 +305,7 @@ function App() {
             localStorage.setItem("flightInfo", JSON.stringify({
                 kodSyarikat: formData.kodSyarikat,
                 enrichId: formData.enrichId
-             }));
+            }));
         }
     }, [formData.kodSyarikat, formData.enrichId]);
 
@@ -310,6 +338,7 @@ function App() {
     const isPergiComplete = formData.flightPergiDari.length === 3 && formData.flightPergiKe.length === 3 && formData.flightPergiMasa;
     const isBalikComplete = formData.flightBalikDari.length === 3 && formData.flightBalikKe.length === 3 && formData.flightBalikMasa;
     const isTiketComplete = formData.caraPerjalanan === 'Kapal Terbang' ? (isPergiComplete && isBalikComplete) : true;
+    
     const isCutiComplete = formData.jenisCuti !== '' && formData.cutiDari !== '' && formData.cutiHingga !== '' && formData.ketuaSokongan !== '' && formData.pegawaiPelulus !== '';
     const isPerananComplete = formData.perananPeperiksaan.length > 0;
     const isTandatanganComplete = formData.tandatangan !== null;
@@ -491,7 +520,8 @@ function App() {
             cuti: nextSectionName === 'cuti',
             peranan: nextSectionName === 'peranan',
             tandatangan: nextSectionName === 'tandatangan'
-         });
+        });
+
         if (nextSectionName === 'jana') {
             setTimeout(() => {
                 const btn = document.getElementById('jana-button-container');
@@ -587,9 +617,8 @@ function App() {
     };
 
     const jumlahHari = calculateDays(formData.tarikhPergi, formData.tarikhBalik);
-    const getJSPDF = () => jsPDF;
     const val = (text) => (text && text.toString().trim() !== '') ? text : '-';
-    
+
     // ================== LOGIK TANDATANGAN DIGITAL ==================
     useEffect(() => {
         if (expanded.tandatangan && canvasRef.current) {
@@ -602,9 +631,9 @@ function App() {
                 const dpr = window.devicePixelRatio || 1;
                 
                 canvas.width = rect.width * dpr;
-                canvas.height = 200 * dpr; 
+                canvas.height = 200 * dpr;
                 ctx.scale(dpr, dpr);
-                
+                 
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
                 ctx.lineWidth = 3;
@@ -684,7 +713,7 @@ function App() {
         for (let y = 0; y < sourceCanvas.height; y++) {
             for (let x = 0; x < sourceCanvas.width; x++) {
                 const alpha = data[(y * sourceCanvas.width + x) * 4 + 3];
-                if (alpha > 5) { 
+                if (alpha > 5) {
                     minX = Math.min(minX, x);
                     minY = Math.min(minY, y);
                     maxX = Math.max(maxX, x);
@@ -755,6 +784,7 @@ function App() {
                 }
                 
                 ctx.putImageData(imageData, 0, 0);
+                
                 const croppedImage = cropCanvas(tempCanvas);
                 if (croppedImage) {
                     setFormData(prev => ({ ...prev, tandatangan: croppedImage }));
@@ -1188,7 +1218,7 @@ function App() {
         doc.setLineWidth(0.4);
         doc.setLineDashPattern([1, 2], 0);
         doc.line(38, currentY, 188, currentY);
-        doc.setLineDashPattern([], 0); 
+        doc.setLineDashPattern([], 0);
         
         doc.text(val(formData.nama).toUpperCase(), 113, currentY - 1.5, { align: 'center' });
         doc.text(",", 190, currentY);
@@ -1224,6 +1254,7 @@ function App() {
 
         currentY += 10;
         doc.text("yang terlibat secara langsung dalam mengendalikan Peperiksaan Akhir JTM sebagai:", 15, currentY);
+        
         currentY += 10;
         let tableData = peperiksaanRoles.map(role => {
             const isTicked = formData.perananPeperiksaan.includes(role);
@@ -1242,10 +1273,12 @@ function App() {
         });
         currentY = doc.lastAutoTable.finalY + 5;
         doc.text("(Tanda /  pada ruangan yang berkenaan dan potong yang tidak berkenaan)", 105, currentY, { align: 'center' });
+        
         currentY += 15;
         const p2 = "berjanji bahawasanya saya akan menjaga segala kerahsiaan yang berkaitan dengan aktiviti-aktiviti peperiksaan jabatan ini. Saya faham bahawa jika saya membocor maklumat-maklumat berkaitan peperiksaan ini atau melanggar integriti dengan apa cara sekali pun kepada mana-mana pihak maka saya boleh dikenakan tindakan di bawah Akta Rahsia Rasmi 1972.";
         const splitP2 = doc.splitTextToSize(p2, 175);
         doc.text(splitP2, 15, currentY, { align: 'justify', maxWidth: 175 });
+        
         currentY += 35;
         doc.text("Yang Benar :", 15, currentY);
         doc.text("Disaksikan oleh :", 120, currentY);
@@ -1272,12 +1305,6 @@ function App() {
     };
 
     const handleGenerateAll = () => {
-        const jsPDFClass = getJSPDF();
-        if(!jsPDFClass) {
-            showNotification("Sistem sedang memuatkan modul PDF. Sila tunggu sebentar...", "error");
-            return;
-        }
-        
         if (isLogoLoading) {
             showNotification("Sistem sedang memuatkan logo Jata Negara. Sila cuba sebentar lagi...", "error");
             return;
@@ -1288,7 +1315,7 @@ function App() {
 
         setTimeout(() => {
             try {
-                const doc = new jsPDFClass({ format: 'a4' });
+                const doc = new jsPDF({ format: 'a4' });
                 
                 if (activeForm === 'cuti') {
                     generateFormCuti(doc);
@@ -1325,28 +1352,6 @@ function App() {
             }
         }, 150);
     };
-
-    const LockIcon = () => (
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-    );
-    const EditIcon = () => (
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
-    );
-    const UnlockIcon = () => (
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
-    );
-    const PlaneTakeoffIcon = ({ className }) => (
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.2-1.1.7l-1.2 3.3c-.2.5.1 1.1.6 1.2l6.2 1.5-3.3 3.3-3.2-.8c-.4-.1-.8.1-1 .5l-.8 1.6c-.2.4 0 .9.4 1.1l4.8 2.4 2.4 4.8c.2.4.7.6 1.1.4l1.6-.8c.4-.2.6-.6.5-1l-.8-3.2 3.3-3.3 1.5 6.2c.1.5.7.8 1.2.6l3.3-1.2c.5-.2.8-.6.7-1.1z"/></svg>
-    );
-    const PlaneLandingIcon = ({ className }) => (
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className} style={{transform: "scaleX(-1)"}}><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.2-1.1.7l-1.2 3.3c-.2.5.1 1.1.6 1.2l6.2 1.5-3.3 3.3-3.2-.8c-.4-.1-.8.1-1 .5l-.8 1.6c-.2.4 0 .9.4 1.1l4.8 2.4 2.4 4.8c.2.4.7.6 1.1.4l1.6-.8c.4-.2.6-.6.5-1l-.8-3.2 3.3-3.3 1.5 6.2c.1.5.7.8 1.2.6l3.3-1.2c.5-.2.8-.6.7-1.1z"/></svg>
-    );
-    const quickTemplates = [
-        { label: "Mesyuarat", icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>, tujuan: "Menghadiri Mesyuarat Rasmi", perjalanan: "Kereta Sendiri" },
-        { label: "Kursus", icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>, tujuan: "Menghadiri Kursus/Latihan", perjalanan: "Kapal Terbang" },
-        { label: "Lawatan", icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>, tujuan: "Lawatan Sambil Belajar", perjalanan: "Kereta Jabatan" },
-        { label: "Bengkel", icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>, tujuan: "Menghadiri Bengkel", perjalanan: "Lain-lain" }
-    ];
 
     if (activeForm === null) {
         return (
@@ -1469,6 +1474,7 @@ function App() {
                 </p>
             </header>
 
+            {/* PROGRESS BAR */}
             <div className="max-w-[800px] mx-auto px-6 mb-10 relative z-20">
                 <div className="relative">
                     <div className="absolute top-5 left-0 w-full h-1.5 bg-slate-200/60 rounded-full -translate-y-1/2"></div>
@@ -1564,6 +1570,8 @@ function App() {
             )}
 
             <div className="max-w-[800px] mx-auto px-4 space-y-5 relative z-10">
+                
+                {/* 1. MAKLUMAT PEGAWAI */}
                 <div id="section-pegawai" className={`bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden transition-all duration-500 ${expanded.pegawai ? 'ring-[3px] ring-blue-500/20' : 'hover:shadow-md'} ${shakeSection === 'pegawai' ? 'animate-shake border-red-400' : ''}`}>
                     <div onClick={() => toggleSection('pegawai')} className="cursor-pointer px-6 py-5 flex items-center justify-between bg-white hover:bg-slate-50 transition-colors">
                         <div className="flex items-center gap-4">
@@ -1667,6 +1675,7 @@ function App() {
                     )}
                 </div>
 
+                {/* SEKSYEN KHAS UNTUK BORANG CUTI */}
                 {activeForm === 'cuti' && (
                     <div id="section-cuti" className={`bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border overflow-hidden transition-all duration-500 ${!isPegawaiComplete ? 'border-slate-200/50 opacity-60 grayscale-[20%]' : (expanded.cuti ? 'border-slate-100 ring-[3px] ring-emerald-500/20' : 'border-slate-100 hover:shadow-md')} ${shakeSection === 'cuti' ? 'animate-shake border-red-400' : ''}`}>
                         <div onClick={() => isPegawaiComplete && toggleSection('cuti')} className={`px-6 py-5 flex items-center justify-between transition-colors ${!isPegawaiComplete ? 'bg-slate-50/50 cursor-not-allowed' : 'bg-white hover:bg-slate-50 cursor-pointer'}`}>
@@ -1768,8 +1777,10 @@ function App() {
                     </div>
                 )}
 
+                {/* SEKSYEN KHAS UNTUK AKUJANJI INTEGRITI */}
                 {activeForm === 'akujanji' && (
                     <>
+                        {/* PERANAN PEPERIKSAAN */}
                         <div id="section-peranan" className={`bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border overflow-hidden transition-all duration-500 ${!isPegawaiComplete ? 'border-slate-200/50 opacity-60 grayscale-[20%]' : (expanded.peranan ? 'border-slate-100 ring-[3px] ring-indigo-500/20' : 'border-slate-100 hover:shadow-md')} ${shakeSection === 'peranan' ? 'animate-shake border-red-400' : ''}`}>
                             <div onClick={() => isPegawaiComplete && toggleSection('peranan')} className={`px-6 py-5 flex items-center justify-between transition-colors ${!isPegawaiComplete ? 'bg-slate-50/50 cursor-not-allowed' : 'bg-white hover:bg-slate-50 cursor-pointer'}`}>
                                 <div className="flex items-center gap-4">
@@ -1816,6 +1827,7 @@ function App() {
                             )}
                         </div>
 
+                        {/* TANDATANGAN DIGITAL */}
                         <div id="section-tandatangan" className={`bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border overflow-hidden transition-all duration-500 ${!isPerananComplete ? 'border-slate-200/50 opacity-60 grayscale-[20%]' : (expanded.tandatangan ? 'border-slate-100 ring-[3px] ring-purple-500/20' : 'border-slate-100 hover:shadow-md')} ${shakeSection === 'tandatangan' ? 'animate-shake border-red-400' : ''}`}>
                             <div onClick={() => isPerananComplete && toggleSection('tandatangan')} className={`px-6 py-5 flex items-center justify-between transition-colors ${!isPerananComplete ? 'bg-slate-50/50 cursor-not-allowed' : 'bg-white hover:bg-slate-50 cursor-pointer'}`}>
                                 <div className="flex items-center gap-4">
@@ -1837,7 +1849,6 @@ function App() {
                             {expanded.tandatangan && isPerananComplete && (
                                 <div className="p-6 md:p-8 pt-2 border-t border-slate-100 animate-slide-up">
                                     <div id="wrap-tandatangan" className="bg-slate-50 border border-slate-200 rounded-[1.5rem] p-4 sm:p-6 transition-all duration-300">
-                                        
                                         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
                                             <label className={formLabelClass}>Sila lukis tandatangan anda <span className="text-red-500">*</span></label>
                                             <div className="relative">
@@ -1902,6 +1913,7 @@ function App() {
                     </>
                 )}
 
+                {/* SEKSYEN TUGAS RASMI: 2. BUTIRAN TUGAS */}
                 {activeForm === 'tugas' && (
                     <div id="section-tugas" className={`bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border overflow-hidden transition-all duration-500 ${!isPegawaiComplete ? 'border-slate-200/50 opacity-60 grayscale-[20%]' : (expanded.tugas ? 'border-slate-100 ring-[3px] ring-indigo-500/20' : 'border-slate-100 hover:shadow-md')} ${shakeSection === 'tugas' ? 'animate-shake border-red-400' : ''}`}>
                         <div onClick={() => isPegawaiComplete && toggleSection('tugas')} className={`px-6 py-5 flex items-center justify-between transition-colors ${!isPegawaiComplete ? 'bg-slate-50/50 cursor-not-allowed' : 'bg-white hover:bg-slate-50 cursor-pointer'}`}>
@@ -2024,6 +2036,7 @@ function App() {
                     </div>
                 )}
 
+                {/* SEKSYEN TUGAS RASMI: 3. TUGAS SEMENTARA PENGGANTI */}
                 {activeForm === 'tugas' && (
                     <div id="section-pengganti" className={`bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border overflow-hidden transition-all duration-500 ${!isTugasComplete ? 'border-slate-200/50 opacity-60 grayscale-[20%]' : (expanded.pengganti ? 'border-slate-100 ring-[3px] ring-emerald-500/20' : 'border-slate-100 hover:shadow-md')} ${shakeSection === 'pengganti' ? 'animate-shake border-red-400' : ''}`}>
                         <div onClick={() => isTugasComplete && toggleSection('pengganti')} className={`px-6 py-5 flex items-center justify-between transition-colors ${!isTugasComplete ? 'bg-slate-50/50 cursor-not-allowed' : 'bg-white hover:bg-slate-50 cursor-pointer'}`}>
@@ -2140,6 +2153,7 @@ function App() {
                     </div>
                 )}
 
+                {/* SEKSYEN TUGAS RASMI: 4. TIKET PENERBANGAN */}
                 {activeForm === 'tugas' && (
                     <div id="section-tiket" className={`transition-all duration-700 overflow-hidden ${formData.caraPerjalanan === 'Kapal Terbang' ? 'max-h-[3000px] opacity-100 mt-5' : 'max-h-0 opacity-0 m-0'}`}>
                         <div className={`bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border overflow-hidden transition-all duration-500 ${!isTugasComplete ? 'border-slate-200/50 opacity-60 grayscale-[20%]' : (expanded.tiket ? 'border-slate-100 ring-[3px] ring-sky-500/20' : 'border-slate-100 hover:shadow-md')} ${shakeSection === 'tiket' ? 'animate-shake border-red-400' : ''}`}>
@@ -2168,6 +2182,7 @@ function App() {
                                         <button onClick={() => setRoute('BKI', 'KUL')} className="px-4 py-2 bg-white border border-slate-200 hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700 text-slate-600 text-[13px] font-bold rounded-full transition-all shadow-sm active:scale-95">BKI ⇄ KUL</button>
                                     </div>
 
+                                    {/* KAD TIKET PERGI */}
                                     <div className="bg-white rounded-[24px] shadow-sm border border-slate-200 overflow-hidden mb-8 relative">
                                         <div className="ticket-cutout left"></div>
                                         <div className="ticket-cutout right"></div>
@@ -2225,6 +2240,7 @@ function App() {
                                         </div>
                                     </div>
 
+                                    {/* KAD TIKET BALIK */}
                                     <div className="bg-white rounded-[24px] shadow-sm border border-slate-200 overflow-hidden mb-8 relative">
                                         <div className="ticket-cutout left"></div>
                                         <div className="ticket-cutout right"></div>
@@ -2282,6 +2298,7 @@ function App() {
                                         </div>
                                     </div>
 
+                                    {/* MAKLUMAT TAMBAHAN (Syarikat & Keahlian) */}
                                     <div className="bg-white border border-slate-200 rounded-[20px] p-6 shadow-sm relative overflow-hidden">
                                         <div className="absolute top-0 left-0 w-1 h-full bg-slate-300"></div>
                                         <h3 className="text-[13px] font-extrabold uppercase text-slate-500 mb-5 tracking-wide flex items-center gap-2">
@@ -2310,6 +2327,7 @@ function App() {
                     </div>
                 )}
 
+                {/* ★★★ BUTANG JANA DENGAN STATUS LOGO ★★★ */}
                 <div id="jana-button-container" className="mt-12 mb-16 animate-slide-up" style={{animationDelay: '0.5s'}}>
                     <button 
                         onClick={handleGenerateAll}
@@ -2354,6 +2372,7 @@ function App() {
                     </button>
                 </div>
 
+                {/* FLOATING BUTTON MOBILE */}
                 {!isLogoLoading && activeForm !== null && (
                     <button 
                         onClick={handleGenerateAll}
