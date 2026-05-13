@@ -1,7 +1,7 @@
 {
-  "homepage": "https://ssn250-arch.github.io/ifms",
-  "name": "ifms-app",
+  "name": "iFMS",
   "version": "0.1.0",
+  "homepage": "https://ssn250-arch.github.io/iFMS",
   "private": true,
   "dependencies": {
     "@testing-library/dom": "^10.4.1",
