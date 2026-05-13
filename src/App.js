@@ -1305,52 +1305,63 @@ function App() {
     };
 
     const handleGenerateAll = () => {
+        const jsPDFClass = getJSPDF();
+        if(!jsPDFClass) {
+            showNotification("Sistem sedang memuatkan modul PDF. Sila tunggu sebentar...", "error");
+            return;
+        }
+        
         if (isLogoLoading) {
             showNotification("Sistem sedang memuatkan logo Jata Negara. Sila cuba sebentar lagi...", "error");
             return;
         }
 
         if (!validateAndScroll()) return;
+        
         setIsGenerating(true);
 
-        setTimeout(() => {
-            try {
-                const doc = new jsPDF({ format: 'a4' });
-                
-                if (activeForm === 'cuti') {
-                    generateFormCuti(doc);
-                    const namaFail = formData.nama ? `Borang_Cuti_${formData.nama.replace(/\s+/g, '_')}.pdf` : 'Borang_Cuti.pdf';
-                    doc.save(namaFail);
-                    showNotification("Borang Cuti (Manual) berjaya dijana!");
-                } else if (activeForm === 'akujanji') {
-                    generateFormAkujanji(doc, preloadedLogo);
-                    const namaFail = formData.nama ? `Akujanji_Peperiksaan_${formData.nama.replace(/\s+/g, '_')}.pdf` : 'Akujanji_Peperiksaan.pdf';
-                    doc.save(namaFail);
-                    showNotification("Surat Akujanji Integriti berjaya dijana!");
-                } else {
-                    generateForm1(doc, preloadedLogo);
-                    const isTugasGanti = formData.subjek.trim() !== '' || formData.namaPengganti.trim() !== '';
-                    if (isTugasGanti && formData.namaPengganti !== 'TIADA PENGGANTI') {
-                        doc.addPage();
-                        generateForm2(doc, preloadedLogo);
-                    }
-
-                    if (formData.caraPerjalanan === 'Kapal Terbang') {
-                        doc.addPage();
-                        generateForm3(doc); 
-                    }
-                    
-                    const namaFail = formData.nama ? `Borang_TugasRasmi_${formData.nama.replace(/\s+/g, '_')}.pdf` : 'Borang_TugasRasmi.pdf';
-                    doc.save(namaFail);
-                    showNotification("Semua dokumen rasmi berjaya disatukan ke dalam 1 fail PDF!");
+        // KOD DIBUANG SETTIMEOUT: 
+        // Proses dijalankan terus supaya browser telefon bimbit tidak "block" muat turun fail.
+        try {
+            const doc = new jsPDFClass({ format: 'a4' });
+            
+            if (activeForm === 'cuti') {
+                generateFormCuti(doc);
+                const namaFail = formData.nama ? `Borang_Cuti_${formData.nama.replace(/\s+/g, '_')}.pdf` : 'Borang_Cuti.pdf';
+                doc.save(namaFail);
+                showNotification("Borang Cuti (Manual) berjaya dijana!");
+            } else if (activeForm === 'akujanji') {
+                generateFormAkujanji(doc, preloadedLogo);
+                const namaFail = formData.nama ? `Akujanji_Peperiksaan_${formData.nama.replace(/\s+/g, '_')}.pdf` : 'Akujanji_Peperiksaan.pdf';
+                doc.save(namaFail);
+                showNotification("Surat Akujanji Integriti berjaya dijana!");
+            } else {
+                generateForm1(doc, preloadedLogo);
+                const isTugasGanti = formData.subjek.trim() !== '' || formData.namaPengganti.trim() !== '';
+                if (isTugasGanti && formData.namaPengganti !== 'TIADA PENGGANTI') {
+                    doc.addPage();
+                    generateForm2(doc, preloadedLogo);
                 }
-                setIsGenerating(false);
-            } catch (error) {
-                console.error(error);
-                setIsGenerating(false);
-                showNotification("Ralat berlaku semasa menjana fail.", "error");
+
+                if (formData.caraPerjalanan === 'Kapal Terbang') {
+                    doc.addPage();
+                    generateForm3(doc); 
+                }
+                
+                const namaFail = formData.nama ? `Borang_TugasRasmi_${formData.nama.replace(/\s+/g, '_')}.pdf` : 'Borang_TugasRasmi.pdf';
+                doc.save(namaFail);
+                showNotification("Semua dokumen rasmi berjaya disatukan ke dalam 1 fail PDF!");
             }
-        }, 150);
+            
+            setIsGenerating(false);
+            
+        } catch (error) {
+            console.error(error);
+            setIsGenerating(false);
+            // Tambahan error.message supaya jika ia gagal lagi, 
+            // telefon akan memaparkan sebab sebenar ralat itu berlaku
+            showNotification(`Ralat PDF: ${error.message || "Gagal menjana fail"}`, "error");
+        }
     };
 
     if (activeForm === null) {
