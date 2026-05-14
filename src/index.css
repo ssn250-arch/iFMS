@@ -1,14 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 body { 
     font-family: 'Plus Jakarta Sans', sans-serif;
     background-color: #f8fafc;
     background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
     background-size: 24px 24px;
-    overscroll-behavior-y: none; 
+    overscroll-behavior-y: none;
 }
 
-/* Animations */
 @keyframes slideUpFade {
     from { opacity: 0; transform: translateY(15px); }
     to { opacity: 1; transform: translateY(0); }
@@ -35,7 +38,6 @@ body {
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Form Input Styles */
 input[type="date"]::-webkit-calendar-picker-indicator,
 input[type="time"]::-webkit-calendar-picker-indicator {
     position: absolute;
@@ -52,7 +54,6 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* Custom Checkbox */
 .custom-checkbox {
     appearance: none;
     background-color: #fff;
@@ -86,7 +87,6 @@ input[type="time"]::-webkit-calendar-picker-indicator {
     transform: scale(1);
 }
 
-/* Flight Input Styles */
 .flight-input {
     background: transparent;
     border: none;
@@ -101,8 +101,6 @@ input[type="time"]::-webkit-calendar-picker-indicator {
     outline: none;
     box-shadow: none;
 }
-
-/* Ticket Cutout */
 .ticket-cutout {
     position: absolute;
     width: 20px;
@@ -114,7 +112,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 .ticket-cutout.left { left: -10px; top: 50%; transform: translateY(-50%); }
 .ticket-cutout.right { right: -10px; top: 50%; transform: translateY(-50%); }
 
-/* Signature Pad */
+/* Canvas untuk Sign */
 .signature-pad {
     touch-action: none;
     background-color: #ffffff;
