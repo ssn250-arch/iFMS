@@ -1231,7 +1231,7 @@ function App() {
             const isTicked = formData.perananPeperiksaan.includes(role);
             return [isTicked ? '/' : '', role];
         });
-        doc.autoTable({
+        autoTable(doc, {
             startY: currentY,
             margin: { left: 20, right: 20 },
             theme: 'grid',
