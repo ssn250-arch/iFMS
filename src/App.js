@@ -213,6 +213,39 @@ function App() {
         setIsKnownStaff(pegawaiDatabase.some(p => p.nama === formData.nama));
     }, [formData.nama]);
 
+    // KOD BAHARU: Sistem Semak Versi & Auto-Clear Cache
+    useEffect(() => {
+        const checkUpdate = async () => {
+            try {
+                // Letak parameter '?time=' untuk elak fail ini dibaca dari cache
+                const res = await fetch(`./version.json?time=${new Date().getTime()}`, { 
+                    cache: 'no-store' 
+                });
+                
+                const data = await res.json();
+                const latestVersion = data.version;
+                const currentVersion = localStorage.getItem('iFMS_Version');
+
+                // Jika ini kali pertama buka, simpan versi ke local storage
+                if (!currentVersion) {
+                    localStorage.setItem('iFMS_Version', latestVersion);
+                } 
+                // Jika versi dalam browser TIDAK SAMA dengan versi di GitHub
+                else if (currentVersion !== latestVersion) {
+                    // Update versi baru
+                    localStorage.setItem('iFMS_Version', latestVersion);
+                    
+                    // Paksa pelayar web buang cache dan 'Hard Reload' sistem!
+                    window.location.reload(true);
+                }
+            } catch (err) {
+                console.log("Semakan versi auto dilangkau.");
+            }
+        };
+
+        checkUpdate();
+    }, []);
+
     useEffect(() => {
         const fetchAndConvertLogo = async () => {
             setIsLogoLoading(true);
