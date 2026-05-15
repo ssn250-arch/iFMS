@@ -898,7 +898,7 @@ import './index.css';
                 const tPergiFormat = formData.tarikhPergi ? formData.tarikhPergi.split('-').reverse().join('/') : '';
                 const tBalikFormat = formData.tarikhBalik ? formData.tarikhBalik.split('-').reverse().join('/') : '';
 
-                doc.autoTable({
+                autoTable(doc, {
                     startY: currentY + 3, margin: { left: 18, right: 18 },
                     head: [['Tempat', 'Perihal Tugas', 'Tarikh Pergi', 'Tarikh Balik', 'Kilometer\nSehala (km)']],
                     body: [ [val(formData.tempat), val(formData.tujuan), val(tPergiFormat), val(tBalikFormat), val(formData.km)] ],
@@ -966,7 +966,7 @@ import './index.css';
 
                 const upperVal = (text) => val(text).toUpperCase();
 
-                doc.autoTable({
+                autoTable(doc,{
                     startY: currentY + 5, margin: { left: 10, right: 10 }, theme: 'grid',
                     styles: { font: 'helvetica', fontSize: 8.5, textColor: [0, 0, 0], lineColor: [0, 0, 0], lineWidth: 0.2, valign: 'middle', cellPadding: 2.5 },
                     columnStyles: { 0: { cellWidth: 45 }, 1: { cellWidth: 55 }, 2: { cellWidth: 30 }, 3: { cellWidth: 42 }, 4: { cellWidth: 18, halign: 'center' } },
@@ -1035,7 +1035,7 @@ import './index.css';
                 const fPTFormat = formData.flightPergiTarikh ? formData.flightPergiTarikh.split('-').reverse().join('/') : '';
                 const fBTFormat = formData.flightBalikTarikh ? formData.flightBalikTarikh.split('-').reverse().join('/') : '';
 
-                doc.autoTable({
+                autoTable(doc,{
                     startY: 145, margin: { left: 15, right: 15 }, theme: 'grid',
                     headStyles: { fillColor: [210, 210, 210], textColor: [0, 0, 0], halign: 'center', valign: 'middle', lineColor: [0,0,0], lineWidth: 0.3 },
                     bodyStyles: { textColor: [0, 0, 0], halign: 'center', valign: 'middle', lineColor: [0,0,0], lineWidth: 0.3 },
@@ -1305,7 +1305,7 @@ import './index.css';
                     return [isTicked ? '/' : '', role];
                 });
 
-                doc.autoTable({
+                autoTable(doc,{
                     startY: currentY,
                     margin: { left: 20, right: 20 },
                     theme: 'grid',
@@ -1391,7 +1391,7 @@ import './index.css';
                 doc.text(splitPengawas, 63, currentY);
                 currentY += (splitPengawas.length * 5) + 5;
 
-                doc.autoTable({
+                autoTable(doc,{
                     startY: currentY,
                     margin: { left: 15, right: 15 },
                     theme: 'grid',
