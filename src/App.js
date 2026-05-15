@@ -3,7 +3,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import './index.css';
 
-const formInputClass = "block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-[15px] font-semibold text-slate-800 shadow-sm transition-all duration-300 placeholder:text-slate-400 placeholder:font-medium focus:border-blue-500 focus:outline-none focus:ring-[4px] focus:ring-blue-500/10 hover:border-slate-300";
+        const formInputClass = "block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-[15px] font-semibold text-slate-800 shadow-sm transition-all duration-300 placeholder:text-slate-400 placeholder:font-medium focus:border-blue-500 focus:outline-none focus:ring-[4px] focus:ring-blue-500/10 hover:border-slate-300";
         const formLabelClass = "block text-[13px] font-bold uppercase tracking-wider text-slate-500 mb-2 ml-1";
         
         const unitOptions = [
@@ -656,7 +656,11 @@ const formInputClass = "block w-full rounded-2xl border border-slate-200 bg-whit
 
             const jumlahHari = calculateDays(formData.tarikhPergi, formData.tarikhBalik);
 
-            const getJSPDF = () => window.jspdf && window.jspdf.jsPDF ? window.jspdf.jsPDF : null;
+            const getJSPDF = () => {
+                if (window.jspdf && window.jspdf.jsPDF) return window.jspdf.jsPDF;
+                if (window.jsPDF) return window.jsPDF;
+                return null;
+            };
             const val = (text) => (text && text.toString().trim() !== '') ? text : '-';
 
             // ================== LOGIK TANDATANGAN DIGITAL ==================
@@ -894,7 +898,7 @@ const formInputClass = "block w-full rounded-2xl border border-slate-200 bg-whit
                 const tPergiFormat = formData.tarikhPergi ? formData.tarikhPergi.split('-').reverse().join('/') : '';
                 const tBalikFormat = formData.tarikhBalik ? formData.tarikhBalik.split('-').reverse().join('/') : '';
 
-                autoTable(doc,{
+                doc.autoTable({
                     startY: currentY + 3, margin: { left: 18, right: 18 },
                     head: [['Tempat', 'Perihal Tugas', 'Tarikh Pergi', 'Tarikh Balik', 'Kilometer\nSehala (km)']],
                     body: [ [val(formData.tempat), val(formData.tujuan), val(tPergiFormat), val(tBalikFormat), val(formData.km)] ],
@@ -962,7 +966,7 @@ const formInputClass = "block w-full rounded-2xl border border-slate-200 bg-whit
 
                 const upperVal = (text) => val(text).toUpperCase();
 
-                autoTable(doc, {
+                doc.autoTable({
                     startY: currentY + 5, margin: { left: 10, right: 10 }, theme: 'grid',
                     styles: { font: 'helvetica', fontSize: 8.5, textColor: [0, 0, 0], lineColor: [0, 0, 0], lineWidth: 0.2, valign: 'middle', cellPadding: 2.5 },
                     columnStyles: { 0: { cellWidth: 45 }, 1: { cellWidth: 55 }, 2: { cellWidth: 30 }, 3: { cellWidth: 42 }, 4: { cellWidth: 18, halign: 'center' } },
@@ -1031,7 +1035,7 @@ const formInputClass = "block w-full rounded-2xl border border-slate-200 bg-whit
                 const fPTFormat = formData.flightPergiTarikh ? formData.flightPergiTarikh.split('-').reverse().join('/') : '';
                 const fBTFormat = formData.flightBalikTarikh ? formData.flightBalikTarikh.split('-').reverse().join('/') : '';
 
-                autoTable(doc, {
+                doc.autoTable({
                     startY: 145, margin: { left: 15, right: 15 }, theme: 'grid',
                     headStyles: { fillColor: [210, 210, 210], textColor: [0, 0, 0], halign: 'center', valign: 'middle', lineColor: [0,0,0], lineWidth: 0.3 },
                     bodyStyles: { textColor: [0, 0, 0], halign: 'center', valign: 'middle', lineColor: [0,0,0], lineWidth: 0.3 },
@@ -1301,7 +1305,7 @@ const formInputClass = "block w-full rounded-2xl border border-slate-200 bg-whit
                     return [isTicked ? '/' : '', role];
                 });
 
-                autoTable({
+                doc.autoTable({
                     startY: currentY,
                     margin: { left: 20, right: 20 },
                     theme: 'grid',
