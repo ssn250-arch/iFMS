@@ -1449,7 +1449,7 @@ import './index.css';
                 doc.text("Tarikh : " + tDate, 15, currentY);
             };
 
-                const handleGenerateAll = () => {
+        const handleGenerateAll = () => {
         if (isLogoLoading) {
             showNotification("Sistem sedang memuatkan logo Jata Negara. Sila cuba sebentar lagi...", "error");
             return;
@@ -1459,66 +1459,80 @@ import './index.css';
         setIsGenerating(true);
 
         setTimeout(() => {
-            try {
-                // Pembetulan: Gunakan constructor jsPDF secara langsung
-                const doc = new jsPDF({ format: 'a4' });
-                
-                if (activeForm === 'cuti') {
-                    generateFormCuti(doc);
-                    const namaFail = formData.nama ? `Borang_Cuti_${formData.nama.replace(/\s+/g, '_')}.pdf` : 'Borang_Cuti.pdf';
-                    doc.save(namaFail);
-                    showNotification("Borang Cuti (Manual) berjaya dijana!");
-                } else if (activeForm === 'akujanji') {
-                    generateFormAkujanji(doc, preloadedLogo);
-                    const namaFail = formData.nama ? `Akujanji_Peperiksaan_${formData.nama.replace(/\s+/g, '_')}.pdf` : 'Akujanji_Peperiksaan.pdf';
-                    doc.save(namaFail);
-                    showNotification("Surat Akujanji Integriti berjaya dijana!");
-                } else {
-                    generateForm1(doc, preloadedLogo);
-                    const isTugasGanti = formData.subjek.trim() !== '' || formData.namaPengganti.trim() !== '';
-                    if (isTugasGanti && formData.namaPengganti !== 'TIADA PENGGANTI') {
-                        doc.addPage();
-                        generateForm2(doc, preloadedLogo);
-                    }
+                    try {
+                        const doc = new jsPDF({ format: 'a4' });
+                        
+                        if (activeForm === 'cuti') {
+                            generateFormCuti(doc);
+                            const namaFail = formData.nama ? `Borang_Cuti_${formData.nama.replace(/\s+/g, '_')}.pdf` : 'Borang_Cuti.pdf';
+                            doc.save(namaFail);
+                            showNotification("Borang Cuti (Manual) berjaya dijana!");
+                        } else if (activeForm === 'akujanji') {
+                            generateFormAkujanji(doc, preloadedLogo);
+                            const namaFail = formData.nama ? `Akujanji_Peperiksaan_${formData.nama.replace(/\s+/g, '_')}.pdf` : 'Akujanji_Peperiksaan.pdf';
+                            doc.save(namaFail);
+                            showNotification("Surat Akujanji Integriti berjaya dijana!");
+                        } else if (activeForm === 'laporan') {
+                            generateFormLaporan(doc, preloadedLogo);
+                            const namaFail = formData.nama ? `Laporan_Peperiksaan_${formData.nama.replace(/\s+/g, '_')}.pdf` : 'Laporan_Peperiksaan.pdf';
+                            doc.save(namaFail);
+                            showNotification("Laporan Pelaksanaan Peperiksaan berjaya dijana!");
+                        } else {
+                            generateForm1(doc, preloadedLogo);
+                            
+                            const isTugasGanti = formData.subjek.trim() !== '' || formData.namaPengganti.trim() !== '';
+                            if (isTugasGanti && formData.namaPengganti !== 'TIADA PENGGANTI') {
+                                doc.addPage();
+                                generateForm2(doc, preloadedLogo);
+                            }
 
-                    if (formData.caraPerjalanan === 'Kapal Terbang') {
-                        doc.addPage();
-                        generateForm3(doc); 
+                            if (formData.caraPerjalanan === 'Kapal Terbang') {
+                                doc.addPage();
+                                generateForm3(doc); 
+                            }
+                            
+                            const namaFail = formData.nama ? `Borang_TugasRasmi_${formData.nama.replace(/\s+/g, '_')}.pdf` : 'Borang_TugasRasmi.pdf';
+                            doc.save(namaFail);
+                            showNotification("Semua dokumen rasmi berjaya disatukan ke dalam 1 fail PDF!");
+                        }
+                        setIsGenerating(false);
+
+                        // ===== LOGIK AUTO RESET SELEPAS BERJAYA JANA =====
+                        setTimeout(() => {
+                            setFormData(prev => ({
+                                ...prev,
+                                // Kekalkan profil (nama, jawatan, bahagian, nokp, notel), reset ruangan borang sahaja
+                                tujuan: '', tempat: '', tarikhPergi: today, tarikhBalik: today, km: '', caraPerjalanan: 'Kereta Sendiri', 
+                                sebab1: false, sebab2: false, sebab3: false, tuntutanBatu: false, tuntutanGantian: false, noKenderaan: '',
+                                subjek: '', semester: '', tarikhGantiDari: today, tarikhGantiHingga: today, catatanTugas: '', namaPengganti: '', bahagianPengganti: '', noTelPengganti: '', jenisAmbilAlih: 'Ambil alih subjek / tugas sepenuhnya',
+                                flightPergiTarikh: today, flightPergiMasa: '', flightPergiDari: '', flightPergiKe: '',
+                                flightBalikTarikh: today, flightBalikMasa: '', flightBalikDari: '', flightBalikKe: '', kodSyarikat: '', enrichId: '',
+                                jenisCuti: 'Cuti Rehat', cutiDari: today, cutiHingga: today, catatanCuti: '', ketuaSokongan: '', pegawaiPelulus: '',
+                                perananPeperiksaan: [], tandatangan: null,
+                                sesiPeperiksaan: '', tarikhPeperiksaan: today, namaPengawasLain: '', q1Status: 'YA', q1Catatan: '', q2Status: 'TIDAK', q2Catatan: '', q3Status: 'YA', q3Catatan: '', cadanganPeperiksaan: ''
+                            }));
+                            
+                            // Padam kanvas tandatangan
+                            const canvas = canvasRef.current;
+                            if(canvas) {
+                                const ctx = canvas.getContext('2d');
+                                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                            }
+                            
+                            // Kembali ke halaman utama dan reset section yang terbuka
+                            setActiveForm(null); 
+                            setExpanded({ pegawai: true, tugas: false, pengganti: false, tiket: false, cuti: false, peranan: false, tandatangan: false, laporanInfo: false, laporanSoalan: false });
+                            
+                            showNotification("Borang telah direset untuk permohonan baharu.", "success");
+                        }, 2500); // Tunggu 2.5 saat sebelum reset
+                        
+                    } catch (error) {
+                        console.error(error);
+                        setIsGenerating(false);
+                        showNotification("Ralat berlaku semasa menjana fail.", "error");
                     }
-                    
-                    const namaFail = formData.nama ? `Borang_TugasRasmi_${formData.nama.replace(/\s+/g, '_')}.pdf` : 'Borang_TugasRasmi.pdf';
-                    doc.save(namaFail);
-                    showNotification("Semua dokumen rasmi berjaya disatukan ke dalam 1 fail PDF!");
-                }
-                setIsGenerating(false);
-                setTimeout(() => {
-                    setFormData(prev => ({
-                        ...prev,
-                        tujuan: '', tempat: '', tarikhPergi: today, tarikhBalik: today, km: '', caraPerjalanan: 'Kereta Sendiri', 
-                        sebab1: false, sebab2: false, sebab3: false, tuntutanBatu: false, tuntutanGantian: false, noKenderaan: '',
-                        subjek: '', semester: '', tarikhGantiDari: today, tarikhGantiHingga: today, catatanTugas: '', namaPengganti: '', bahagianPengganti: '', noTelPengganti: '', jenisAmbilAlih: 'Ambil alih subjek / tugas sepenuhnya',
-                        flightPergiTarikh: today, flightPergiMasa: '', flightPergiDari: '', flightPergiKe: '',
-                        flightBalikTarikh: today, flightBalikMasa: '', flightBalikDari: '', flightBalikKe: '', kodSyarikat: '', enrichId: '',
-                        jenisCuti: 'Cuti Rehat', cutiDari: today, cutiHingga: today, catatanCuti: '', ketuaSokongan: '', pegawaiPelulus: '',
-                        perananPeperiksaan: [], tandatangan: null 
-                    }));
-                    const canvas = canvasRef.current;
-                    if(canvas) {
-                        const ctx = canvas.getContext('2d');
-                        ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    }
-                    setActiveForm(null);
-                    setExpanded({ pegawai: true, tugas: false, pengganti: false, tiket: false, cuti: false, peranan: false, tandatangan: false });
-                    showNotification("Borang telah direset untuk permohonan baharu.", "success");
-                }, 2500);
-                
-            } catch (error) {
-                console.error(error);
-                setIsGenerating(false);
-                showNotification("Ralat berlaku semasa menjana fail.", "error");
-            }
-        }, 150);
-  };
+                }, 150);
+            };
 
             const LockIcon = () => (
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
