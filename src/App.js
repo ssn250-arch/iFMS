@@ -171,7 +171,7 @@ const malaysiaAirports = [
     { code: 'JED', name: 'Jeddah' }
 ];
 
-// ================== FEEDBACK BUTTON - SIMBOL SAHAJA, RESPONSIF ==================
+// =// ================== FEEDBACK BUTTON - SIMBOL SAHAJA, RESPONSIF ==================
 const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbx4KY1reUKH5lDJtFepwO-37TeS5v8B3T4vtDOIr-3TJaEauz9thXtoJXuyg1YrIzhb9g/exec"; // GANTI DENGAN URL ANDA
 
 const FeedbackButton = () => {
@@ -180,13 +180,11 @@ const FeedbackButton = () => {
   const [feedbackEmail, setFeedbackEmail] = useState('');
   const [feedbackMessage, setFeedbackMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // Kedudukan awal di sudut kanan bawah, dengan ruang dari tepi
-  const [position, setPosition] = useState(() => ({
-    x: window.innerWidth - 80,   // 80px dari kanan
-    y: window.innerHeight - 100  // 100px dari bawah
-  }));
+  
+  // Hanya simpan kedudukan Y, paksi X dikunci di sebelah kanan dengan CSS
+  const [positionY, setPositionY] = useState(() => window.innerHeight - 100);
   const [isDragging, setIsDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [dragOffsetY, setDragOffsetY] = useState(0);
 
   const generateFeedbackContent = (name, email, message, timestamp) => {
     const content = `========================================
@@ -239,40 +237,49 @@ ${message}
     setIsSubmitting(false);
   };
 
-  // --- Drag functions (responsive untuk sentuhan) ---
+  // --- Drag functions (hanya untuk Paksi-Y / Atas & Bawah) ---
   const onMouseDown = (e) => {
     if (e.target.closest('.feedback-modal')) return;
     setIsDragging(true);
-    const clientX = e.clientX ?? e.touches?.[0]?.clientX;
     const clientY = e.clientY ?? e.touches?.[0]?.clientY;
-    if (clientX && clientY) setDragOffset({ x: clientX - position.x, y: clientY - position.y });
+    if (clientY) setDragOffsetY(clientY - positionY);
     e.preventDefault();
   };
+
   const onMouseMove = (e) => {
     if (!isDragging) return;
-    const clientX = e.clientX ?? e.touches?.[0]?.clientX;
     const clientY = e.clientY ?? e.touches?.[0]?.clientY;
-    if (!clientX || !clientY) return;
-    let newX = clientX - dragOffset.x;
-    let newY = clientY - dragOffset.y;
-    // Hadkan agar tidak terkeluar skrin (dengan padding)
-    newX = Math.min(Math.max(newX, 10), window.innerWidth - 70);
+    if (!clientY) return;
+    let newY = clientY - dragOffsetY;
+    
+    // Hadkan agar tidak terkeluar skrin di atas atau bawah
     newY = Math.min(Math.max(newY, 10), window.innerHeight - 80);
-    setPosition({ x: newX, y: newY });
+    setPositionY(newY);
   };
+
   const onMouseUp = () => setIsDragging(false);
+
   useEffect(() => {
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
     window.addEventListener('touchmove', onMouseMove);
     window.addEventListener('touchend', onMouseUp);
+    
+    // Kemaskini posisi jika saiz tingkap berubah
+    const handleResize = () => {
+      setPositionY((prev) => Math.min(prev, window.innerHeight - 80));
+    };
+    window.addEventListener('resize', handleResize);
+
     return () => {
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
       window.removeEventListener('touchmove', onMouseMove);
       window.removeEventListener('touchend', onMouseUp);
+      window.removeEventListener('resize', handleResize);
     };
-  }, [isDragging, dragOffset]);
+  }, [isDragging, dragOffsetY]);
+
   useEffect(() => {
     const handleEsc = (e) => { if (e.key === 'Escape' && isModalOpen) setIsModalOpen(false); };
     window.addEventListener('keydown', handleEsc);
@@ -287,16 +294,14 @@ ${message}
         onClick={() => setIsModalOpen(true)}
         style={{
           position: 'fixed',
-          left: position.x,
-          top: position.y,
+          right: '20px', // Dikunci pada sebelah kanan
+          top: positionY, // Boleh diubah ke atas/bawah
           zIndex: 9999,
           cursor: isDragging ? 'grabbing' : 'grab',
-          // Pastikan butang sentiasa di atas
         }}
         className="feedback-button group"
       >
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full p-3 md:p-3.5 shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center hover:scale-105 active:scale-95">
-          {/* Ikon mesej - responsif, saiz 24px pada desktop, 28px pada mobile */}
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 md:w-7 md:h-7">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
             <path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/>
@@ -304,7 +309,7 @@ ${message}
         </div>
       </div>
 
-      {/* MODAL - responsif dengan lebar 90% pada mobile, maks 400px */}
+      {/* MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
           <div className="bg-white rounded-2xl shadow-2xl w-[90%] max-w-md overflow-hidden">
@@ -335,7 +340,7 @@ ${message}
                   <><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Hantar Maklum Balas</>
                 )}
               </button>
-              <p className="text-[10px] md:text-[11px] text-slate-400 text-center">Maklum balas akan dih terus ke folder Google Drive jabatan (format .txt).</p>
+              <p className="text-[10px] md:text-[11px] text-slate-400 text-center">Maklum balas akan dihantar terus ke folder Google Drive jabatan (format .txt).</p>
             </div>
           </div>
         </div>
