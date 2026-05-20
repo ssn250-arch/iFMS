@@ -257,9 +257,12 @@ const FeedbackButton = () => {
     setIsSubmitting(false);
   };
 
+  const toggleModal = () => setIsModalOpen(!isModalOpen);
+
   // --- Drag functions (Paksi-Y Sahaja) ---
   const onMouseDown = (e) => {
-    if (e.target.closest('.feedback-modal')) return;
+    // Halang seretan jika sedang klik modal atau butang tutup
+    if (e.target.closest('.feedback-modal') || e.target.closest('.close-button')) return;
     setIsDragging(true);
     const clientY = e.clientY ?? e.touches?.[0]?.clientY;
     if (clientY) setDragOffsetY(clientY - positionY);
@@ -303,11 +306,10 @@ const FeedbackButton = () => {
 
   return (
     <>
-      {/* BUTANG APUNG (FLOATING BUTTON) */}
+      {/* BUTANG APUNG (FLOATING BUTTON) DENGAN ANIMASI MODEN & PROFESIONAL */}
       <div
         onMouseDown={onMouseDown}
         onTouchStart={onMouseDown}
-        onClick={() => setIsModalOpen(true)}
         style={{
           position: 'fixed',
           right: '24px',
@@ -315,17 +317,34 @@ const FeedbackButton = () => {
           zIndex: 9999,
           cursor: isDragging ? 'grabbing' : 'grab',
         }}
-        className="group flex items-center justify-center"
+        className="group flex items-center gap-2 feedback-floating-button"
       >
-        <div className="bg-blue-600 text-white rounded-full p-3.5 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgb(37,99,235,0.3)] hover:bg-blue-700 hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center relative">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            <path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/>
-          </svg>
-        </div>
+        <button
+          onClick={toggleModal}
+          className="bg-blue-600 text-white rounded-full p-4 shadow-[0_8px_30px_rgb(0,0,0,0.15)] hover:shadow-[0_8px_30px_rgb(37,99,235,0.4)] hover:bg-blue-700 transition-all duration-300 flex items-center justify-center relative overflow-hidden group-hover:pl-5 group-hover:pr-5 group-hover:gap-2 group-hover:rounded-2xl"
+          aria-label={isModalOpen ? 'Tutup Maklum Balas' : 'Buka Maklum Balas'}
+        >
+          {/* Ikon Dinamik: Mesej -> Tutup (X) dengan Animasi Putaran */}
+          <div className={`relative w-6 h-6 transform transition-transform duration-500 ${isModalOpen ? 'rotate-180' : ''}`}>
+            {/* Ikon Mesej - Sembunyi bila modal terbuka */}
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`absolute inset-0 w-6 h-6 transition-opacity duration-300 ${isModalOpen ? 'opacity-0 scale-0' : 'opacity-100 scale-100'}`}>
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              <path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/>
+            </svg>
+            {/* Ikon Tutup (X) - Muncul bila modal terbuka */}
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`absolute inset-0 w-6 h-6 transition-opacity duration-300 close-button ${isModalOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-0'}`}>
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </div>
+
+          {/* Label Teks Moden: Muncul dari Butang bila Hover */}
+          <span className="text-sm font-semibold opacity-0 max-w-0 group-hover:opacity-100 group-hover:max-w-xs transition-all duration-500 whitespace-nowrap overflow-hidden">
+            {isModalOpen ? 'Tutup' : 'Maklum Balas'}
+          </span>
+        </button>
       </div>
 
-      {/* MODAL MAKLUM BALAS */}
+      {/* MODAL MAKLUM BALAS (Moden & Profesional - Kekal) */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-fade-in feedback-modal">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100 flex flex-col">
@@ -339,9 +358,9 @@ const FeedbackButton = () => {
                 <h2 className="text-lg font-semibold text-slate-800">Hantar Maklum Balas</h2>
               </div>
               <button 
-                onClick={() => setIsModalOpen(false)} 
-                className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-2 rounded-full transition-colors"
-                aria-label="Tutup"
+                onClick={toggleModal} 
+                className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-2 rounded-full transition-colors close-button"
+                aria-label="Tutup Modal"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
@@ -398,9 +417,9 @@ const FeedbackButton = () => {
 
             {/* FOOTER & BUTANG HANTAR */}
             <div className="px-6 py-4 border-t border-slate-100 bg-white flex flex-col md:flex-row items-center justify-between gap-4">
-              <span className="text-[11px] text-slate-400 flex items-center gap-1.5">
+              <span className="text-[11px] text-slate-400 flex items-center gap-1.5 whitespace-nowrap">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                Disulitkan & Disimpan sebagai PDF
+                PDF Disulitkan & Disimpan
               </span>
               
               <button 
