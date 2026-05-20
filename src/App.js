@@ -173,7 +173,7 @@ const malaysiaAirports = [
 
 // ================== KOMPONEN FEEDBACK (TAMBAHAN BARU) ==================
 // GANTIKAN URL INI DENGAN URL WEB APP ANDA DARI GOOGLE APPS SCRIPT
-const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbwG1tinBadc57AAQWWlwQ3UeMiD0zU0fs_O6x0qEJy3phy8dZpHWGiUZ6FA5A7GcHpkqQ/exec; // <-- GANTI DENGAN URL ANDA
+const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbwG1tinBadc57AAQWWlwQ3UeMiD0zU0fs_O6x0qEJy3phy8dZpHWGiUZ6FA5A7GcHpkqQ/exec"; // <-- GANTI DENGAN URL ANDA
 
 const FeedbackButton = () => {
   const [showFeedback, setShowFeedback] = useState(false);
