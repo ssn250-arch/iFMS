@@ -172,7 +172,7 @@ const malaysiaAirports = [
 ];
 
 // ========== KOMPONEN FEEDBACK YANG DIPERBAIKI ==========
-const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbzIBloFOzTwV0wHUP56xZbuDVYlYxPk4KufGZ1Rfj_1sIwANCfMRFh9D93VMH8EXeiDKQ/exec"; // GANTI DENGAN URL APPS SCRIPT ANDA
+const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbxJEtBdvd0aj4zsKZmWZiR3lLaZhu7SipxJQiplazXpXgsTOygxo_0I1UyMv10eSBOM1A/exec"; // GANTI DENGAN URL APPS SCRIPT ANDA
 
 const FeedbackButton = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -204,21 +204,30 @@ const FeedbackButton = () => {
   };
 
   const sendToGoogleDrive = async (pdfBlob, filename) => {
-    const formData = new FormData();
-    formData.append('file', pdfBlob, filename);
-    formData.append('filename', filename);
+  const formData = new FormData();
+  formData.append('file', pdfBlob, filename);
+  formData.append('filename', filename);
+  try {
+    const response = await fetch("https://script.google.com/macros/s/AKfycbxJEtBdvd0aj4zsKZmWZiR3lLaZhu7SipxJQiplazXpXgsTOygxo_0I1UyMv10eSBOM1A/exec", {
+      method: 'POST',
+      mode: 'cors',
+      body: formData
+    });
+    const text = await response.text(); // first get text
+    console.log("Response text:", text);
+    let result;
     try {
-      await fetch(GOOGLE_DRIVE_FEEDBACK_URL, {
-        method: 'POST',
-        mode: 'no-cors', // Elak CORS error, data tetap dihantar
-        body: formData
-      });
-      return true;
-    } catch (error) {
-      console.error("Fetch error:", error);
+      result = JSON.parse(text);
+    } catch (e) {
+      console.error("Failed to parse JSON:", text);
       return false;
     }
-  };
+    return result && result.success === true;
+  } catch (error) {
+    console.error("Fetch error:", error);
+    return false;
+  }
+};
 
   const handleSubmit = async () => {
     if (!feedbackMessage.trim()) {
