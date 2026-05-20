@@ -171,8 +171,8 @@ const malaysiaAirports = [
     { code: 'JED', name: 'Jeddah' }
 ];
 
-// ================== FEEDBACK BUTTON (TXT) - LENGKAP ==================
-const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbxVwFUN7FvD-hBZQMcOWdh2_EmDKIit8dA66EyVhM375e_kFjoC-6EksRdQNCaq1kAm0A/exec"; // GANTI
+// ================== FEEDBACK BUTTON - JSON VERSION (AUTO SEND) ==================
+const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbyOlNCt3ZCkTCCQhQ1mEA-NSrR-27zJ_b-QpPhQKH_c7BVxv1HXqTTIBTWPQ40QQ4jxfQ/exec"; // GANTI DENGAN URL ANDA
 
 const FeedbackButton = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -184,7 +184,7 @@ const FeedbackButton = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
-  const generateFeedbackText = (name, email, message, timestamp) => {
+  const generateFeedbackContent = (name, email, message, timestamp) => {
     const content = `========================================
 MAKLUM BALAS PENGGUNA - iFMS
 ========================================
@@ -196,25 +196,24 @@ Komen / Maklum Balas:
 ${message}
 ========================================
 `;
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
     const filename = `feedback_${timestamp.replace(/[ :]/g, '_')}.txt`;
-    return { blob, filename };
+    return { content, filename };
   };
 
-  const sendToGoogleDrive = async (textBlob, filename) => {
-    const formData = new FormData();
-    formData.append('file', textBlob, filename);
-    formData.append('filename', filename);
+  const sendToGoogleDrive = async (content, filename) => {
+    const payload = { filename, content };
     try {
       const response = await fetch(GOOGLE_DRIVE_FEEDBACK_URL, {
         method: 'POST',
         mode: 'cors',
-        body: formData
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
       });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const result = await response.json();
       return result.success === true;
     } catch (error) {
-      console.error("Fetch error:", error);
+      console.error("Send error:", error);
       return false;
     }
   };
@@ -227,33 +226,21 @@ ${message}
     setIsSubmitting(true);
     const now = new Date();
     const timestamp = now.toLocaleString('ms-MY', { timeZone: 'Asia/Kuala_Lumpur' });
-    const { blob, filename } = generateFeedbackText(feedbackName, feedbackEmail, feedbackMessage, timestamp);
-    const success = await sendToGoogleDrive(blob, filename);
+    const { content, filename } = generateFeedbackContent(feedbackName, feedbackEmail, feedbackMessage, timestamp);
+    const success = await sendToGoogleDrive(content, filename);
     if (success) {
-      alert("Maklum balas anda telah dihantar. Terima kasih!");
+      alert("✓ Maklum balas anda telah dihantar ke Google Drive. Terima kasih!");
       setFeedbackName('');
       setFeedbackEmail('');
       setFeedbackMessage('');
       setIsModalOpen(false);
     } else {
-      const download = window.confirm("Gagal menghantar ke pelayan. Adakah anda ingin memuat turun fail .txt untuk dihantar secara manual?");
-      if (download) {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        alert("Fail teks telah dimuat turun. Sila hantar ke jabatan pentadbiran.");
-      }
-      setIsModalOpen(false);
+      alert("✗ Gagal menghantar maklum balas. Sila cuba sebentar lagi.\n\nPastikan URL Google Apps Script betul dan folder wujud.");
     }
     setIsSubmitting(false);
   };
 
-  // Drag functions
+  // --- Drag functions (sama seperti sebelumnya) ---
   const onMouseDown = (e) => {
     if (e.target.closest('.feedback-modal')) return;
     setIsDragging(true);
@@ -321,7 +308,7 @@ ${message}
               <button onClick={handleSubmit} disabled={isSubmitting} className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-70">
                 {isSubmitting ? <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> : <><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Hantar Maklum Balas</>}
               </button>
-              <p className="text-[11px] text-slate-400 text-center">Maklum balas akan dihantar ke folder Google Drive jabatan (format .txt).</p>
+              <p className="text-[11px] text-slate-400 text-center">Maklum balas akan dih terus ke folder Google Drive jabatan (format .txt).</p>
             </div>
           </div>
         </div>
