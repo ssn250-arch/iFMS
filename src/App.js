@@ -173,7 +173,7 @@ const malaysiaAirports = [
 
 // ================== KOMPONEN FEEDBACK (TAMBAHAN BARU) ==================
 // GANTIKAN URL INI DENGAN URL WEB APP ANDA DARI GOOGLE APPS SCRIPT
-const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbwG1tinBadc57AAQWWlwQ3UeMiD0zU0fs_O6x0qEJy3phy8dZpHWGiUZ6FA5A7GcHpkqQ/exec"; // <-- GANTI DENGAN URL ANDA
+const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbzYP45ElvogJ8lRX7OOGjlmiiOJdXKL8EDi1ct8oTkZyxZJqLxOO8ilo6slfAIC4AnZjg/exec"; // <-- GANTI DENGAN URL ANDA
 
 const FeedbackButton = () => {
   const [showFeedback, setShowFeedback] = useState(false);
@@ -212,8 +212,18 @@ const FeedbackButton = () => {
     formData.append('file', pdfBlob, filename);
     formData.append('filename', filename);
     try {
-      await fetch(GOOGLE_DRIVE_FEEDBACK_URL, { method: 'POST', mode: 'no-cors', body: formData });
-      return true;
+      const response = await fetch(GOOGLE_DRIVE_FEEDBACK_URL, {
+        method: 'POST',
+        mode: 'cors',
+        body: formData
+      });
+      if (response.ok) {
+        const result = await response.json();
+        return result.success === true;
+      } else {
+        console.error("Server responded with status:", response.status);
+        return false;
+      }
     } catch (error) {
       console.error("Error sending to Google Drive:", error);
       return false;
@@ -238,22 +248,30 @@ const FeedbackButton = () => {
       setFeedbackMessage('');
       setShowFeedback(false);
     } else {
-      alert("Gagal menghantar maklum balas. Sila cuba sebentar lagi atau hubungi pentadbir.");
+      alert("Gagal menghantar maklum balas. Sila cuba sebentar lagi atau hubungi pentadbir.\n\nPastikan URL Google Apps Script telah ditetapkan dengan betul dan folder Google Drive boleh ditulis.");
     }
     setIsSubmitting(false);
   };
 
+  // Fungsi drag dengan sokongan touch
   const onMouseDown = (e) => {
     if (e.target.closest('.feedback-card')) return;
     setIsDragging(true);
-    setDragOffset({ x: e.clientX - position.x, y: e.clientY - position.y });
+    const clientX = e.clientX ?? e.touches?.[0]?.clientX;
+    const clientY = e.clientY ?? e.touches?.[0]?.clientY;
+    if (clientX !== undefined && clientY !== undefined) {
+      setDragOffset({ x: clientX - position.x, y: clientY - position.y });
+    }
     e.preventDefault();
   };
 
   const onMouseMove = (e) => {
     if (!isDragging) return;
-    let newX = e.clientX - dragOffset.x;
-    let newY = e.clientY - dragOffset.y;
+    const clientX = e.clientX ?? e.touches?.[0]?.clientX;
+    const clientY = e.clientY ?? e.touches?.[0]?.clientY;
+    if (clientX === undefined || clientY === undefined) return;
+    let newX = clientX - dragOffset.x;
+    let newY = clientY - dragOffset.y;
     newX = Math.min(Math.max(newX, 10), window.innerWidth - 80);
     newY = Math.min(Math.max(newY, 10), window.innerHeight - 80);
     setPosition({ x: newX, y: newY });
@@ -264,9 +282,13 @@ const FeedbackButton = () => {
   useEffect(() => {
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
+    window.addEventListener('touchmove', onMouseMove);
+    window.addEventListener('touchend', onMouseUp);
     return () => {
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener('touchmove', onMouseMove);
+      window.removeEventListener('touchend', onMouseUp);
     };
   }, [isDragging, dragOffset]);
 
@@ -292,6 +314,7 @@ const FeedbackButton = () => {
       <div
         ref={buttonRef}
         onMouseDown={onMouseDown}
+        onTouchStart={onMouseDown}
         onMouseEnter={handleMouseEnterButton}
         onMouseLeave={handleMouseLeaveButton}
         style={{ position: 'fixed', left: position.x, top: position.y, zIndex: 9999, cursor: isDragging ? 'grabbing' : 'grab' }}
