@@ -171,8 +171,8 @@ const malaysiaAirports = [
     { code: 'JED', name: 'Jeddah' }
 ];
 
-// ================== KOMPONEN FEEDBACK MODAL MODEN (CORS-FRIENDLY) ==================
-const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbzij9npiG3O34PMubfhUQFcxDltqYVS4Uky7OuIICxr8v4ppnMVPgmppUq_t7ym0Fa9CA/exec"; // GANTI DENGAN URL ANDA
+// ========== KOMPONEN FEEDBACK YANG DIPERBAIKI ==========
+const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbzIBloFOzTwV0wHUP56xZbuDVYlYxPk4KufGZ1Rfj_1sIwANCfMRFh9D93VMH8EXeiDKQ/exec"; // GANTI DENGAN URL APPS SCRIPT ANDA
 
 const FeedbackButton = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -210,7 +210,7 @@ const FeedbackButton = () => {
     try {
       await fetch(GOOGLE_DRIVE_FEEDBACK_URL, {
         method: 'POST',
-        mode: 'no-cors', // Ini elakkan ralat CORS
+        mode: 'no-cors', // Elak CORS error, data tetap dihantar
         body: formData
       });
       return true;
@@ -221,52 +221,49 @@ const FeedbackButton = () => {
   };
 
   const handleSubmit = async () => {
-  if (!feedbackMessage.trim()) {
-    alert("Sila masukkan komen/maklum balas anda.");
-    return;
-  }
-  setIsSubmitting(true);
-  const now = new Date();
-  const timestamp = now.toLocaleString('ms-MY', { timeZone: 'Asia/Kuala_Lumpur' });
-  const { doc, filename } = generateFeedbackPDF(feedbackName, feedbackEmail, feedbackMessage, timestamp);
-  const pdfBlob = doc.output('blob');
-  const success = await sendToGoogleDrive(pdfBlob, filename);
-  if (success) {
-    alert("Maklum balas anda telah dihantar. Terima kasih!");
-    setFeedbackName('');
-    setFeedbackEmail('');
-    setFeedbackMessage('');
-    setIsModalOpen(false);
-  } else {
-    const download = window.confirm("Gagal menghantar ke pelayan. Adakah anda ingin memuat turun PDF maklum balas untuk dihantar secara manual?");
-    if (download) {
-      const url = URL.createObjectURL(pdfBlob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      alert("PDF telah dimuat turun. Sila hantar ke jabatan pentadbiran.");
+    if (!feedbackMessage.trim()) {
+      alert("Sila masukkan komen/maklum balas anda.");
+      return;
     }
-    setIsModalOpen(false);
-  }
-  setIsSubmitting(false);
-};
+    setIsSubmitting(true);
+    const now = new Date();
+    const timestamp = now.toLocaleString('ms-MY', { timeZone: 'Asia/Kuala_Lumpur' });
+    const { doc, filename } = generateFeedbackPDF(feedbackName, feedbackEmail, feedbackMessage, timestamp);
+    const pdfBlob = doc.output('blob');
+    const success = await sendToGoogleDrive(pdfBlob, filename);
+    if (success) {
+      alert("Maklum balas anda telah dihantar. Terima kasih!");
+      setFeedbackName('');
+      setFeedbackEmail('');
+      setFeedbackMessage('');
+      setIsModalOpen(false);
+    } else {
+      const download = window.confirm("Gagal menghantar ke pelayan. Adakah anda ingin memuat turun PDF maklum balas untuk dihantar secara manual?");
+      if (download) {
+        const url = URL.createObjectURL(pdfBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        alert("PDF telah dimuat turun. Sila hantar ke jabatan pentadbiran.");
+      }
+      setIsModalOpen(false);
+    }
+    setIsSubmitting(false);
+  };
 
-  // --- Fungsi drag ---
+  // --- Fungsi drag (sokongan sentuh & tetikus) ---
   const onMouseDown = (e) => {
     if (e.target.closest('.feedback-modal')) return;
     setIsDragging(true);
     const clientX = e.clientX ?? e.touches?.[0]?.clientX;
     const clientY = e.clientY ?? e.touches?.[0]?.clientY;
-    if (clientX && clientY) {
-      setDragOffset({ x: clientX - position.x, y: clientY - position.y });
-    }
+    if (clientX && clientY) setDragOffset({ x: clientX - position.x, y: clientY - position.y });
     e.preventDefault();
   };
-
   const onMouseMove = (e) => {
     if (!isDragging) return;
     const clientX = e.clientX ?? e.touches?.[0]?.clientX;
@@ -278,9 +275,7 @@ const FeedbackButton = () => {
     newY = Math.min(Math.max(newY, 10), window.innerHeight - 80);
     setPosition({ x: newX, y: newY });
   };
-
   const onMouseUp = () => setIsDragging(false);
-
   useEffect(() => {
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
@@ -293,97 +288,40 @@ const FeedbackButton = () => {
       window.removeEventListener('touchend', onMouseUp);
     };
   }, [isDragging, dragOffset]);
-
   useEffect(() => {
-    const handleEsc = (e) => {
-      if (e.key === 'Escape' && isModalOpen) setIsModalOpen(false);
-    };
+    const handleEsc = (e) => { if (e.key === 'Escape' && isModalOpen) setIsModalOpen(false); };
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, [isModalOpen]);
 
   return (
     <>
-      {/* BUTANG DRAGGABLE */}
       <div
         onMouseDown={onMouseDown}
         onTouchStart={onMouseDown}
         onClick={() => setIsModalOpen(true)}
-        style={{
-          position: 'fixed',
-          left: position.x,
-          top: position.y,
-          zIndex: 9999,
-          cursor: isDragging ? 'grabbing' : 'grab',
-        }}
+        style={{ position: 'fixed', left: position.x, top: position.y, zIndex: 9999, cursor: isDragging ? 'grabbing' : 'grab' }}
         className="feedback-button group"
       >
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full p-3.5 shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center gap-2 hover:scale-105 active:scale-95">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            <path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/>
-          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/></svg>
           <span className="text-sm font-bold hidden md:inline-block">Maklum Balas</span>
         </div>
       </div>
-
-      {/* MODAL MAKLUM BALAS */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all duration-300 scale-100">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 text-white font-bold text-lg flex justify-between items-center">
               <span>📢 Maklum Balas Tanpa Nama</span>
-              <button onClick={() => setIsModalOpen(false)} className="text-white/80 hover:text-white transition">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              </button>
+              <button onClick={() => setIsModalOpen(false)} className="text-white/80 hover:text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
             <div className="p-6 space-y-5">
-              <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200">
-                Anda boleh berkongsi komen, cadangan atau laporan masalah. Semua maklum balas adalah sulit.
-              </p>
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Nama (Pilihan)</label>
-                <input 
-                  type="text" 
-                  value={feedbackName} 
-                  onChange={(e) => setFeedbackName(e.target.value)} 
-                  placeholder="Biarkan kosong untuk tanpa nama" 
-                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Emel (Pilihan)</label>
-                <input 
-                  type="email" 
-                  value={feedbackEmail} 
-                  onChange={(e) => setFeedbackEmail(e.target.value)} 
-                  placeholder="Untuk maklum balas lanjut" 
-                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Komen / Maklum Balas <span className="text-red-500">*</span></label>
-                <textarea 
-                  rows="4" 
-                  value={feedbackMessage} 
-                  onChange={(e) => setFeedbackMessage(e.target.value)} 
-                  placeholder="Sila tulis komen anda di sini..." 
-                  className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm resize-none focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition"
-                />
-              </div>
-              <button 
-                onClick={handleSubmit} 
-                disabled={isSubmitting} 
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
-              >
-                {isSubmitting ? (
-                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-                ) : (
-                  <>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                    Hantar Maklum Balas
-                  </>
-                )}
+              <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded-xl border">Anda boleh berkongsi komen, cadangan atau laporan masalah. Semua maklum balas adalah sulit.</p>
+              <div><label className="block text-xs font-bold text-slate-700 mb-1">Nama (Pilihan)</label><input type="text" value={feedbackName} onChange={(e) => setFeedbackName(e.target.value)} placeholder="Biarkan kosong untuk tanpa nama" className="w-full rounded-xl border px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"/></div>
+              <div><label className="block text-xs font-bold text-slate-700 mb-1">Emel (Pilihan)</label><input type="email" value={feedbackEmail} onChange={(e) => setFeedbackEmail(e.target.value)} placeholder="Untuk maklum balas lanjut" className="w-full rounded-xl border px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"/></div>
+              <div><label className="block text-xs font-bold text-slate-700 mb-1">Komen / Maklum Balas <span className="text-red-500">*</span></label><textarea rows="4" value={feedbackMessage} onChange={(e) => setFeedbackMessage(e.target.value)} placeholder="Sila tulis komen anda di sini..." className="w-full rounded-xl border px-4 py-2.5 text-sm resize-none focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"/></div>
+              <button onClick={handleSubmit} disabled={isSubmitting} className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-70">
+                {isSubmitting ? <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> : <><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Hantar Maklum Balas</>}
               </button>
               <p className="text-[11px] text-slate-400 text-center">Maklum balas akan dihantar ke folder Google Drive jabatan.</p>
             </div>
