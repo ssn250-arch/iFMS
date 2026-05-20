@@ -171,8 +171,8 @@ const malaysiaAirports = [
     { code: 'JED', name: 'Jeddah' }
 ];
 
-// ================== FEEDBACK BUTTON - FINAL (NO-CORS) ==================
-const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbw0AkMFxmgSlOiE1tGBBC_51tW7Oe2torYugnHTrYnBGsxQ2zY1RQ9KKOnIIcNt-Rnu/exec"; // GANTI DENGAN URL ANDA
+// ================== FEEDBACK BUTTON - FINAL (FORM DATA + NO-CORS) ==================
+const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbxEB39pmOaXlQL94LvrfB8tw1919B79Zokk8ErLb8JWvxx-mr5fOoqwXXKauajZ9pQG/exec"; // GANTI DENGAN URL ANDA
 
 const FeedbackButton = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -201,13 +201,14 @@ ${message}
   };
 
   const sendToGoogleDrive = async (content, filename) => {
-    const payload = { filename, content };
+    const formData = new FormData();
+    formData.append('filename', filename);
+    formData.append('content', content);
     try {
       await fetch(GOOGLE_DRIVE_FEEDBACK_URL, {
         method: 'POST',
-        mode: 'no-cors', // penting: elak CORS
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        mode: 'no-cors',
+        body: formData
       });
       return true;
     } catch (error) {
@@ -234,7 +235,7 @@ ${message}
     setIsSubmitting(false);
   };
 
-  // --- Drag functions ---
+  // --- Drag functions (sama seperti sebelumnya) ---
   const onMouseDown = (e) => {
     if (e.target.closest('.feedback-modal')) return;
     setIsDragging(true);
