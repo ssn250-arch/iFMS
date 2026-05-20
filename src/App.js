@@ -178,207 +178,174 @@ const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbw56_
 
 const FeedbackButton = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
   const [feedbackName, setFeedbackName] = useState('');
   const [feedbackEmail, setFeedbackEmail] = useState('');
   const [feedbackMessage, setFeedbackMessage] = useState('');
-  const [rating, setRating] = useState(0);
-  const [hoverRating, setHoverRating] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Label Dinamik untuk Rating
+  const getRatingLabel = (val) => {
+    switch(val) {
+      case 1: return "Sangat Tidak Memuaskan";
+      case 2: return "Kurang Memuaskan";
+      case 3: return "Boleh Diterima";
+      case 4: return "Sangat Baik";
+      case 5: return "Cemerlang & Sempurna!";
+      default: return "Pilih tahap kepuasan anda";
+    }
+  };
 
   const generatePDFBase64 = (name, email, message, timestamp, starRating) => {
     const doc = new jsPDF();
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(16);
-    doc.text("MAKLUM BALAS PENGGUNA - iFMS", 15, 20);
-    doc.setFont("helvetica", "normal");
+    doc.setFontSize(18);
+    doc.setTextColor(30, 58, 138); // Blue 900
+    doc.text("LAPORAN MAKLUM BALAS iFMS", 15, 20);
+    
     doc.setFontSize(11);
-    doc.text(`Tarikh & Masa: ${timestamp}`, 15, 30);
-    doc.text(`Nama: ${name || "Tanpa Nama"}`, 15, 38);
-    doc.text(`Emel: ${email || "Tidak Disediakan"}`, 15, 46);
+    doc.setTextColor(100);
+    doc.setFont("helvetica", "normal");
+    doc.text(`ID Transaksi: iFMS-${Date.now()}`, 15, 30);
+    doc.text(`Tarikh: ${timestamp}`, 15, 38);
+    doc.text(`Nama Pengguna: ${name || "Anonymous"}`, 15, 46);
     doc.text(`Penilaian: ${starRating} / 5 Bintang`, 15, 54);
-    doc.setDrawColor(200, 200, 200);
-    doc.line(15, 60, 195, 60);
+    
+    doc.setDrawColor(220);
+    doc.line(15, 62, 195, 62);
+    
     doc.setFont("helvetica", "bold");
-    doc.text("Butiran Maklum Balas:", 15, 70);
+    doc.text("Komen & Cadangan:", 15, 72);
     doc.setFont("helvetica", "normal");
     const splitText = doc.splitTextToSize(message, 180);
-    doc.text(splitText, 15, 80);
+    doc.text(splitText, 15, 82);
     
-    const filename = `MaklumBalas_iFMS_${timestamp.replace(/[ :\/]/g, '_')}.pdf`;
+    const filename = `iFMS_Feedback_${Date.now()}.pdf`;
     const pdfBase64 = doc.output('datauristring').split(',')[1];
     return { pdfBase64, filename };
   };
 
-  const sendToGoogleDrive = (base64, filename) => {
-    const formData = new FormData();
-    formData.append('filename', filename);
-    formData.append('base64', base64);
-    fetch(GOOGLE_DRIVE_FEEDBACK_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      body: formData
-    }).catch(error => console.error("Send error:", error));
-  };
-
   const handleSubmit = () => {
-    if (rating === 0) {
-      alert("Sila berikan penilaian bintang sebelum menghantar.");
-      return;
-    }
-    if (!feedbackMessage.trim()) {
-      alert("Sila lengkapkan ruangan maklum balas sebelum menghantar.");
+    if (rating === 0 || !feedbackMessage.trim()) {
+      alert("Sila berikan rating dan maklum balas anda.");
       return;
     }
     setIsSubmitting(true);
+    
     setTimeout(() => {
-      const now = new Date();
-      const timestamp = now.toLocaleString('ms-MY', { timeZone: 'Asia/Kuala_Lumpur' });
-      const { pdfBase64, filename } = generatePDFBase64(feedbackName, feedbackEmail, feedbackMessage, timestamp, rating);
-      sendToGoogleDrive(pdfBase64, filename);
+      const now = new Date().toLocaleString('ms-MY');
+      const { pdfBase64, filename } = generatePDFBase64(feedbackName, feedbackEmail, feedbackMessage, now, rating);
       
-      setFeedbackName('');
-      setFeedbackEmail('');
-      setFeedbackMessage('');
-      setRating(0);
-      setHoverRating(0);
+      // Fire-and-Forget (Background Process)
+      const formData = new FormData();
+      formData.append('filename', filename);
+      formData.append('base64', pdfBase64);
+      fetch(GOOGLE_DRIVE_FEEDBACK_URL, { method: 'POST', mode: 'no-cors', body: formData });
+
       setIsSubmitting(false);
       setIsModalOpen(false);
       
-      setTimeout(() => {
-        alert("Maklum balas anda telah direkodkan dan sedang dihantar. Terima kasih!");
-      }, 150);
-    }, 50);
+      // Reset Form
+      setRating(0); setFeedbackMessage(''); setFeedbackName(''); setFeedbackEmail('');
+      alert("✓ Terima kasih! Maklum balas anda sedang diproses ke sistem iFMS.");
+    }, 100);
   };
-
-  const toggleModal = () => setIsModalOpen(!isModalOpen);
-
-  useEffect(() => {
-    const handleEsc = (e) => { if (e.key === 'Escape' && isModalOpen) setIsModalOpen(false); };
-    window.addEventListener('keydown', handleEsc);
-    return () => window.removeEventListener('keydown', handleEsc);
-  }, [isModalOpen]);
 
   return (
     <>
-      {/* BUTANG APUNG MODEN - Bentuk Pil (Pill-shaped), Gradient, Glowing Shadow */}
-      <div className="fixed bottom-6 right-6 md:bottom-8 md:right-8 z-[9999] flex items-center">
+      {/* 1. FLOATING BUTTON (RESPONSIVE) */}
+      <div className="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-[9999]">
         <button
-          onClick={toggleModal}
-          className="group relative flex items-center gap-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-5 py-3.5 rounded-full shadow-[0_8px_30px_rgba(99,102,241,0.4)] hover:shadow-[0_8px_30px_rgba(99,102,241,0.6)] hover:-translate-y-1 transition-all duration-300 active:scale-95 border border-white/10"
-          aria-label="Maklum Balas"
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-2 bg-blue-600 text-white p-4 md:px-6 md:py-3.5 rounded-full shadow-[0_10px_25px_rgba(37,99,235,0.4)] hover:scale-105 active:scale-95 transition-all duration-300"
         >
-          {/* Titik Nadi (Pulse Dot) untuk menarik perhatian secara halus */}
-          {!isModalOpen && (
-            <span className="absolute top-0 right-1 flex h-3 w-3 -mt-1 -mr-1">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-pink-500 border-2 border-white"></span>
-            </span>
-          )}
-
-          <div className={`relative w-5 h-5 md:w-6 md:h-6 transform transition-transform duration-500 ${isModalOpen ? 'rotate-180' : ''}`}>
-            {/* Ikon Mesej */}
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`absolute inset-0 w-full h-full transition-opacity duration-300 ${isModalOpen ? 'opacity-0 scale-0' : 'opacity-100 scale-100'}`}>
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/>
-            </svg>
-            {/* Ikon Tutup */}
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`absolute inset-0 w-full h-full transition-opacity duration-300 ${isModalOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-0'}`}>
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </div>
-          
-          <span className="text-sm md:text-base font-medium tracking-wide">
-            {isModalOpen ? 'Tutup' : 'Maklum Balas'}
-          </span>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+          </svg>
+          <span className="hidden md:inline font-semibold">Maklum Balas</span>
         </button>
       </div>
 
-      {/* MODAL MAKLUM BALAS - Kesan Kaca (Glassmorphism) Halus */}
+      {/* 2. MODAL SYSTEM (BOTTOM SHEET ON MOBILE, CENTER ON PC) */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-md animate-fade-in">
-          <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col border border-white/20 overflow-hidden ring-1 ring-slate-900/5">
+        <div className="fixed inset-0 z-[10000] flex items-end sm:items-center justify-center bg-slate-900/40 backdrop-blur-sm animate-fade-in">
+          
+          <div className="bg-white w-full sm:max-w-md rounded-t-[2.5rem] sm:rounded-[2rem] shadow-2xl overflow-hidden animate-slide-up sm:animate-zoom-in">
             
-            {/* HEADER MODAL */}
-            <div className="px-6 py-5 flex justify-between items-center border-b border-slate-100/80 bg-white/50 shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-2.5 rounded-xl shadow-inner">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                </div>
-                <h2 className="text-base md:text-lg font-bold text-slate-800 tracking-tight">Suara Anda Penting</h2>
-              </div>
-              <button onClick={toggleModal} className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-2 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/50" aria-label="Tutup Modal">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            {/* Handle untuk mobile (visual sahaja) */}
+            <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mt-4 mb-2 sm:hidden"></div>
+
+            {/* HEADER */}
+            <div className="px-8 py-4 flex justify-between items-center border-b border-slate-50">
+              <h2 className="text-xl font-bold text-slate-800">Suara Anda</h2>
+              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l18 18" />
+                </svg>
               </button>
             </div>
 
-            {/* KANDUNGAN MODAL */}
-            <div className="p-6 space-y-6 bg-transparent overflow-y-auto">
+            {/* FORM BODY */}
+            <div className="p-8 space-y-6 max-h-[75vh] overflow-y-auto">
               
-              {/* PENILAIAN BINTANG */}
-              <div className="flex flex-col items-center justify-center space-y-3 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
-                <label className="text-sm font-semibold text-slate-600">Bagaimana pengalaman anda hari ini? <span className="text-rose-500">*</span></label>
-                <div className="flex gap-2">
-                  {[1, 2, 3, 4, 5].map((star) => (
+              {/* RATING SECTION */}
+              <div className="text-center space-y-3">
+                <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
+                  {getRatingLabel(hoverRating || rating)}
+                </p>
+                <div className="flex justify-center gap-2">
+                  {[1, 2, 3, 4, 5].map((s) => (
                     <button
-                      key={star}
-                      type="button"
-                      onMouseEnter={() => setHoverRating(star)}
+                      key={s}
+                      onMouseEnter={() => setHoverRating(s)}
                       onMouseLeave={() => setHoverRating(0)}
-                      onClick={() => setRating(star)}
-                      className="focus:outline-none transition-transform hover:scale-125 active:scale-90"
+                      onClick={() => setRating(s)}
+                      className="transition-transform hover:scale-125 active:scale-90"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill={(hoverRating || rating) >= star ? "#f59e0b" : "none"} stroke={(hoverRating || rating) >= star ? "#f59e0b" : "#cbd5e1"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="transition-colors duration-200 drop-shadow-sm">
-                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                      <svg 
+                        className={`w-10 h-10 ${ (hoverRating || rating) >= s ? 'text-amber-400' : 'text-slate-200' }`} 
+                        fill="currentColor" viewBox="0 0 20 20"
+                      >
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                       </svg>
                     </button>
                   ))}
                 </div>
               </div>
 
+              {/* INPUT FIELDS */}
               <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider">Nama <span className="text-slate-400 font-normal normal-case">(Pilihan)</span></label>
-                    <input type="text" value={feedbackName} onChange={(e) => setFeedbackName(e.target.value)} placeholder="Cth: Ahmad Ali" className="w-full rounded-xl border border-slate-200 bg-white/80 px-4 py-3 text-sm transition-all focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 placeholder:text-slate-300"/>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider">Emel <span className="text-slate-400 font-normal normal-case">(Pilihan)</span></label>
-                    <input type="email" value={feedbackEmail} onChange={(e) => setFeedbackEmail(e.target.value)} placeholder="ahmad@domain.com" className="w-full rounded-xl border border-slate-200 bg-white/80 px-4 py-3 text-sm transition-all focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 placeholder:text-slate-300"/>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider">Maklumat Terperinci <span className="text-rose-500">*</span></label>
-                  <textarea rows="3" value={feedbackMessage} onChange={(e) => setFeedbackMessage(e.target.value)} placeholder="Terangkan cadangan atau masalah yang anda hadapi..." className="w-full rounded-xl border border-slate-200 bg-white/80 px-4 py-3 text-sm resize-none transition-all focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 placeholder:text-slate-300 shadow-sm"/>
-                </div>
+                <input 
+                  type="text" placeholder="Nama Lengkap (Pilihan)"
+                  className="w-full bg-slate-50 border-none rounded-2xl px-5 py-3.5 text-sm focus:ring-2 focus:ring-blue-500 transition-all"
+                  value={feedbackName} onChange={(e) => setFeedbackName(e.target.value)}
+                />
+                <textarea 
+                  placeholder="Ceritakan pengalaman anda atau cadangkan sesuatu..." rows="3"
+                  className="w-full bg-slate-50 border-none rounded-2xl px-5 py-3.5 text-sm focus:ring-2 focus:ring-blue-500 transition-all resize-none"
+                  value={feedbackMessage} onChange={(e) => setFeedbackMessage(e.target.value)}
+                />
               </div>
-            </div>
 
-            {/* FOOTER & BUTANG HANTAR */}
-            <div className="px-6 py-5 border-t border-slate-100/80 bg-white/50 flex flex-col-reverse md:flex-row items-center justify-between gap-4 shrink-0">
-              <span className="text-[11px] text-slate-400 flex items-center gap-1.5 font-medium">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
-                Disulitkan & Selamat
-              </span>
-              
-              <button 
-                onClick={handleSubmit} 
-                disabled={isSubmitting} 
-                className="w-full md:w-auto bg-slate-900 hover:bg-slate-800 text-white font-semibold px-8 py-3 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-md active:scale-95"
+              {/* SUBMIT BUTTON */}
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-3 disabled:bg-slate-300"
               >
-                {isSubmitting ? (
+                {isSubmitting ? "Menghantar..." : (
                   <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-                    Memproses...
-                  </>
-                ) : (
-                  <>
-                    Hantar Maklum Balas
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    <span>Hantar Maklum Balas</span>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                   </>
                 )}
               </button>
+              
+              <p className="text-[10px] text-center text-slate-400">
+                Laporan PDF akan dijana secara automatik ke Google Drive iFMS.
+              </p>
             </div>
-            
           </div>
         </div>
       )}
