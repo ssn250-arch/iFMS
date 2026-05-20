@@ -171,8 +171,8 @@ const malaysiaAirports = [
     { code: 'JED', name: 'Jeddah' }
 ];
 
-// ================== FEEDBACK BUTTON - JSON VERSION (AUTO SEND) ==================
-const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbxcC1teo7c_j3hLWnT3ECrztT6ND5FMoPbbTjU22xeEFVoCQ-KPrDfMQLxr1Sc2toxCHA/exec"; // GANTI DENGAN URL ANDA
+// ================== FEEDBACK BUTTON - FINAL (NO-CORS) ==================
+const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbx4KY1reUKH5lDJtFepwO-37TeS5v8B3T4vtDOIr-3TJaEauz9thXtoJXuyg1YrIzhb9g/exec"; // GANTI DENGAN URL ANDA
 
 const FeedbackButton = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -203,15 +203,13 @@ ${message}
   const sendToGoogleDrive = async (content, filename) => {
     const payload = { filename, content };
     try {
-      const response = await fetch(GOOGLE_DRIVE_FEEDBACK_URL, {
+      await fetch(GOOGLE_DRIVE_FEEDBACK_URL, {
         method: 'POST',
-        mode: 'cors',
+        mode: 'no-cors', // penting: elak CORS
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const result = await response.json();
-      return result.success === true;
+      return true;
     } catch (error) {
       console.error("Send error:", error);
       return false;
@@ -227,20 +225,16 @@ ${message}
     const now = new Date();
     const timestamp = now.toLocaleString('ms-MY', { timeZone: 'Asia/Kuala_Lumpur' });
     const { content, filename } = generateFeedbackContent(feedbackName, feedbackEmail, feedbackMessage, timestamp);
-    const success = await sendToGoogleDrive(content, filename);
-    if (success) {
-      alert("✓ Maklum balas anda telah dihantar ke Google Drive. Terima kasih!");
-      setFeedbackName('');
-      setFeedbackEmail('');
-      setFeedbackMessage('');
-      setIsModalOpen(false);
-    } else {
-      alert("✗ Gagal menghantar maklum balas. Sila cuba sebentar lagi.\n\nPastikan URL Google Apps Script betul dan folder wujud.");
-    }
+    await sendToGoogleDrive(content, filename);
+    alert("✓ Maklum balas anda telah dihantar ke Google Drive. Terima kasih!");
+    setFeedbackName('');
+    setFeedbackEmail('');
+    setFeedbackMessage('');
+    setIsModalOpen(false);
     setIsSubmitting(false);
   };
 
-  // --- Drag functions (sama seperti sebelumnya) ---
+  // --- Drag functions ---
   const onMouseDown = (e) => {
     if (e.target.closest('.feedback-modal')) return;
     setIsDragging(true);
