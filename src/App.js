@@ -171,8 +171,8 @@ const malaysiaAirports = [
     { code: 'JED', name: 'Jeddah' }
 ];
 
-// ========== KOMPONEN FEEDBACK YANG DIPERBAIKI ==========
-const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbxJEtBdvd0aj4zsKZmWZiR3lLaZhu7SipxJQiplazXpXgsTOygxo_0I1UyMv10eSBOM1A/exec"; // GANTI DENGAN URL APPS SCRIPT ANDA
+// ================== FEEDBACK BUTTON (TXT) - LENGKAP ==================
+const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbxVwFUN7FvD-hBZQMcOWdh2_EmDKIit8dA66EyVhM375e_kFjoC-6EksRdQNCaq1kAm0A/exec"; // GANTI
 
 const FeedbackButton = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -184,50 +184,40 @@ const FeedbackButton = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
-  const generateFeedbackPDF = (name, email, message, timestamp) => {
-    const doc = new jsPDF();
-    doc.setFont("helvetica");
-    doc.setFontSize(16);
-    doc.text("Maklum Balas Pengguna - iFMS", 105, 20, { align: "center" });
-    doc.setFontSize(10);
-    doc.text(`Tarikh: ${timestamp}`, 105, 30, { align: "center" });
-    doc.setFontSize(12);
-    doc.text("Nama:", 20, 50);
-    doc.text(name || "Tanpa Nama (Anonymous)", 60, 50);
-    doc.text("Emel:", 20, 60);
-    doc.text(email || "Tiada emel", 60, 60);
-    doc.text("Komen:", 20, 75);
-    const splitMessage = doc.splitTextToSize(message, 170);
-    doc.text(splitMessage, 20, 85);
-    const filename = `feedback_${timestamp.replace(/[ :]/g, '_')}.pdf`;
-    return { doc, filename };
+  const generateFeedbackText = (name, email, message, timestamp) => {
+    const content = `========================================
+MAKLUM BALAS PENGGUNA - iFMS
+========================================
+Tarikh: ${timestamp}
+Nama: ${name || "Tanpa Nama (Anonymous)"}
+Emel: ${email || "Tiada emel"}
+Komen / Maklum Balas:
+----------------------------------------
+${message}
+========================================
+`;
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const filename = `feedback_${timestamp.replace(/[ :]/g, '_')}.txt`;
+    return { blob, filename };
   };
 
-  const sendToGoogleDrive = async (pdfBlob, filename) => {
-  const formData = new FormData();
-  formData.append('file', pdfBlob, filename);
-  formData.append('filename', filename);
-  try {
-    const response = await fetch("https://script.google.com/macros/s/AKfycbxJEtBdvd0aj4zsKZmWZiR3lLaZhu7SipxJQiplazXpXgsTOygxo_0I1UyMv10eSBOM1A/exec", {
-      method: 'POST',
-      mode: 'cors',
-      body: formData
-    });
-    const text = await response.text(); // first get text
-    console.log("Response text:", text);
-    let result;
+  const sendToGoogleDrive = async (textBlob, filename) => {
+    const formData = new FormData();
+    formData.append('file', textBlob, filename);
+    formData.append('filename', filename);
     try {
-      result = JSON.parse(text);
-    } catch (e) {
-      console.error("Failed to parse JSON:", text);
+      const response = await fetch(GOOGLE_DRIVE_FEEDBACK_URL, {
+        method: 'POST',
+        mode: 'cors',
+        body: formData
+      });
+      const result = await response.json();
+      return result.success === true;
+    } catch (error) {
+      console.error("Fetch error:", error);
       return false;
     }
-    return result && result.success === true;
-  } catch (error) {
-    console.error("Fetch error:", error);
-    return false;
-  }
-};
+  };
 
   const handleSubmit = async () => {
     if (!feedbackMessage.trim()) {
@@ -237,9 +227,8 @@ const FeedbackButton = () => {
     setIsSubmitting(true);
     const now = new Date();
     const timestamp = now.toLocaleString('ms-MY', { timeZone: 'Asia/Kuala_Lumpur' });
-    const { doc, filename } = generateFeedbackPDF(feedbackName, feedbackEmail, feedbackMessage, timestamp);
-    const pdfBlob = doc.output('blob');
-    const success = await sendToGoogleDrive(pdfBlob, filename);
+    const { blob, filename } = generateFeedbackText(feedbackName, feedbackEmail, feedbackMessage, timestamp);
+    const success = await sendToGoogleDrive(blob, filename);
     if (success) {
       alert("Maklum balas anda telah dihantar. Terima kasih!");
       setFeedbackName('');
@@ -247,9 +236,9 @@ const FeedbackButton = () => {
       setFeedbackMessage('');
       setIsModalOpen(false);
     } else {
-      const download = window.confirm("Gagal menghantar ke pelayan. Adakah anda ingin memuat turun PDF maklum balas untuk dihantar secara manual?");
+      const download = window.confirm("Gagal menghantar ke pelayan. Adakah anda ingin memuat turun fail .txt untuk dihantar secara manual?");
       if (download) {
-        const url = URL.createObjectURL(pdfBlob);
+        const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = filename;
@@ -257,14 +246,14 @@ const FeedbackButton = () => {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        alert("PDF telah dimuat turun. Sila hantar ke jabatan pentadbiran.");
+        alert("Fail teks telah dimuat turun. Sila hantar ke jabatan pentadbiran.");
       }
       setIsModalOpen(false);
     }
     setIsSubmitting(false);
   };
 
-  // --- Fungsi drag (sokongan sentuh & tetikus) ---
+  // Drag functions
   const onMouseDown = (e) => {
     if (e.target.closest('.feedback-modal')) return;
     setIsDragging(true);
@@ -332,7 +321,7 @@ const FeedbackButton = () => {
               <button onClick={handleSubmit} disabled={isSubmitting} className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-70">
                 {isSubmitting ? <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> : <><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Hantar Maklum Balas</>}
               </button>
-              <p className="text-[11px] text-slate-400 text-center">Maklum balas akan dihantar ke folder Google Drive jabatan.</p>
+              <p className="text-[11px] text-slate-400 text-center">Maklum balas akan dihantar ke folder Google Drive jabatan (format .txt).</p>
             </div>
           </div>
         </div>
