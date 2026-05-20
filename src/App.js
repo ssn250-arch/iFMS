@@ -171,8 +171,8 @@ const malaysiaAirports = [
     { code: 'JED', name: 'Jeddah' }
 ];
 
-// ================== FEEDBACK BUTTON - FINAL (FORM DATA + NO-CORS) ==================
-const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbxEB39pmOaXlQL94LvrfB8tw1919B79Zokk8ErLb8JWvxx-mr5fOoqwXXKauajZ9pQG/exec"; // GANTI DENGAN URL ANDA
+// ================== FEEDBACK BUTTON - HANYA SIMBOL ==================
+const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbx4KY1reUKH5lDJtFepwO-37TeS5v8B3T4vtDOIr-3TJaEauz9thXtoJXuyg1YrIzhb9g/exec"; // GANTI DENGAN URL ANDA
 
 const FeedbackButton = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -235,7 +235,7 @@ ${message}
     setIsSubmitting(false);
   };
 
-  // --- Drag functions (sama seperti sebelumnya) ---
+  // Drag functions
   const onMouseDown = (e) => {
     if (e.target.closest('.feedback-modal')) return;
     setIsDragging(true);
@@ -283,17 +283,22 @@ ${message}
         style={{ position: 'fixed', left: position.x, top: position.y, zIndex: 9999, cursor: isDragging ? 'grabbing' : 'grab' }}
         className="feedback-button group"
       >
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full p-3.5 shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center gap-2 hover:scale-105 active:scale-95">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/></svg>
-          <span className="text-sm font-bold hidden md:inline-block">Maklum Balas</span>
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full p-3.5 shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center hover:scale-105 active:scale-95">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            <path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/>
+          </svg>
         </div>
       </div>
+
       {isModalOpen && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 text-white font-bold text-lg flex justify-between items-center">
               <span>📢 Maklum Balas Tanpa Nama</span>
-              <button onClick={() => setIsModalOpen(false)} className="text-white/80 hover:text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+              <button onClick={() => setIsModalOpen(false)} className="text-white/80 hover:text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
             </div>
             <div className="p-6 space-y-5">
               <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded-xl border">Anda boleh berkongsi komen, cadangan atau laporan masalah. Semua maklum balas adalah sulit.</p>
