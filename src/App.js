@@ -171,9 +171,8 @@ const malaysiaAirports = [
     { code: 'JED', name: 'Jeddah' }
 ];
 
-// ================== KOMPONEN FEEDBACK MODAL MODEN ==================
-// GANTIKAN URL INI DENGAN URL WEB APP ANDA DARI GOOGLE APPS SCRIPT
-const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbzB6QGKTUMDMxvvlwdFwc5OOjHFfFOZCGE9SKlKKzk2tdE4LbhXMQGC7hZk65BVX5FN/exec";
+// ================== KOMPONEN FEEDBACK MODAL MODEN (CORS-FRIENDLY) ==================
+const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbzij9npiG3O34PMubfhUQFcxDltqYVS4Uky7OuIICxr8v4ppnMVPgmppUq_t7ym0Fa9CA/exec"; // GANTI DENGAN URL ANDA
 
 const FeedbackButton = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -185,7 +184,6 @@ const FeedbackButton = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
-  // Generate PDF dari maklum balas
   const generateFeedbackPDF = (name, email, message, timestamp) => {
     const doc = new jsPDF();
     doc.setFont("helvetica");
@@ -205,55 +203,61 @@ const FeedbackButton = () => {
     return { doc, filename };
   };
 
-  // Hantar ke Google Drive
   const sendToGoogleDrive = async (pdfBlob, filename) => {
-  const formData = new FormData();
-  formData.append('file', pdfBlob, filename);
-  formData.append('filename', filename);
-  try {
-    const response = await fetch(GOOGLE_DRIVE_FEEDBACK_URL, {
-      method: 'POST',
-      mode: 'cors',
-      body: formData
-    });
-    if (response.ok) {
-      const result = await response.json();
-      return result.success === true;
+    const formData = new FormData();
+    formData.append('file', pdfBlob, filename);
+    formData.append('filename', filename);
+    try {
+      await fetch(GOOGLE_DRIVE_FEEDBACK_URL, {
+        method: 'POST',
+        mode: 'no-cors', // Ini elakkan ralat CORS
+        body: formData
+      });
+      return true;
+    } catch (error) {
+      console.error("Fetch error:", error);
+      return false;
     }
-    console.error("Server error:", response.status);
-    return false;
-  } catch (error) {
-    console.error("Fetch error:", error);
-    return false;
-  }
-};
-
-  const handleSubmit = async () => {
-    if (!feedbackMessage.trim()) {
-      alert("Sila masukkan komen/maklum balas anda.");
-      return;
-    }
-    setIsSubmitting(true);
-    const now = new Date();
-    const timestamp = now.toLocaleString('ms-MY', { timeZone: 'Asia/Kuala_Lumpur' });
-    const { doc, filename } = generateFeedbackPDF(feedbackName, feedbackEmail, feedbackMessage, timestamp);
-    const pdfBlob = doc.output('blob');
-    const success = await sendToGoogleDrive(pdfBlob, filename);
-    if (success) {
-      alert("Maklum balas anda telah dihantar. Terima kasih!");
-      setFeedbackName('');
-      setFeedbackEmail('');
-      setFeedbackMessage('');
-      setIsModalOpen(false);
-    } else {
-      alert("Gagal menghantar maklum balas. Sila cuba sebentar lagi atau hubungi pentadbir.\n\nPastikan URL Google Apps Script telah ditetapkan dengan betul dan folder Google Drive boleh ditulis.");
-    }
-    setIsSubmitting(false);
   };
 
-  // --- Fungsi drag butang (boleh dialih) ---
+  const handleSubmit = async () => {
+  if (!feedbackMessage.trim()) {
+    alert("Sila masukkan komen/maklum balas anda.");
+    return;
+  }
+  setIsSubmitting(true);
+  const now = new Date();
+  const timestamp = now.toLocaleString('ms-MY', { timeZone: 'Asia/Kuala_Lumpur' });
+  const { doc, filename } = generateFeedbackPDF(feedbackName, feedbackEmail, feedbackMessage, timestamp);
+  const pdfBlob = doc.output('blob');
+  const success = await sendToGoogleDrive(pdfBlob, filename);
+  if (success) {
+    alert("Maklum balas anda telah dihantar. Terima kasih!");
+    setFeedbackName('');
+    setFeedbackEmail('');
+    setFeedbackMessage('');
+    setIsModalOpen(false);
+  } else {
+    const download = window.confirm("Gagal menghantar ke pelayan. Adakah anda ingin memuat turun PDF maklum balas untuk dihantar secara manual?");
+    if (download) {
+      const url = URL.createObjectURL(pdfBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      alert("PDF telah dimuat turun. Sila hantar ke jabatan pentadbiran.");
+    }
+    setIsModalOpen(false);
+  }
+  setIsSubmitting(false);
+};
+
+  // --- Fungsi drag ---
   const onMouseDown = (e) => {
-    if (e.target.closest('.feedback-modal')) return; // Jangan drag jika klik pada modal
+    if (e.target.closest('.feedback-modal')) return;
     setIsDragging(true);
     const clientX = e.clientX ?? e.touches?.[0]?.clientX;
     const clientY = e.clientY ?? e.touches?.[0]?.clientY;
@@ -290,7 +294,6 @@ const FeedbackButton = () => {
     };
   }, [isDragging, dragOffset]);
 
-  // Tutup modal dengan ESC
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === 'Escape' && isModalOpen) setIsModalOpen(false);
@@ -301,7 +304,7 @@ const FeedbackButton = () => {
 
   return (
     <>
-      {/* BUTANG FEEDBACK (Draggable) */}
+      {/* BUTANG DRAGGABLE */}
       <div
         onMouseDown={onMouseDown}
         onTouchStart={onMouseDown}
