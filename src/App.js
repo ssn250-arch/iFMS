@@ -184,10 +184,6 @@ const FeedbackButton = () => {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const [positionY, setPositionY] = useState(() => window.innerHeight - 120);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragOffsetY, setDragOffsetY] = useState(0);
 
   // Fungsi untuk menjana PDF
   const generatePDFBase64 = (name, email, message, timestamp, starRating) => {
@@ -202,7 +198,7 @@ const FeedbackButton = () => {
     doc.text(`Tarikh & Masa: ${timestamp}`, 15, 30);
     doc.text(`Nama: ${name || "Tanpa Nama"}`, 15, 38);
     doc.text(`Emel: ${email || "Tidak Disediakan"}`, 15, 46);
-    doc.text(`Penilaian: ${starRating} / 5 Bintang`, 15, 54); // Ditambah ke dalam PDF
+    doc.text(`Penilaian: ${starRating} / 5 Bintang`, 15, 54);
     
     doc.setDrawColor(200, 200, 200);
     doc.line(15, 60, 195, 60);
@@ -225,7 +221,6 @@ const FeedbackButton = () => {
     formData.append('filename', filename);
     formData.append('base64', base64);
     
-    // Dihantar ke latar belakang (background) tanpa perlu 'await'
     fetch(GOOGLE_DRIVE_FEEDBACK_URL, {
       method: 'POST',
       mode: 'no-cors',
@@ -245,18 +240,13 @@ const FeedbackButton = () => {
     
     setIsSubmitting(true);
     
-    // Memproses maklumat tanpa perlu pengguna menunggu lama
     setTimeout(() => {
       const now = new Date();
       const timestamp = now.toLocaleString('ms-MY', { timeZone: 'Asia/Kuala_Lumpur' });
       
-      // 1. Jana fail PDF
       const { pdfBase64, filename } = generatePDFBase64(feedbackName, feedbackEmail, feedbackMessage, timestamp, rating);
-      
-      // 2. Hantar ke Google Drive (Proses Latar Belakang / Fire-and-Forget)
       sendToGoogleDrive(pdfBase64, filename);
       
-      // 3. Reset form dan tutup modal serta-merta
       setFeedbackName('');
       setFeedbackEmail('');
       setFeedbackMessage('');
@@ -265,54 +255,16 @@ const FeedbackButton = () => {
       setIsSubmitting(false);
       setIsModalOpen(false);
       
-      // 4. Mesej kejayaan dipaparkan secara pantas
       setTimeout(() => {
         alert("Maklum balas anda telah direkodkan dan sedang dihantar. Terima kasih!");
       }, 150);
       
-    }, 50); // Kelewatan sedikit untuk menunjukkan butang 'Sedang Memproses...'
+    }, 50);
   };
 
   const toggleModal = () => setIsModalOpen(!isModalOpen);
 
-  // --- Drag functions (Paksi-Y Sahaja) ---
-  const onMouseDown = (e) => {
-    if (e.target.closest('.feedback-modal') || e.target.closest('.close-button') || e.target.closest('.rating-stars')) return;
-    setIsDragging(true);
-    const clientY = e.clientY ?? e.touches?.[0]?.clientY;
-    if (clientY) setDragOffsetY(clientY - positionY);
-    e.preventDefault();
-  };
-
-  const onMouseMove = (e) => {
-    if (!isDragging) return;
-    const clientY = e.clientY ?? e.touches?.[0]?.clientY;
-    if (!clientY) return;
-    let newY = clientY - dragOffsetY;
-    newY = Math.min(Math.max(newY, 20), window.innerHeight - 80);
-    setPositionY(newY);
-  };
-
-  const onMouseUp = () => setIsDragging(false);
-
-  useEffect(() => {
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
-    window.addEventListener('touchmove', onMouseMove);
-    window.addEventListener('touchend', onMouseUp);
-    
-    const handleResize = () => setPositionY((prev) => Math.min(prev, window.innerHeight - 80));
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
-      window.removeEventListener('touchmove', onMouseMove);
-      window.removeEventListener('touchend', onMouseUp);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [isDragging, dragOffsetY]);
-
+  // Tutup modal jika tekan butang ESC
   useEffect(() => {
     const handleEsc = (e) => { if (e.key === 'Escape' && isModalOpen) setIsModalOpen(false); };
     window.addEventListener('keydown', handleEsc);
@@ -321,30 +273,21 @@ const FeedbackButton = () => {
 
   return (
     <>
-      {/* BUTANG APUNG (FLOATING BUTTON) */}
-      <div
-        onMouseDown={onMouseDown}
-        onTouchStart={onMouseDown}
-        style={{
-          position: 'fixed',
-          right: '24px',
-          top: positionY,
-          zIndex: 9999,
-          cursor: isDragging ? 'grabbing' : 'grab',
-        }}
-        className="group flex items-center gap-2 feedback-floating-button"
-      >
+      {/* BUTANG APUNG (FLOATING BUTTON) - Tetap di bahagian bawah kanan skrin */}
+      <div className="fixed bottom-6 right-6 md:bottom-8 md:right-8 z-[9999] group flex items-center gap-2">
         <button
           onClick={toggleModal}
-          className="bg-blue-600 text-white rounded-full p-4 shadow-[0_8px_30px_rgb(0,0,0,0.15)] hover:shadow-[0_8px_30px_rgb(37,99,235,0.4)] hover:bg-blue-700 transition-all duration-300 flex items-center justify-center relative overflow-hidden group-hover:pl-5 group-hover:pr-5 group-hover:gap-2 group-hover:rounded-2xl"
+          className="bg-blue-600 text-white rounded-full p-4 shadow-[0_8px_30px_rgb(0,0,0,0.15)] hover:shadow-[0_8px_30px_rgb(37,99,235,0.4)] hover:bg-blue-700 transition-all duration-300 flex items-center justify-center relative overflow-hidden group-hover:pl-5 group-hover:pr-5 group-hover:gap-2 group-hover:rounded-2xl active:scale-95"
           aria-label={isModalOpen ? 'Tutup Maklum Balas' : 'Buka Maklum Balas'}
         >
           <div className={`relative w-6 h-6 transform transition-transform duration-500 ${isModalOpen ? 'rotate-180' : ''}`}>
+            {/* Ikon Mesej */}
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`absolute inset-0 w-6 h-6 transition-opacity duration-300 ${isModalOpen ? 'opacity-0 scale-0' : 'opacity-100 scale-100'}`}>
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
               <path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/>
             </svg>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`absolute inset-0 w-6 h-6 transition-opacity duration-300 close-button ${isModalOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-0'}`}>
+            {/* Ikon Tutup */}
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`absolute inset-0 w-6 h-6 transition-opacity duration-300 ${isModalOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-0'}`}>
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
           </div>
@@ -356,31 +299,32 @@ const FeedbackButton = () => {
 
       {/* MODAL MAKLUM BALAS */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-fade-in feedback-modal">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100 flex flex-col">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-fade-in">
+          {/* max-h-[90vh] dan overflow-y-auto memastikannya responsif dan boleh discroll jika skrin telefon terlalu kecil */}
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col border border-slate-100 overflow-hidden">
             
             {/* HEADER MODAL */}
-            <div className="px-6 py-4 flex justify-between items-center border-b border-slate-100 bg-white">
+            <div className="px-5 py-4 flex justify-between items-center border-b border-slate-100 bg-white shrink-0">
               <div className="flex items-center gap-3">
                 <div className="bg-blue-50 text-blue-600 p-2 rounded-lg">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                 </div>
-                <h2 className="text-lg font-semibold text-slate-800">Hantar Maklum Balas</h2>
+                <h2 className="text-base md:text-lg font-semibold text-slate-800">Hantar Maklum Balas</h2>
               </div>
               <button 
                 onClick={toggleModal} 
-                className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-2 rounded-full transition-colors close-button"
+                className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-2 rounded-full transition-colors"
                 aria-label="Tutup Modal"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
             </div>
 
-            {/* KANDUNGAN MODAL */}
-            <div className="p-6 space-y-5 bg-slate-50/50">
+            {/* KANDUNGAN MODAL (Boleh di-scroll) */}
+            <div className="p-5 space-y-5 bg-slate-50/50 overflow-y-auto">
               
               {/* PENILAIAN BINTANG */}
-              <div className="flex flex-col items-center justify-center space-y-2 py-2 rating-stars">
+              <div className="flex flex-col items-center justify-center space-y-2 py-2">
                 <label className="text-sm font-medium text-slate-700">Tahap Kepuasan Anda <span className="text-red-500">*</span></label>
                 <div className="flex gap-2">
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -397,7 +341,7 @@ const FeedbackButton = () => {
                         width="32" 
                         height="32" 
                         viewBox="0 0 24 24" 
-                        fill={(hoverRating || rating) >= star ? "#eab308" : "none"} // warna kuning
+                        fill={(hoverRating || rating) >= star ? "#eab308" : "none"} 
                         stroke={(hoverRating || rating) >= star ? "#eab308" : "#cbd5e1"} 
                         strokeWidth="1.5" 
                         strokeLinecap="round" 
@@ -449,16 +393,16 @@ const FeedbackButton = () => {
             </div>
 
             {/* FOOTER & BUTANG HANTAR */}
-            <div className="px-6 py-4 border-t border-slate-100 bg-white flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="px-5 py-4 border-t border-slate-100 bg-white flex flex-col-reverse md:flex-row items-center justify-between gap-3 shrink-0">
               <span className="text-[11px] text-slate-400 flex items-center gap-1.5 whitespace-nowrap">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                Disulitkan & Latar Belakang (Pantas)
+                Disulitkan & Latar Belakang
               </span>
               
               <button 
                 onClick={handleSubmit} 
                 disabled={isSubmitting} 
-                className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-sm"
+                className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-sm active:scale-95"
               >
                 {isSubmitting ? (
                   <>
