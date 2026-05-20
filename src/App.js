@@ -181,6 +181,8 @@ const FeedbackButton = () => {
   const [feedbackName, setFeedbackName] = useState('');
   const [feedbackEmail, setFeedbackEmail] = useState('');
   const [feedbackMessage, setFeedbackMessage] = useState('');
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [positionY, setPositionY] = useState(() => window.innerHeight - 120);
@@ -188,7 +190,7 @@ const FeedbackButton = () => {
   const [dragOffsetY, setDragOffsetY] = useState(0);
 
   // Fungsi untuk menjana PDF
-  const generatePDFBase64 = (name, email, message, timestamp) => {
+  const generatePDFBase64 = (name, email, message, timestamp, starRating) => {
     const doc = new jsPDF();
     
     doc.setFont("helvetica", "bold");
@@ -200,16 +202,17 @@ const FeedbackButton = () => {
     doc.text(`Tarikh & Masa: ${timestamp}`, 15, 30);
     doc.text(`Nama: ${name || "Tanpa Nama"}`, 15, 38);
     doc.text(`Emel: ${email || "Tidak Disediakan"}`, 15, 46);
+    doc.text(`Penilaian: ${starRating} / 5 Bintang`, 15, 54); // Ditambah ke dalam PDF
     
     doc.setDrawColor(200, 200, 200);
-    doc.line(15, 52, 195, 52);
+    doc.line(15, 60, 195, 60);
     
     doc.setFont("helvetica", "bold");
-    doc.text("Butiran Maklum Balas:", 15, 62);
+    doc.text("Butiran Maklum Balas:", 15, 70);
     doc.setFont("helvetica", "normal");
     
     const splitText = doc.splitTextToSize(message, 180);
-    doc.text(splitText, 15, 72);
+    doc.text(splitText, 15, 80);
     
     const filename = `MaklumBalas_iFMS_${timestamp.replace(/[ :\/]/g, '_')}.pdf`;
     const pdfBase64 = doc.output('datauristring').split(',')[1];
@@ -217,52 +220,64 @@ const FeedbackButton = () => {
     return { pdfBase64, filename };
   };
 
-  const sendToGoogleDrive = async (base64, filename) => {
+  const sendToGoogleDrive = (base64, filename) => {
     const formData = new FormData();
     formData.append('filename', filename);
     formData.append('base64', base64);
     
-    try {
-      await fetch(GOOGLE_DRIVE_FEEDBACK_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: formData
-      });
-      return true;
-    } catch (error) {
-      console.error("Send error:", error);
-      return false;
-    }
+    // Dihantar ke latar belakang (background) tanpa perlu 'await'
+    fetch(GOOGLE_DRIVE_FEEDBACK_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: formData
+    }).catch(error => console.error("Send error:", error));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
+    if (rating === 0) {
+      alert("Sila berikan penilaian bintang sebelum menghantar.");
+      return;
+    }
     if (!feedbackMessage.trim()) {
       alert("Sila lengkapkan ruangan maklum balas sebelum menghantar.");
       return;
     }
+    
     setIsSubmitting(true);
     
-    const now = new Date();
-    const timestamp = now.toLocaleString('ms-MY', { timeZone: 'Asia/Kuala_Lumpur' });
-    
-    const { pdfBase64, filename } = generatePDFBase64(feedbackName, feedbackEmail, feedbackMessage, timestamp);
-    await sendToGoogleDrive(pdfBase64, filename);
-    
-    alert("Maklum balas anda telah berjaya direkodkan. Terima kasih atas kerjasama anda.");
-    
-    setFeedbackName('');
-    setFeedbackEmail('');
-    setFeedbackMessage('');
-    setIsModalOpen(false);
-    setIsSubmitting(false);
+    // Memproses maklumat tanpa perlu pengguna menunggu lama
+    setTimeout(() => {
+      const now = new Date();
+      const timestamp = now.toLocaleString('ms-MY', { timeZone: 'Asia/Kuala_Lumpur' });
+      
+      // 1. Jana fail PDF
+      const { pdfBase64, filename } = generatePDFBase64(feedbackName, feedbackEmail, feedbackMessage, timestamp, rating);
+      
+      // 2. Hantar ke Google Drive (Proses Latar Belakang / Fire-and-Forget)
+      sendToGoogleDrive(pdfBase64, filename);
+      
+      // 3. Reset form dan tutup modal serta-merta
+      setFeedbackName('');
+      setFeedbackEmail('');
+      setFeedbackMessage('');
+      setRating(0);
+      setHoverRating(0);
+      setIsSubmitting(false);
+      setIsModalOpen(false);
+      
+      // 4. Mesej kejayaan dipaparkan secara pantas
+      setTimeout(() => {
+        alert("Maklum balas anda telah direkodkan dan sedang dihantar. Terima kasih!");
+      }, 150);
+      
+    }, 50); // Kelewatan sedikit untuk menunjukkan butang 'Sedang Memproses...'
   };
 
   const toggleModal = () => setIsModalOpen(!isModalOpen);
 
   // --- Drag functions (Paksi-Y Sahaja) ---
   const onMouseDown = (e) => {
-    // Halang seretan jika sedang klik modal atau butang tutup
-    if (e.target.closest('.feedback-modal') || e.target.closest('.close-button')) return;
+    if (e.target.closest('.feedback-modal') || e.target.closest('.close-button') || e.target.closest('.rating-stars')) return;
     setIsDragging(true);
     const clientY = e.clientY ?? e.touches?.[0]?.clientY;
     if (clientY) setDragOffsetY(clientY - positionY);
@@ -306,7 +321,7 @@ const FeedbackButton = () => {
 
   return (
     <>
-      {/* BUTANG APUNG (FLOATING BUTTON) DENGAN ANIMASI MODEN & PROFESIONAL */}
+      {/* BUTANG APUNG (FLOATING BUTTON) */}
       <div
         onMouseDown={onMouseDown}
         onTouchStart={onMouseDown}
@@ -324,27 +339,22 @@ const FeedbackButton = () => {
           className="bg-blue-600 text-white rounded-full p-4 shadow-[0_8px_30px_rgb(0,0,0,0.15)] hover:shadow-[0_8px_30px_rgb(37,99,235,0.4)] hover:bg-blue-700 transition-all duration-300 flex items-center justify-center relative overflow-hidden group-hover:pl-5 group-hover:pr-5 group-hover:gap-2 group-hover:rounded-2xl"
           aria-label={isModalOpen ? 'Tutup Maklum Balas' : 'Buka Maklum Balas'}
         >
-          {/* Ikon Dinamik: Mesej -> Tutup (X) dengan Animasi Putaran */}
           <div className={`relative w-6 h-6 transform transition-transform duration-500 ${isModalOpen ? 'rotate-180' : ''}`}>
-            {/* Ikon Mesej - Sembunyi bila modal terbuka */}
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`absolute inset-0 w-6 h-6 transition-opacity duration-300 ${isModalOpen ? 'opacity-0 scale-0' : 'opacity-100 scale-100'}`}>
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
               <path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/>
             </svg>
-            {/* Ikon Tutup (X) - Muncul bila modal terbuka */}
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`absolute inset-0 w-6 h-6 transition-opacity duration-300 close-button ${isModalOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-0'}`}>
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
           </div>
-
-          {/* Label Teks Moden: Muncul dari Butang bila Hover */}
           <span className="text-sm font-semibold opacity-0 max-w-0 group-hover:opacity-100 group-hover:max-w-xs transition-all duration-500 whitespace-nowrap overflow-hidden">
             {isModalOpen ? 'Tutup' : 'Maklum Balas'}
           </span>
         </button>
       </div>
 
-      {/* MODAL MAKLUM BALAS (Moden & Profesional - Kekal) */}
+      {/* MODAL MAKLUM BALAS */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-fade-in feedback-modal">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100 flex flex-col">
@@ -368,16 +378,43 @@ const FeedbackButton = () => {
 
             {/* KANDUNGAN MODAL */}
             <div className="p-6 space-y-5 bg-slate-50/50">
-              <p className="text-sm text-slate-500 leading-relaxed">
-                Kami sentiasa mencari jalan untuk menambah baik sistem iFMS. Kongsikan pengalaman, cadangan, atau sebarang isu yang anda hadapi.
-              </p>
               
+              {/* PENILAIAN BINTANG */}
+              <div className="flex flex-col items-center justify-center space-y-2 py-2 rating-stars">
+                <label className="text-sm font-medium text-slate-700">Tahap Kepuasan Anda <span className="text-red-500">*</span></label>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onMouseEnter={() => setHoverRating(star)}
+                      onMouseLeave={() => setHoverRating(0)}
+                      onClick={() => setRating(star)}
+                      className="focus:outline-none transition-transform hover:scale-110 active:scale-90"
+                    >
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        width="32" 
+                        height="32" 
+                        viewBox="0 0 24 24" 
+                        fill={(hoverRating || rating) >= star ? "#eab308" : "none"} // warna kuning
+                        stroke={(hoverRating || rating) >= star ? "#eab308" : "#cbd5e1"} 
+                        strokeWidth="1.5" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        className="transition-colors duration-200"
+                      >
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                      </svg>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="block text-sm font-medium text-slate-700">
-                      Nama Lengkap <span className="text-slate-400 font-normal">(Pilihan)</span>
-                    </label>
+                    <label className="block text-sm font-medium text-slate-700">Nama <span className="text-slate-400 font-normal">(Pilihan)</span></label>
                     <input 
                       type="text" 
                       value={feedbackName} 
@@ -387,9 +424,7 @@ const FeedbackButton = () => {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="block text-sm font-medium text-slate-700">
-                      Alamat Emel <span className="text-slate-400 font-normal">(Pilihan)</span>
-                    </label>
+                    <label className="block text-sm font-medium text-slate-700">Emel <span className="text-slate-400 font-normal">(Pilihan)</span></label>
                     <input 
                       type="email" 
                       value={feedbackEmail} 
@@ -401,11 +436,9 @@ const FeedbackButton = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-slate-700">
-                    Maklumat Terperinci <span className="text-red-500">*</span>
-                  </label>
+                  <label className="block text-sm font-medium text-slate-700">Maklumat Terperinci <span className="text-red-500">*</span></label>
                   <textarea 
-                    rows="4" 
+                    rows="3" 
                     value={feedbackMessage} 
                     onChange={(e) => setFeedbackMessage(e.target.value)} 
                     placeholder="Terangkan cadangan atau masalah anda dengan jelas..." 
@@ -419,22 +452,22 @@ const FeedbackButton = () => {
             <div className="px-6 py-4 border-t border-slate-100 bg-white flex flex-col md:flex-row items-center justify-between gap-4">
               <span className="text-[11px] text-slate-400 flex items-center gap-1.5 whitespace-nowrap">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                PDF Disulitkan & Disimpan
+                Disulitkan & Latar Belakang (Pantas)
               </span>
               
               <button 
                 onClick={handleSubmit} 
                 disabled={isSubmitting} 
-                className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-sm"
+                className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-sm"
               >
                 {isSubmitting ? (
                   <>
                     <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-                    Sedang Memproses...
+                    Memproses...
                   </>
                 ) : (
                   <>
-                    Hantar Maklum Balas
+                    Hantar
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                   </>
                 )}
