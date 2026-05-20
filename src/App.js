@@ -185,34 +185,27 @@ const FeedbackButton = () => {
   const [hoverRating, setHoverRating] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fungsi untuk menjana PDF
   const generatePDFBase64 = (name, email, message, timestamp, starRating) => {
     const doc = new jsPDF();
-    
     doc.setFont("helvetica", "bold");
     doc.setFontSize(16);
     doc.text("MAKLUM BALAS PENGGUNA - iFMS", 15, 20);
-    
     doc.setFont("helvetica", "normal");
     doc.setFontSize(11);
     doc.text(`Tarikh & Masa: ${timestamp}`, 15, 30);
     doc.text(`Nama: ${name || "Tanpa Nama"}`, 15, 38);
     doc.text(`Emel: ${email || "Tidak Disediakan"}`, 15, 46);
     doc.text(`Penilaian: ${starRating} / 5 Bintang`, 15, 54);
-    
     doc.setDrawColor(200, 200, 200);
     doc.line(15, 60, 195, 60);
-    
     doc.setFont("helvetica", "bold");
     doc.text("Butiran Maklum Balas:", 15, 70);
     doc.setFont("helvetica", "normal");
-    
     const splitText = doc.splitTextToSize(message, 180);
     doc.text(splitText, 15, 80);
     
     const filename = `MaklumBalas_iFMS_${timestamp.replace(/[ :\/]/g, '_')}.pdf`;
     const pdfBase64 = doc.output('datauristring').split(',')[1];
-    
     return { pdfBase64, filename };
   };
 
@@ -220,7 +213,6 @@ const FeedbackButton = () => {
     const formData = new FormData();
     formData.append('filename', filename);
     formData.append('base64', base64);
-    
     fetch(GOOGLE_DRIVE_FEEDBACK_URL, {
       method: 'POST',
       mode: 'no-cors',
@@ -237,13 +229,10 @@ const FeedbackButton = () => {
       alert("Sila lengkapkan ruangan maklum balas sebelum menghantar.");
       return;
     }
-    
     setIsSubmitting(true);
-    
     setTimeout(() => {
       const now = new Date();
       const timestamp = now.toLocaleString('ms-MY', { timeZone: 'Asia/Kuala_Lumpur' });
-      
       const { pdfBase64, filename } = generatePDFBase64(feedbackName, feedbackEmail, feedbackMessage, timestamp, rating);
       sendToGoogleDrive(pdfBase64, filename);
       
@@ -258,13 +247,11 @@ const FeedbackButton = () => {
       setTimeout(() => {
         alert("Maklum balas anda telah direkodkan dan sedang dihantar. Terima kasih!");
       }, 150);
-      
     }, 50);
   };
 
   const toggleModal = () => setIsModalOpen(!isModalOpen);
 
-  // Tutup modal jika tekan butang ESC
   useEffect(() => {
     const handleEsc = (e) => { if (e.key === 'Escape' && isModalOpen) setIsModalOpen(false); };
     window.addEventListener('keydown', handleEsc);
@@ -273,59 +260,62 @@ const FeedbackButton = () => {
 
   return (
     <>
-      {/* BUTANG APUNG (FLOATING BUTTON) - Tetap di bahagian bawah kanan skrin */}
-      <div className="fixed bottom-6 right-6 md:bottom-8 md:right-8 z-[9999] group flex items-center gap-2">
+      {/* BUTANG APUNG MODEN - Bentuk Pil (Pill-shaped), Gradient, Glowing Shadow */}
+      <div className="fixed bottom-6 right-6 md:bottom-8 md:right-8 z-[9999] flex items-center">
         <button
           onClick={toggleModal}
-          className="bg-blue-600 text-white rounded-full p-4 shadow-[0_8px_30px_rgb(0,0,0,0.15)] hover:shadow-[0_8px_30px_rgb(37,99,235,0.4)] hover:bg-blue-700 transition-all duration-300 flex items-center justify-center relative overflow-hidden group-hover:pl-5 group-hover:pr-5 group-hover:gap-2 group-hover:rounded-2xl active:scale-95"
-          aria-label={isModalOpen ? 'Tutup Maklum Balas' : 'Buka Maklum Balas'}
+          className="group relative flex items-center gap-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-5 py-3.5 rounded-full shadow-[0_8px_30px_rgba(99,102,241,0.4)] hover:shadow-[0_8px_30px_rgba(99,102,241,0.6)] hover:-translate-y-1 transition-all duration-300 active:scale-95 border border-white/10"
+          aria-label="Maklum Balas"
         >
-          <div className={`relative w-6 h-6 transform transition-transform duration-500 ${isModalOpen ? 'rotate-180' : ''}`}>
+          {/* Titik Nadi (Pulse Dot) untuk menarik perhatian secara halus */}
+          {!isModalOpen && (
+            <span className="absolute top-0 right-1 flex h-3 w-3 -mt-1 -mr-1">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-pink-500 border-2 border-white"></span>
+            </span>
+          )}
+
+          <div className={`relative w-5 h-5 md:w-6 md:h-6 transform transition-transform duration-500 ${isModalOpen ? 'rotate-180' : ''}`}>
             {/* Ikon Mesej */}
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`absolute inset-0 w-6 h-6 transition-opacity duration-300 ${isModalOpen ? 'opacity-0 scale-0' : 'opacity-100 scale-100'}`}>
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-              <path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`absolute inset-0 w-full h-full transition-opacity duration-300 ${isModalOpen ? 'opacity-0 scale-0' : 'opacity-100 scale-100'}`}>
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/>
             </svg>
             {/* Ikon Tutup */}
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`absolute inset-0 w-6 h-6 transition-opacity duration-300 ${isModalOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-0'}`}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`absolute inset-0 w-full h-full transition-opacity duration-300 ${isModalOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-0'}`}>
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
           </div>
-          <span className="text-sm font-semibold opacity-0 max-w-0 group-hover:opacity-100 group-hover:max-w-xs transition-all duration-500 whitespace-nowrap overflow-hidden">
+          
+          <span className="text-sm md:text-base font-medium tracking-wide">
             {isModalOpen ? 'Tutup' : 'Maklum Balas'}
           </span>
         </button>
       </div>
 
-      {/* MODAL MAKLUM BALAS */}
+      {/* MODAL MAKLUM BALAS - Kesan Kaca (Glassmorphism) Halus */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-fade-in">
-          {/* max-h-[90vh] dan overflow-y-auto memastikannya responsif dan boleh discroll jika skrin telefon terlalu kecil */}
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col border border-slate-100 overflow-hidden">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-md animate-fade-in">
+          <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col border border-white/20 overflow-hidden ring-1 ring-slate-900/5">
             
             {/* HEADER MODAL */}
-            <div className="px-5 py-4 flex justify-between items-center border-b border-slate-100 bg-white shrink-0">
+            <div className="px-6 py-5 flex justify-between items-center border-b border-slate-100/80 bg-white/50 shrink-0">
               <div className="flex items-center gap-3">
-                <div className="bg-blue-50 text-blue-600 p-2 rounded-lg">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <div className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-2.5 rounded-xl shadow-inner">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                 </div>
-                <h2 className="text-base md:text-lg font-semibold text-slate-800">Hantar Maklum Balas</h2>
+                <h2 className="text-base md:text-lg font-bold text-slate-800 tracking-tight">Suara Anda Penting</h2>
               </div>
-              <button 
-                onClick={toggleModal} 
-                className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-2 rounded-full transition-colors"
-                aria-label="Tutup Modal"
-              >
+              <button onClick={toggleModal} className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-2 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/50" aria-label="Tutup Modal">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
             </div>
 
-            {/* KANDUNGAN MODAL (Boleh di-scroll) */}
-            <div className="p-5 space-y-5 bg-slate-50/50 overflow-y-auto">
+            {/* KANDUNGAN MODAL */}
+            <div className="p-6 space-y-6 bg-transparent overflow-y-auto">
               
               {/* PENILAIAN BINTANG */}
-              <div className="flex flex-col items-center justify-center space-y-2 py-2">
-                <label className="text-sm font-medium text-slate-700">Tahap Kepuasan Anda <span className="text-red-500">*</span></label>
+              <div className="flex flex-col items-center justify-center space-y-3 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
+                <label className="text-sm font-semibold text-slate-600">Bagaimana pengalaman anda hari ini? <span className="text-rose-500">*</span></label>
                 <div className="flex gap-2">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
@@ -334,20 +324,9 @@ const FeedbackButton = () => {
                       onMouseEnter={() => setHoverRating(star)}
                       onMouseLeave={() => setHoverRating(0)}
                       onClick={() => setRating(star)}
-                      className="focus:outline-none transition-transform hover:scale-110 active:scale-90"
+                      className="focus:outline-none transition-transform hover:scale-125 active:scale-90"
                     >
-                      <svg 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        width="32" 
-                        height="32" 
-                        viewBox="0 0 24 24" 
-                        fill={(hoverRating || rating) >= star ? "#eab308" : "none"} 
-                        stroke={(hoverRating || rating) >= star ? "#eab308" : "#cbd5e1"} 
-                        strokeWidth="1.5" 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        className="transition-colors duration-200"
-                      >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill={(hoverRating || rating) >= star ? "#f59e0b" : "none"} stroke={(hoverRating || rating) >= star ? "#f59e0b" : "#cbd5e1"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="transition-colors duration-200 drop-shadow-sm">
                         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                       </svg>
                     </button>
@@ -358,51 +337,33 @@ const FeedbackButton = () => {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="block text-sm font-medium text-slate-700">Nama <span className="text-slate-400 font-normal">(Pilihan)</span></label>
-                    <input 
-                      type="text" 
-                      value={feedbackName} 
-                      onChange={(e) => setFeedbackName(e.target.value)} 
-                      placeholder="Cth: Ahmad Ali" 
-                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 placeholder:text-slate-300"
-                    />
+                    <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider">Nama <span className="text-slate-400 font-normal normal-case">(Pilihan)</span></label>
+                    <input type="text" value={feedbackName} onChange={(e) => setFeedbackName(e.target.value)} placeholder="Cth: Ahmad Ali" className="w-full rounded-xl border border-slate-200 bg-white/80 px-4 py-3 text-sm transition-all focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 placeholder:text-slate-300"/>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="block text-sm font-medium text-slate-700">Emel <span className="text-slate-400 font-normal">(Pilihan)</span></label>
-                    <input 
-                      type="email" 
-                      value={feedbackEmail} 
-                      onChange={(e) => setFeedbackEmail(e.target.value)} 
-                      placeholder="Cth: ahmad@domain.com" 
-                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 placeholder:text-slate-300"
-                    />
+                    <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider">Emel <span className="text-slate-400 font-normal normal-case">(Pilihan)</span></label>
+                    <input type="email" value={feedbackEmail} onChange={(e) => setFeedbackEmail(e.target.value)} placeholder="ahmad@domain.com" className="w-full rounded-xl border border-slate-200 bg-white/80 px-4 py-3 text-sm transition-all focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 placeholder:text-slate-300"/>
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-slate-700">Maklumat Terperinci <span className="text-red-500">*</span></label>
-                  <textarea 
-                    rows="3" 
-                    value={feedbackMessage} 
-                    onChange={(e) => setFeedbackMessage(e.target.value)} 
-                    placeholder="Terangkan cadangan atau masalah anda dengan jelas..." 
-                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm resize-none transition-all focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 placeholder:text-slate-300"
-                  />
+                  <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider">Maklumat Terperinci <span className="text-rose-500">*</span></label>
+                  <textarea rows="3" value={feedbackMessage} onChange={(e) => setFeedbackMessage(e.target.value)} placeholder="Terangkan cadangan atau masalah yang anda hadapi..." className="w-full rounded-xl border border-slate-200 bg-white/80 px-4 py-3 text-sm resize-none transition-all focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 placeholder:text-slate-300 shadow-sm"/>
                 </div>
               </div>
             </div>
 
             {/* FOOTER & BUTANG HANTAR */}
-            <div className="px-5 py-4 border-t border-slate-100 bg-white flex flex-col-reverse md:flex-row items-center justify-between gap-3 shrink-0">
-              <span className="text-[11px] text-slate-400 flex items-center gap-1.5 whitespace-nowrap">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                Disulitkan & Latar Belakang
+            <div className="px-6 py-5 border-t border-slate-100/80 bg-white/50 flex flex-col-reverse md:flex-row items-center justify-between gap-4 shrink-0">
+              <span className="text-[11px] text-slate-400 flex items-center gap-1.5 font-medium">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+                Disulitkan & Selamat
               </span>
               
               <button 
                 onClick={handleSubmit} 
                 disabled={isSubmitting} 
-                className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-sm active:scale-95"
+                className="w-full md:w-auto bg-slate-900 hover:bg-slate-800 text-white font-semibold px-8 py-3 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-md active:scale-95"
               >
                 {isSubmitting ? (
                   <>
@@ -411,8 +372,8 @@ const FeedbackButton = () => {
                   </>
                 ) : (
                   <>
-                    Hantar
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    Hantar Maklum Balas
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                   </>
                 )}
               </button>
