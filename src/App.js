@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import './index.css';
+import { jsPDF } from "jspdf";
+
 
 // ================== KONSTAN DAN KOMPONEN SEDIA ADA (TIDAK DIUBAH) ==================
 const formInputClass = "block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-[15px] font-semibold text-slate-800 shadow-sm transition-all duration-300 placeholder:text-slate-400 placeholder:font-medium focus:border-blue-500 focus:outline-none focus:ring-[4px] focus:ring-blue-500/10 hover:border-slate-300";
@@ -171,8 +173,9 @@ const malaysiaAirports = [
     { code: 'JED', name: 'Jeddah' }
 ];
 
-// =// ================== FEEDBACK BUTTON - SIMBOL SAHAJA, RESPONSIF ==================
-const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbx4KY1reUKH5lDJtFepwO-37TeS5v8B3T4vtDOIr-3TJaEauz9thXtoJXuyg1YrIzhb9g/exec"; // GANTI DENGAN URL ANDA
+// ================== FEEDBACK BUTTON - SIMPAN SEBAGAI PDF ==================
+// GANTI DENGAN WEB APP URL GOOGLE APPS SCRIPT ANDA YANG BAHARU
+const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/.../exec"; 
 
 const FeedbackButton = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -181,35 +184,54 @@ const FeedbackButton = () => {
   const [feedbackMessage, setFeedbackMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Hanya simpan kedudukan Y, paksi X dikunci di sebelah kanan dengan CSS
   const [positionY, setPositionY] = useState(() => window.innerHeight - 100);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffsetY, setDragOffsetY] = useState(0);
 
-  const generateFeedbackContent = (name, email, message, timestamp) => {
-    const content = `========================================
-MAKLUM BALAS PENGGUNA - iFMS
-========================================
-Tarikh: ${timestamp}
-Nama: ${name || "Tanpa Nama (Anonymous)"}
-Emel: ${email || "Tiada emel"}
-Komen / Maklum Balas:
-----------------------------------------
-${message}
-========================================
-`;
-    const filename = `feedback_${timestamp.replace(/[ :]/g, '_')}.txt`;
-    return { content, filename };
+  // Fungsi untuk menjana PDF
+  const generatePDFBase64 = (name, email, message, timestamp) => {
+    const doc = new jsPDF();
+    
+    // Tajuk
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text("MAKLUM BALAS PENGGUNA - iFMS", 15, 20);
+    
+    // Butiran
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(12);
+    doc.text(`Tarikh: ${timestamp}`, 15, 30);
+    doc.text(`Nama: ${name || "Tanpa Nama (Anonymous)"}`, 15, 40);
+    doc.text(`Emel: ${email || "Tiada emel"}`, 15, 50);
+    
+    // Garis Pemisah
+    doc.line(15, 55, 195, 55);
+    
+    // Mesej
+    doc.setFont("helvetica", "bold");
+    doc.text("Komen / Maklum Balas:", 15, 65);
+    doc.setFont("helvetica", "normal");
+    
+    // Pecahkan teks supaya tidak terkeluar dari muka surat PDF
+    const splitText = doc.splitTextToSize(message, 180);
+    doc.text(splitText, 15, 75);
+    
+    // Format nama fail dan tukar kepada base64
+    const filename = `MaklumBalas_${timestamp.replace(/[ :\/]/g, '_')}.pdf`;
+    const pdfBase64 = doc.output('datauristring').split(',')[1];
+    
+    return { pdfBase64, filename };
   };
 
-  const sendToGoogleDrive = async (content, filename) => {
+  const sendToGoogleDrive = async (base64, filename) => {
     const formData = new FormData();
     formData.append('filename', filename);
-    formData.append('content', content);
+    formData.append('base64', base64);
+    
     try {
       await fetch(GOOGLE_DRIVE_FEEDBACK_URL, {
         method: 'POST',
-        mode: 'no-cors',
+        mode: 'no-cors', // Penting untuk elak isu CORS
         body: formData
       });
       return true;
@@ -225,11 +247,19 @@ ${message}
       return;
     }
     setIsSubmitting(true);
+    
     const now = new Date();
     const timestamp = now.toLocaleString('ms-MY', { timeZone: 'Asia/Kuala_Lumpur' });
-    const { content, filename } = generateFeedbackContent(feedbackName, feedbackEmail, feedbackMessage, timestamp);
-    await sendToGoogleDrive(content, filename);
-    alert("✓ Maklum balas anda telah dihantar ke Google Drive. Terima kasih!");
+    
+    // Bina fail PDF
+    const { pdfBase64, filename } = generatePDFBase64(feedbackName, feedbackEmail, feedbackMessage, timestamp);
+    
+    // Hantar ke Google Drive
+    await sendToGoogleDrive(pdfBase64, filename);
+    
+    alert("✓ Maklum balas anda telah dihantar ke Google Drive sebagai fail PDF. Terima kasih!");
+    
+    // Reset form
     setFeedbackName('');
     setFeedbackEmail('');
     setFeedbackMessage('');
@@ -251,8 +281,6 @@ ${message}
     const clientY = e.clientY ?? e.touches?.[0]?.clientY;
     if (!clientY) return;
     let newY = clientY - dragOffsetY;
-    
-    // Hadkan agar tidak terkeluar skrin di atas atau bawah
     newY = Math.min(Math.max(newY, 10), window.innerHeight - 80);
     setPositionY(newY);
   };
@@ -265,10 +293,7 @@ ${message}
     window.addEventListener('touchmove', onMouseMove);
     window.addEventListener('touchend', onMouseUp);
     
-    // Kemaskini posisi jika saiz tingkap berubah
-    const handleResize = () => {
-      setPositionY((prev) => Math.min(prev, window.innerHeight - 80));
-    };
+    const handleResize = () => setPositionY((prev) => Math.min(prev, window.innerHeight - 80));
     window.addEventListener('resize', handleResize);
 
     return () => {
@@ -294,8 +319,8 @@ ${message}
         onClick={() => setIsModalOpen(true)}
         style={{
           position: 'fixed',
-          right: '20px', // Dikunci pada sebelah kanan
-          top: positionY, // Boleh diubah ke atas/bawah
+          right: '20px',
+          top: positionY,
           zIndex: 9999,
           cursor: isDragging ? 'grabbing' : 'grab',
         }}
@@ -309,9 +334,8 @@ ${message}
         </div>
       </div>
 
-      {/* MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in feedback-modal">
           <div className="bg-white rounded-2xl shadow-2xl w-[90%] max-w-md overflow-hidden">
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3 md:px-6 md:py-4 text-white font-bold text-base md:text-lg flex justify-between items-center">
               <span>📢 Maklum Balas Tanpa Nama</span>
@@ -340,7 +364,7 @@ ${message}
                   <><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Hantar Maklum Balas</>
                 )}
               </button>
-              <p className="text-[10px] md:text-[11px] text-slate-400 text-center">Maklum balas akan dihantar terus ke folder Google Drive jabatan (format .txt).</p>
+              <p className="text-[10px] md:text-[11px] text-slate-400 text-center">Maklum balas akan disimpan dalam format PDF dan dihantar terus ke folder Google Drive sistem.</p>
             </div>
           </div>
         </div>
