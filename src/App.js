@@ -183,7 +183,7 @@ const FeedbackButton = () => {
   const [feedbackMessage, setFeedbackMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const [positionY, setPositionY] = useState(() => window.innerHeight - 100);
+  const [positionY, setPositionY] = useState(() => window.innerHeight - 120);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffsetY, setDragOffsetY] = useState(0);
 
@@ -191,32 +191,27 @@ const FeedbackButton = () => {
   const generatePDFBase64 = (name, email, message, timestamp) => {
     const doc = new jsPDF();
     
-    // Tajuk
     doc.setFont("helvetica", "bold");
     doc.setFontSize(16);
     doc.text("MAKLUM BALAS PENGGUNA - iFMS", 15, 20);
     
-    // Butiran
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(12);
-    doc.text(`Tarikh: ${timestamp}`, 15, 30);
-    doc.text(`Nama: ${name || "Tanpa Nama (Anonymous)"}`, 15, 40);
-    doc.text(`Emel: ${email || "Tiada emel"}`, 15, 50);
+    doc.setFontSize(11);
+    doc.text(`Tarikh & Masa: ${timestamp}`, 15, 30);
+    doc.text(`Nama: ${name || "Tanpa Nama"}`, 15, 38);
+    doc.text(`Emel: ${email || "Tidak Disediakan"}`, 15, 46);
     
-    // Garis Pemisah
-    doc.line(15, 55, 195, 55);
+    doc.setDrawColor(200, 200, 200);
+    doc.line(15, 52, 195, 52);
     
-    // Mesej
     doc.setFont("helvetica", "bold");
-    doc.text("Komen / Maklum Balas:", 15, 65);
+    doc.text("Butiran Maklum Balas:", 15, 62);
     doc.setFont("helvetica", "normal");
     
-    // Pecahkan teks supaya tidak terkeluar dari muka surat PDF
     const splitText = doc.splitTextToSize(message, 180);
-    doc.text(splitText, 15, 75);
+    doc.text(splitText, 15, 72);
     
-    // Format nama fail dan tukar kepada base64
-    const filename = `MaklumBalas_${timestamp.replace(/[ :\/]/g, '_')}.pdf`;
+    const filename = `MaklumBalas_iFMS_${timestamp.replace(/[ :\/]/g, '_')}.pdf`;
     const pdfBase64 = doc.output('datauristring').split(',')[1];
     
     return { pdfBase64, filename };
@@ -230,7 +225,7 @@ const FeedbackButton = () => {
     try {
       await fetch(GOOGLE_DRIVE_FEEDBACK_URL, {
         method: 'POST',
-        mode: 'no-cors', // Penting untuk elak isu CORS
+        mode: 'no-cors',
         body: formData
       });
       return true;
@@ -242,7 +237,7 @@ const FeedbackButton = () => {
 
   const handleSubmit = async () => {
     if (!feedbackMessage.trim()) {
-      alert("Sila masukkan komen/maklum balas anda.");
+      alert("Sila lengkapkan ruangan maklum balas sebelum menghantar.");
       return;
     }
     setIsSubmitting(true);
@@ -250,15 +245,11 @@ const FeedbackButton = () => {
     const now = new Date();
     const timestamp = now.toLocaleString('ms-MY', { timeZone: 'Asia/Kuala_Lumpur' });
     
-    // Bina fail PDF
     const { pdfBase64, filename } = generatePDFBase64(feedbackName, feedbackEmail, feedbackMessage, timestamp);
-    
-    // Hantar ke Google Drive
     await sendToGoogleDrive(pdfBase64, filename);
     
-    alert("✓ Maklum balas anda telah dihantar ke Google Drive sebagai fail PDF. Terima kasih!");
+    alert("Maklum balas anda telah berjaya direkodkan. Terima kasih atas kerjasama anda.");
     
-    // Reset form
     setFeedbackName('');
     setFeedbackEmail('');
     setFeedbackMessage('');
@@ -266,7 +257,7 @@ const FeedbackButton = () => {
     setIsSubmitting(false);
   };
 
-  // --- Drag functions (hanya untuk Paksi-Y / Atas & Bawah) ---
+  // --- Drag functions (Paksi-Y Sahaja) ---
   const onMouseDown = (e) => {
     if (e.target.closest('.feedback-modal')) return;
     setIsDragging(true);
@@ -280,7 +271,7 @@ const FeedbackButton = () => {
     const clientY = e.clientY ?? e.touches?.[0]?.clientY;
     if (!clientY) return;
     let newY = clientY - dragOffsetY;
-    newY = Math.min(Math.max(newY, 10), window.innerHeight - 80);
+    newY = Math.min(Math.max(newY, 20), window.innerHeight - 80);
     setPositionY(newY);
   };
 
@@ -312,59 +303,125 @@ const FeedbackButton = () => {
 
   return (
     <>
+      {/* BUTANG APUNG (FLOATING BUTTON) */}
       <div
         onMouseDown={onMouseDown}
         onTouchStart={onMouseDown}
         onClick={() => setIsModalOpen(true)}
         style={{
           position: 'fixed',
-          right: '20px',
+          right: '24px',
           top: positionY,
           zIndex: 9999,
           cursor: isDragging ? 'grabbing' : 'grab',
         }}
-        className="feedback-button group"
+        className="group flex items-center justify-center"
       >
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full p-3 md:p-3.5 shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center hover:scale-105 active:scale-95">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 md:w-7 md:h-7">
+        <div className="bg-blue-600 text-white rounded-full p-3.5 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgb(37,99,235,0.3)] hover:bg-blue-700 hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center relative">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
             <path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/>
           </svg>
         </div>
       </div>
 
+      {/* MODAL MAKLUM BALAS */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in feedback-modal">
-          <div className="bg-white rounded-2xl shadow-2xl w-[90%] max-w-md overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3 md:px-6 md:py-4 text-white font-bold text-base md:text-lg flex justify-between items-center">
-              <span>📢 Maklum Balas Tanpa Nama</span>
-              <button onClick={() => setIsModalOpen(false)} className="text-white/80 hover:text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-fade-in feedback-modal">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100 flex flex-col">
+            
+            {/* HEADER MODAL */}
+            <div className="px-6 py-4 flex justify-between items-center border-b border-slate-100 bg-white">
+              <div className="flex items-center gap-3">
+                <div className="bg-blue-50 text-blue-600 p-2 rounded-lg">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                </div>
+                <h2 className="text-lg font-semibold text-slate-800">Hantar Maklum Balas</h2>
+              </div>
+              <button 
+                onClick={() => setIsModalOpen(false)} 
+                className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-2 rounded-full transition-colors"
+                aria-label="Tutup"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
             </div>
-            <div className="p-4 md:p-6 space-y-4">
-              <p className="text-xs md:text-sm text-slate-600 bg-slate-50 p-2 md:p-3 rounded-xl border">Anda boleh berkongsi komen, cadangan atau laporan masalah. Semua maklum balas adalah sulit.</p>
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Nama (Pilihan)</label>
-                <input type="text" value={feedbackName} onChange={(e) => setFeedbackName(e.target.value)} placeholder="Biarkan kosong untuk tanpa nama" className="w-full rounded-xl border px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"/>
+
+            {/* KANDUNGAN MODAL */}
+            <div className="p-6 space-y-5 bg-slate-50/50">
+              <p className="text-sm text-slate-500 leading-relaxed">
+                Kami sentiasa mencari jalan untuk menambah baik sistem iFMS. Kongsikan pengalaman, cadangan, atau sebarang isu yang anda hadapi.
+              </p>
+              
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="block text-sm font-medium text-slate-700">
+                      Nama Lengkap <span className="text-slate-400 font-normal">(Pilihan)</span>
+                    </label>
+                    <input 
+                      type="text" 
+                      value={feedbackName} 
+                      onChange={(e) => setFeedbackName(e.target.value)} 
+                      placeholder="Cth: Ahmad Ali" 
+                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 placeholder:text-slate-300"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="block text-sm font-medium text-slate-700">
+                      Alamat Emel <span className="text-slate-400 font-normal">(Pilihan)</span>
+                    </label>
+                    <input 
+                      type="email" 
+                      value={feedbackEmail} 
+                      onChange={(e) => setFeedbackEmail(e.target.value)} 
+                      placeholder="Cth: ahmad@domain.com" 
+                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 placeholder:text-slate-300"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-medium text-slate-700">
+                    Maklumat Terperinci <span className="text-red-500">*</span>
+                  </label>
+                  <textarea 
+                    rows="4" 
+                    value={feedbackMessage} 
+                    onChange={(e) => setFeedbackMessage(e.target.value)} 
+                    placeholder="Terangkan cadangan atau masalah anda dengan jelas..." 
+                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm resize-none transition-all focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 placeholder:text-slate-300"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Emel (Pilihan)</label>
-                <input type="email" value={feedbackEmail} onChange={(e) => setFeedbackEmail(e.target.value)} placeholder="Untuk maklum balas lanjut" className="w-full rounded-xl border px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"/>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Komen / Maklum Balas <span className="text-red-500">*</span></label>
-                <textarea rows="4" value={feedbackMessage} onChange={(e) => setFeedbackMessage(e.target.value)} placeholder="Sila tulis komen anda di sini..." className="w-full rounded-xl border px-3 py-2 text-sm resize-none focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"/>
-              </div>
-              <button onClick={handleSubmit} disabled={isSubmitting} className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-2.5 md:py-3 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-70">
+            </div>
+
+            {/* FOOTER & BUTANG HANTAR */}
+            <div className="px-6 py-4 border-t border-slate-100 bg-white flex flex-col md:flex-row items-center justify-between gap-4">
+              <span className="text-[11px] text-slate-400 flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Disulitkan & Disimpan sebagai PDF
+              </span>
+              
+              <button 
+                onClick={handleSubmit} 
+                disabled={isSubmitting} 
+                className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-sm"
+              >
                 {isSubmitting ? (
-                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    Sedang Memproses...
+                  </>
                 ) : (
-                  <><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Hantar Maklum Balas</>
+                  <>
+                    Hantar Maklum Balas
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                  </>
                 )}
               </button>
-              <p className="text-[10px] md:text-[11px] text-slate-400 text-center">Maklum balas akan disimpan dalam format PDF dan dihantar terus ke folder Google Drive sistem.</p>
             </div>
+            
           </div>
         </div>
       )}
