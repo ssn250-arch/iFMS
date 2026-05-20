@@ -174,7 +174,7 @@ const malaysiaAirports = [
 
 // ================== FEEDBACK BUTTON - SIMPAN SEBAGAI PDF ==================
 // GANTI DENGAN WEB APP URL GOOGLE APPS SCRIPT ANDA YANG BAHARU
-const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/.../exec"; 
+const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbw56_36pxhF3PVFyfI5trszw9glkxO6D0dz-M2GQdJKsjcqEWxQLzqiKzoAd3oQotyu9g/exec"; 
 
 const FeedbackButton = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
