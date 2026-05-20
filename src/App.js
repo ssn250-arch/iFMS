@@ -172,7 +172,7 @@ const malaysiaAirports = [
 ];
 
 // ================== FEEDBACK BUTTON - JSON VERSION (AUTO SEND) ==================
-const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbyOlNCt3ZCkTCCQhQ1mEA-NSrR-27zJ_b-QpPhQKH_c7BVxv1HXqTTIBTWPQ40QQ4jxfQ/exec"; // GANTI DENGAN URL ANDA
+const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbxcC1teo7c_j3hLWnT3ECrztT6ND5FMoPbbTjU22xeEFVoCQ-KPrDfMQLxr1Sc2toxCHA/exec"; // GANTI DENGAN URL ANDA
 
 const FeedbackButton = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
