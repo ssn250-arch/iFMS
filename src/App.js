@@ -173,7 +173,7 @@ const malaysiaAirports = [
 
 // ================== KOMPONEN FEEDBACK MODAL MODEN ==================
 // GANTIKAN URL INI DENGAN URL WEB APP ANDA DARI GOOGLE APPS SCRIPT
-const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbzxk0P3Y0TRDG2Yb1Dsms4-bWyCxhnG3-YHcVBVw92MALJHcvw_atkatF8LW1IEqPHYBQ/exec";
+const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbzB6QGKTUMDMxvvlwdFwc5OOjHFfFOZCGE9SKlKKzk2tdE4LbhXMQGC7hZk65BVX5FN/exec";
 
 const FeedbackButton = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -207,25 +207,26 @@ const FeedbackButton = () => {
 
   // Hantar ke Google Drive
   const sendToGoogleDrive = async (pdfBlob, filename) => {
-    const formData = new FormData();
-    formData.append('file', pdfBlob, filename);
-    formData.append('filename', filename);
-    try {
-      const response = await fetch(GOOGLE_DRIVE_FEEDBACK_URL, {
-        method: 'POST',
-        mode: 'cors',
-        body: formData
-      });
-      if (response.ok) {
-        const result = await response.json();
-        return result.success === true;
-      }
-      return false;
-    } catch (error) {
-      console.error("Error sending to Google Drive:", error);
-      return false;
+  const formData = new FormData();
+  formData.append('file', pdfBlob, filename);
+  formData.append('filename', filename);
+  try {
+    const response = await fetch(GOOGLE_DRIVE_FEEDBACK_URL, {
+      method: 'POST',
+      mode: 'cors',
+      body: formData
+    });
+    if (response.ok) {
+      const result = await response.json();
+      return result.success === true;
     }
-  };
+    console.error("Server error:", response.status);
+    return false;
+  } catch (error) {
+    console.error("Fetch error:", error);
+    return false;
+  }
+};
 
   const handleSubmit = async () => {
     if (!feedbackMessage.trim()) {
