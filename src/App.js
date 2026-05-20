@@ -172,8 +172,8 @@ const malaysiaAirports = [
     { code: 'JED', name: 'Jeddah' }
 ];
 
-// ================== FEEDBACK BUTTON - SIMPAN SEBAGAI PDF ==================
-// GANTI DENGAN WEB APP URL GOOGLE APPS SCRIPT ANDA YANG BAHARU
+// ================== iFMS HYBRID FEEDBACK SYSTEM ==================
+// PENYELESAIAN: HIDE ON SCROLL DOWN + BOTTOM SHEET
 const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbw56_36pxhF3PVFyfI5trszw9glkxO6D0dz-M2GQdJKsjcqEWxQLzqiKzoAd3oQotyu9g/exec"; 
 
 const FeedbackButton = () => {
@@ -185,7 +185,29 @@ const FeedbackButton = () => {
   const [feedbackMessage, setFeedbackMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Label Dinamik untuk Rating
+  // --- SCROLL DETECTION LOGIC ---
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Jika scroll ke bawah lebih dari 50px, sembunyikan butang.
+      // Jika scroll ke atas, tunjukkan butang.
+      if (currentScrollY > lastScrollY && currentScrollY > 50) {
+        setIsVisible(false);
+      } else {
+        setIsVisible(true);
+      }
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
+  // ------------------------------
+
   const getRatingLabel = (val) => {
     switch(val) {
       case 1: return "Sangat Tidak Memuaskan";
@@ -201,7 +223,7 @@ const FeedbackButton = () => {
     const doc = new jsPDF();
     doc.setFont("helvetica", "bold");
     doc.setFontSize(18);
-    doc.setTextColor(30, 58, 138); // Blue 900
+    doc.setTextColor(30, 58, 138);
     doc.text("LAPORAN MAKLUM BALAS iFMS", 15, 20);
     
     doc.setFontSize(11);
@@ -237,7 +259,6 @@ const FeedbackButton = () => {
       const now = new Date().toLocaleString('ms-MY');
       const { pdfBase64, filename } = generatePDFBase64(feedbackName, feedbackEmail, feedbackMessage, now, rating);
       
-      // Fire-and-Forget (Background Process)
       const formData = new FormData();
       formData.append('filename', filename);
       formData.append('base64', pdfBase64);
@@ -246,7 +267,6 @@ const FeedbackButton = () => {
       setIsSubmitting(false);
       setIsModalOpen(false);
       
-      // Reset Form
       setRating(0); setFeedbackMessage(''); setFeedbackName(''); setFeedbackEmail('');
       alert("✓ Terima kasih! Maklum balas anda sedang diproses ke sistem iFMS.");
     }, 100);
@@ -254,29 +274,31 @@ const FeedbackButton = () => {
 
   return (
     <>
-      {/* 1. FLOATING BUTTON (RESPONSIVE) */}
-      <div className="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-[9999]">
+      {/* 1. FLOATING BUTTON DENGAN ANIMASI HIDE-ON-SCROLL */}
+      <div 
+        className={`fixed z-[9999] transition-all duration-500 ease-in-out ${
+          isVisible 
+            ? 'bottom-6 right-6 md:bottom-10 md:right-10 translate-y-0 opacity-100' 
+            : 'bottom-[-100px] right-6 md:bottom-10 md:right-10 md:translate-y-0 opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto'
+            // Nota: Pada desktop (md), kita sentiasa paparkan. Sembunyi hanya diaplikasikan pada mobile.
+        }`}
+      >
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 bg-blue-600 text-white p-4 md:px-6 md:py-3.5 rounded-full shadow-[0_10px_25px_rgba(37,99,235,0.4)] hover:scale-105 active:scale-95 transition-all duration-300"
+          className="flex items-center gap-2 bg-blue-600 text-white p-3.5 md:px-6 md:py-3.5 rounded-full shadow-[0_8px_20px_rgba(37,99,235,0.4)] hover:scale-105 active:scale-95 transition-all duration-300"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
           </svg>
           <span className="hidden md:inline font-semibold">Maklum Balas</span>
         </button>
       </div>
 
-      {/* 2. MODAL SYSTEM (BOTTOM SHEET ON MOBILE, CENTER ON PC) */}
+      {/* 2. MODAL SYSTEM (TIDAK BERUBAH) */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[10000] flex items-end sm:items-center justify-center bg-slate-900/40 backdrop-blur-sm animate-fade-in">
-          
           <div className="bg-white w-full sm:max-w-md rounded-t-[2.5rem] sm:rounded-[2rem] shadow-2xl overflow-hidden animate-slide-up sm:animate-zoom-in">
-            
-            {/* Handle untuk mobile (visual sahaja) */}
             <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mt-4 mb-2 sm:hidden"></div>
-
-            {/* HEADER */}
             <div className="px-8 py-4 flex justify-between items-center border-b border-slate-50">
               <h2 className="text-xl font-bold text-slate-800">Suara Anda</h2>
               <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
@@ -285,11 +307,7 @@ const FeedbackButton = () => {
                 </svg>
               </button>
             </div>
-
-            {/* FORM BODY */}
             <div className="p-8 space-y-6 max-h-[75vh] overflow-y-auto">
-              
-              {/* RATING SECTION */}
               <div className="text-center space-y-3">
                 <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
                   {getRatingLabel(hoverRating || rating)}
@@ -313,22 +331,18 @@ const FeedbackButton = () => {
                   ))}
                 </div>
               </div>
-
-              {/* INPUT FIELDS */}
               <div className="space-y-4">
                 <input 
                   type="text" placeholder="Nama Lengkap (Pilihan)"
-                  className="w-full bg-slate-50 border-none rounded-2xl px-5 py-3.5 text-sm focus:ring-2 focus:ring-blue-500 transition-all"
+                  className="w-full bg-slate-50 border-none rounded-2xl px-5 py-3.5 text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none"
                   value={feedbackName} onChange={(e) => setFeedbackName(e.target.value)}
                 />
                 <textarea 
                   placeholder="Ceritakan pengalaman anda atau cadangkan sesuatu..." rows="3"
-                  className="w-full bg-slate-50 border-none rounded-2xl px-5 py-3.5 text-sm focus:ring-2 focus:ring-blue-500 transition-all resize-none"
+                  className="w-full bg-slate-50 border-none rounded-2xl px-5 py-3.5 text-sm focus:ring-2 focus:ring-blue-500 transition-all resize-none outline-none"
                   value={feedbackMessage} onChange={(e) => setFeedbackMessage(e.target.value)}
                 />
               </div>
-
-              {/* SUBMIT BUTTON */}
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
@@ -341,7 +355,6 @@ const FeedbackButton = () => {
                   </>
                 )}
               </button>
-              
               <p className="text-[10px] text-center text-slate-400">
                 Laporan PDF akan dijana secara automatik ke Google Drive iFMS.
               </p>
