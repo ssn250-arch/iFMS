@@ -1860,14 +1860,14 @@ function App() {
                                 <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
                             </div>
                             <h3 className="text-[17px] font-extrabold text-slate-800 mb-2.5">Tandatangan Digital Pintar</h3>
-                            <p className="text-[14px] text-slate-500 font-semibold leading-relaxed">Lukis terus di skrin atau muat naik gambar sign. Sistem automatik buang latar belakang.</p>
+                            <p className="text-[14px] text-slate-500 font-semibold leading-relaxed">Lukis terus di skrin atau muat naik gambar sign. Sistem automatik remove background.</p>
                         </div>
                         <div className="bg-white/70 backdrop-blur-xl border border-white p-7 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_15px_40px_rgb(0,0,0,0.08)] transition-all transform hover:-translate-y-1">
                             <div className="w-14 h-14 bg-emerald-100/80 text-emerald-600 rounded-2xl flex items-center justify-center mb-5 border border-emerald-200">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
                             </div>
                             <h3 className="text-[17px] font-extrabold text-slate-800 mb-2.5">Mesra Peranti</h3>
-                            <p className="text-[14px] text-slate-500 font-semibold leading-relaxed">Antara muka adaptif yang berfungsi cemerlang dari desktop, tablet hinggalah ke pintar anda.</p>
+                            <p className="text-[14px] text-slate-500 font-semibold leading-relaxed">Antara muka adaptif yang berfungsi secara responsive (desktop, tablet, telefon pintar) anda.</p>
                         </div>
                     </div>
                     
