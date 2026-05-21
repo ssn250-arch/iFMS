@@ -181,7 +181,7 @@ const FeedbackButton = () => {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [feedbackName, setFeedbackName] = useState('');
-  const [feedbackEmail, setFeedbackEmail] = useState('');
+  const [feedbackEmail, setFeedbackEmail] = useState(''); // State is now used in the UI
   const [feedbackMessage, setFeedbackMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -232,44 +232,60 @@ const FeedbackButton = () => {
     doc.text(`ID Transaksi: iFMS-${Date.now()}`, 15, 30);
     doc.text(`Tarikh: ${timestamp}`, 15, 38);
     doc.text(`Nama Pengguna: ${name || "Anonymous"}`, 15, 46);
-    doc.text(`Penilaian: ${starRating} / 5 Bintang`, 15, 54);
+    doc.text(`Emel: ${email || "Tidak disediakan"}`, 15, 54); // Added email to PDF
+    doc.text(`Penilaian: ${starRating} / 5 Bintang`, 15, 62);
     
     doc.setDrawColor(220);
-    doc.line(15, 62, 195, 62);
+    doc.line(15, 70, 195, 70);
     
     doc.setFont("helvetica", "bold");
-    doc.text("Komen & Cadangan:", 15, 72);
+    doc.text("Komen & Cadangan:", 15, 80);
     doc.setFont("helvetica", "normal");
     const splitText = doc.splitTextToSize(message, 180);
-    doc.text(splitText, 15, 82);
+    doc.text(splitText, 15, 90);
     
     const filename = `iFMS_Feedback_${Date.now()}.pdf`;
     const pdfBase64 = doc.output('datauristring').split(',')[1];
     return { pdfBase64, filename };
   };
 
-  const handleSubmit = () => {
+  // Changed to async function to properly await the fetch request
+  const handleSubmit = async () => {
     if (rating === 0 || !feedbackMessage.trim()) {
       alert("Sila berikan rating dan maklum balas anda.");
       return;
     }
+    
     setIsSubmitting(true);
     
-    setTimeout(() => {
+    try {
       const now = new Date().toLocaleString('ms-MY');
       const { pdfBase64, filename } = generatePDFBase64(feedbackName, feedbackEmail, feedbackMessage, now, rating);
       
       const formData = new FormData();
       formData.append('filename', filename);
       formData.append('base64', pdfBase64);
-      fetch(GOOGLE_DRIVE_FEEDBACK_URL, { method: 'POST', mode: 'no-cors', body: formData });
-
-      setIsSubmitting(false);
-      setIsModalOpen(false);
       
-      setRating(0); setFeedbackMessage(''); setFeedbackName(''); setFeedbackEmail('');
+      // Await the fetch call so the UI waits for the actual submission
+      await fetch(GOOGLE_DRIVE_FEEDBACK_URL, { 
+        method: 'POST', 
+        mode: 'no-cors', 
+        body: formData 
+      });
+
+      setIsModalOpen(false);
+      setRating(0); 
+      setFeedbackMessage(''); 
+      setFeedbackName(''); 
+      setFeedbackEmail('');
       alert("✓ Terima kasih! Maklum balas anda sedang diproses ke sistem iFMS.");
-    }, 100);
+      
+    } catch (error) {
+      console.error("Ralat semasa menghantar maklum balas:", error);
+      alert("Maaf, ralat berlaku semasa menghantar maklum balas. Sila cuba lagi.");
+    } finally {
+      setIsSubmitting(false); // Only disable loading state after success or failure
+    }
   };
 
   return (
@@ -280,7 +296,6 @@ const FeedbackButton = () => {
           isVisible 
             ? 'bottom-6 right-6 md:bottom-10 md:right-10 translate-y-0 opacity-100' 
             : 'bottom-[-100px] right-6 md:bottom-10 md:right-10 md:translate-y-0 opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto'
-            // Nota: Pada desktop (md), kita sentiasa paparkan. Sembunyi hanya diaplikasikan pada mobile.
         }`}
       >
         <button
@@ -294,7 +309,7 @@ const FeedbackButton = () => {
         </button>
       </div>
 
-      {/* 2. MODAL SYSTEM (TIDAK BERUBAH) */}
+      {/* 2. MODAL SYSTEM */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[10000] flex items-end sm:items-center justify-center bg-slate-900/40 backdrop-blur-sm animate-fade-in">
           <div className="bg-white w-full sm:max-w-md rounded-t-[2.5rem] sm:rounded-[2rem] shadow-2xl overflow-hidden animate-slide-up sm:animate-zoom-in">
@@ -331,11 +346,18 @@ const FeedbackButton = () => {
                   ))}
                 </div>
               </div>
+              
               <div className="space-y-4">
                 <input 
                   type="text" placeholder="Nama Lengkap (Pilihan)"
                   className="w-full bg-slate-50 border-none rounded-2xl px-5 py-3.5 text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none"
                   value={feedbackName} onChange={(e) => setFeedbackName(e.target.value)}
+                />
+                {/* Added missing Email Input */}
+                <input 
+                  type="email" placeholder="Alamat Emel (Pilihan)"
+                  className="w-full bg-slate-50 border-none rounded-2xl px-5 py-3.5 text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none"
+                  value={feedbackEmail} onChange={(e) => setFeedbackEmail(e.target.value)}
                 />
                 <textarea 
                   placeholder="Ceritakan pengalaman anda atau cadangkan sesuatu..." rows="3"
@@ -343,15 +365,18 @@ const FeedbackButton = () => {
                   value={feedbackMessage} onChange={(e) => setFeedbackMessage(e.target.value)}
                 />
               </div>
+              
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-3 disabled:bg-slate-300"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-3 disabled:bg-slate-300 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? "Menghantar..." : (
                   <>
                     <span>Hantar Maklum Balas</span>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
                   </>
                 )}
               </button>
