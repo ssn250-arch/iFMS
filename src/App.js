@@ -181,7 +181,7 @@ const FeedbackButton = () => {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [feedbackName, setFeedbackName] = useState('');
-  const [feedbackEmail, setFeedbackEmail] = useState(''); // State is now used in the UI
+  const [feedbackEmail, setFeedbackEmail] = useState('');
   const [feedbackMessage, setFeedbackMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -193,8 +193,6 @@ const FeedbackButton = () => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       
-      // Jika scroll ke bawah lebih dari 50px, sembunyikan butang.
-      // Jika scroll ke atas, tunjukkan butang.
       if (currentScrollY > lastScrollY && currentScrollY > 50) {
         setIsVisible(false);
       } else {
@@ -232,7 +230,7 @@ const FeedbackButton = () => {
     doc.text(`ID Transaksi: iFMS-${Date.now()}`, 15, 30);
     doc.text(`Tarikh: ${timestamp}`, 15, 38);
     doc.text(`Nama Pengguna: ${name || "Anonymous"}`, 15, 46);
-    doc.text(`Emel: ${email || "Tidak disediakan"}`, 15, 54); // Added email to PDF
+    doc.text(`Emel: ${email || "Tidak disediakan"}`, 15, 54);
     doc.text(`Penilaian: ${starRating} / 5 Bintang`, 15, 62);
     
     doc.setDrawColor(220);
@@ -249,7 +247,7 @@ const FeedbackButton = () => {
     return { pdfBase64, filename };
   };
 
-  // Changed to async function to properly await the fetch request
+  // ✅ FIXED: Fire-and-forget submission - closes modal immediately after sending
   const handleSubmit = async () => {
     if (rating === 0 || !feedbackMessage.trim()) {
       alert("Sila berikan rating dan maklum balas anda.");
@@ -266,13 +264,14 @@ const FeedbackButton = () => {
       formData.append('filename', filename);
       formData.append('base64', pdfBase64);
       
-      // Await the fetch call so the UI waits for the actual submission
-      await fetch(GOOGLE_DRIVE_FEEDBACK_URL, { 
+      // 🔥 Fire-and-forget: Don't await the fetch to prevent UI waiting
+      fetch(GOOGLE_DRIVE_FEEDBACK_URL, { 
         method: 'POST', 
         mode: 'no-cors', 
         body: formData 
-      });
-
+      }).catch(err => console.error("Background upload error:", err));
+      
+      // Immediately close modal and reset form for smooth user experience
       setIsModalOpen(false);
       setRating(0); 
       setFeedbackMessage(''); 
@@ -281,10 +280,10 @@ const FeedbackButton = () => {
       alert("✓ Terima kasih! Maklum balas anda sedang diproses ke sistem iFMS.");
       
     } catch (error) {
-      console.error("Ralat semasa menghantar maklum balas:", error);
-      alert("Maaf, ralat berlaku semasa menghantar maklum balas. Sila cuba lagi.");
+      console.error("Ralat semasa menjana PDF:", error);
+      alert("Maaf, ralat berlaku. Sila cuba lagi.");
     } finally {
-      setIsSubmitting(false); // Only disable loading state after success or failure
+      setIsSubmitting(false);
     }
   };
 
@@ -316,9 +315,10 @@ const FeedbackButton = () => {
             <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mt-4 mb-2 sm:hidden"></div>
             <div className="px-8 py-4 flex justify-between items-center border-b border-slate-50">
               <h2 className="text-xl font-bold text-slate-800">Suara Anda</h2>
+              {/* ✅ FIXED: Correct close icon path */}
               <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l18 18" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
@@ -353,7 +353,6 @@ const FeedbackButton = () => {
                   className="w-full bg-slate-50 border-none rounded-2xl px-5 py-3.5 text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none"
                   value={feedbackName} onChange={(e) => setFeedbackName(e.target.value)}
                 />
-                {/* Added missing Email Input */}
                 <input 
                   type="email" placeholder="Alamat Emel (Pilihan)"
                   className="w-full bg-slate-50 border-none rounded-2xl px-5 py-3.5 text-sm focus:ring-2 focus:ring-blue-500 transition-all outline-none"
