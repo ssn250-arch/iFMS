@@ -550,16 +550,8 @@ function App() {
     const isBalikComplete = formData.flightBalikDari.length === 3 && formData.flightBalikKe.length === 3 && formData.flightBalikMasa;
     const isTiketComplete = formData.caraPerjalanan === 'Kapal Terbang' ? (isPergiComplete && isBalikComplete) : true;
     
-    // Validation Cuti (kini termasuk maklumat tugas sementara jika Cuti Ganti)
-    const isCutiBaseComplete = formData.jenisCuti !== '' && formData.cutiDari !== '' && formData.cutiHingga !== '' && formData.ketuaSokongan !== '' && formData.pegawaiPelulus !== '';
-    const isCutiGantiComplete = (formData.jenisCuti !== 'Cuti Ganti') || (
-        formData.subjek.trim() !== '' &&
-        formData.namaPengganti.trim() !== '' &&
-        formData.tarikhGantiDari !== '' &&
-        formData.tarikhGantiHingga !== '' &&
-        formData.jenisAmbilAlih !== ''
-    );
-    const isCutiComplete = isCutiBaseComplete && isCutiGantiComplete;
+    // Validation Cuti
+    const isCutiComplete = formData.jenisCuti !== '' && formData.cutiDari !== '' && formData.cutiHingga !== '' && formData.ketuaSokongan !== '' && formData.pegawaiPelulus !== '';
 
     // Validation Akujanji
     const isPerananComplete = formData.perananPeperiksaan.length > 0;
@@ -698,16 +690,6 @@ function App() {
                 { id: 'wrap-ketuaSokongan', val: formData.ketuaSokongan, name: 'Ketua Sokongan' },
                 { id: 'wrap-pegawaiPelulus', val: formData.pegawaiPelulus, name: 'Pegawai Pelulus' }
             ];
-            // Jika cuti ganti, tambah validasi field tugasan sementara
-            if (formData.jenisCuti === 'Cuti Ganti') {
-                requiredFields.push(
-                    { id: 'wrap-subjek', val: formData.subjek, name: 'Subjek / Tugas Ditinggalkan' },
-                    { id: 'wrap-namaPengganti', val: formData.namaPengganti, name: 'Nama Pengganti' },
-                    { id: 'wrap-tarikhGantiDari', val: formData.tarikhGantiDari, name: 'Tarikh Ganti (Dari)' },
-                    { id: 'wrap-tarikhGantiHingga', val: formData.tarikhGantiHingga, name: 'Tarikh Ganti (Hingga)' },
-                    { id: 'wrap-jenisAmbilAlih', val: formData.jenisAmbilAlih, name: 'Jenis Ambil Alih' }
-                );
-            }
         } else if (sectionName === 'peranan') {
             if (formData.perananPeperiksaan.length === 0) {
                 requiredFields = [{ id: 'wrap-peranan', val: '', name: 'Peranan Peperiksaan' }];
@@ -1213,9 +1195,9 @@ function App() {
             body: [
                 [{ content: 'BAHAGIAN A: MAKLUMAT PEMOHON', colSpan: 5, styles: { fillColor: [215, 205, 170], halign: 'center', fontStyle: 'bold' } }],
                 [ { content: 'NAMA PEGAWAI:' }, { content: upperVal(formData.nama) }, { content: 'Sebab', colSpan: 2, styles: { fillColor: [215, 205, 170], halign: 'center' } }, { content: 'Sila\nTanda (/)', styles: { fillColor: [215, 205, 170], halign: 'center' } } ],
-                [ { content: 'BAHAGIAN:' }, { content: upperVal(formData.bahagian) }, { content: 'CUTI REHAT /-SAKIT / KECEMASAN', colSpan: 2 }, { content: formData.jenisCuti === 'Cuti Ganti' ? '/' : '' } ],
-                [ { content: 'NO. TELEFON (H/P):' }, { content: upperVal(formData.noTel) }, { content: 'KURSUS / TUGAS RASMI', colSpan: 2 }, { content: '' } ],
-                [ { content: 'LOKASI SEMASA TUGAS:' }, { content: upperVal(formData.tempat || '-') }, { content: 'LAIN-LAIN (SILA NYATAKAN)', colSpan: 2 }, { content: '' } ],
+                [ { content: 'BAHAGIAN:' }, { content: upperVal(formData.bahagian) }, { content: 'CUTI REHAT /-SAKIT / KECEMASAN', colSpan: 2 }, { content: '' } ],
+                [ { content: 'NO. TELEFON (H/P):' }, { content: upperVal(formData.noTel) }, { content: 'KURSUS / TUGAS RASMI', colSpan: 2 }, { content: '/', styles: { halign: 'center', fontStyle: 'bold' } } ],
+                [ { content: 'LOKASI SEMASA TUGAS:' }, { content: upperVal(formData.tempat) }, { content: 'LAIN-LAIN (SILA NYATAKAN)', colSpan: 2 }, { content: '' } ],
                 [{ content: 'BAHAGIAN B: MAKLUMAT KELAS / TUGAS YANG DI TINGGAL', colSpan: 5, styles: { fillColor: [215, 205, 170], halign: 'center', fontStyle: 'bold' } }],
                 [ { content: 'SUBJEK / TUGAS:' }, { content: upperVal(formData.subjek) }, { content: 'CATATAN:\n\n' + upperVal(formData.catatanTugas), colSpan: 3, rowSpan: 2, styles: { valign: 'top' } } ],
                 [ { content: 'SEMESTER /\nKUMPULAN / UNIT /\nBAHAGIAN:' }, { content: upperVal(formData.semester) } ],
@@ -1700,11 +1682,6 @@ function App() {
                 
                 if (activeForm === 'cuti') {
                     generateFormCuti(doc);
-                    // Jika cuti ganti, tambah borang tugas sementara (Lampiran 7)
-                    if (formData.jenisCuti === 'Cuti Ganti') {
-                        doc.addPage();
-                        generateForm2(doc, preloadedLogo);
-                    }
                     const namaFail = formData.nama ? `Borang_Cuti_${formData.nama.replace(/\s+/g, '_')}.pdf` : 'Borang_Cuti.pdf';
                     doc.save(namaFail);
                     showNotification("Borang Cuti (Manual) berjaya dijana!");
@@ -2194,7 +2171,7 @@ function App() {
                                             name="jenisCuti" 
                                             value={formData.jenisCuti} 
                                             label={<>Jenis Cuti <span className="text-red-500">*</span></>} 
-                                            options={["Cuti Rehat", "Cuti Kecemasan", "Cuti Tanpa Rekod", "Cuti Ganti"]} 
+                                            options={["Cuti Rehat", "Cuti Kecemasan", "Cuti Tanpa Rekod"]} 
                                             onChange={handleChange} 
                                         />
                                     </div>
@@ -2210,72 +2187,6 @@ function App() {
                                         <label className={formLabelClass}>Catatan (Pilihan)</label>
                                         <input type="text" name="catatanCuti" value={formData.catatanCuti} onChange={handleChange} className={formInputClass} placeholder="Contoh: Cuti Ganti / Cuti Sakit" />
                                     </div>
-                                    
-                                    {/* Seksyen Tugas Sementara (hanya jika Cuti Ganti) */}
-                                    {formData.jenisCuti === 'Cuti Ganti' && (
-                                        <div className="md:col-span-2 mt-4 pt-6 border-t border-emerald-100">
-                                            <h3 className="text-[15px] font-extrabold text-emerald-700 mb-4 flex items-center gap-2">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                                                Maklumat Tugas Sementara (Untuk Borang Lampiran 7)
-                                            </h3>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                <div className="md:col-span-2">
-                                                    <label className={formLabelClass}>Subjek / Tugas Ditinggalkan <span className="text-red-500">*</span></label>
-                                                    <input id="wrap-subjek" type="text" name="subjek" value={formData.subjek} onChange={handleChange} className={formInputClass} placeholder="Contoh: Mengajar Amali Elektrik" />
-                                                </div>
-                                                <div>
-                                                    <label className={formLabelClass}>Semester / Kumpulan / Unit</label>
-                                                    <input type="text" name="semester" value={formData.semester} onChange={handleChange} className={formInputClass} placeholder="Contoh: Sem 2 / Kump A" />
-                                                </div>
-                                                <div>
-                                                    <label className={formLabelClass}>Catatan Tugas (Pilihan)</label>
-                                                    <input type="text" name="catatanTugas" value={formData.catatanTugas} onChange={handleChange} className={formInputClass} placeholder="Sebarang catatan tambahan" />
-                                                </div>
-                                                <div>
-                                                    <ModernDatePicker name="tarikhGantiDari" value={formData.tarikhGantiDari} label="Tarikh Ganti (Dari) *" onChange={handleChange} />
-                                                </div>
-                                                <div>
-                                                    <ModernDatePicker name="tarikhGantiHingga" value={formData.tarikhGantiHingga} label="Tarikh Ganti (Hingga) *" min={formData.tarikhGantiDari} onChange={handleChange} />
-                                                </div>
-                                                <div className="md:col-span-2">
-                                                    <label className={formLabelClass}>Nama Pengganti <span className="text-red-500">*</span></label>
-                                                    <div className="relative">
-                                                        <select 
-                                                            id="wrap-namaPengganti"
-                                                            onChange={handlePenggantiChange} 
-                                                            value={formData.namaPengganti}
-                                                            className={`block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-[15px] font-semibold shadow-sm transition-all duration-300 focus:border-blue-500 focus:outline-none focus:ring-[4px] focus:ring-blue-500/10 appearance-none relative z-10 cursor-pointer ${formData.namaPengganti ? 'text-slate-800' : 'text-slate-400 font-medium'}`}
-                                                        >
-                                                            <option value="" disabled>-- Sila Pilih Pengganti --</option>
-                                                            {pegawaiDatabase.filter(p => p.nama !== formData.nama && p.bahagian === formData.bahagian).sort((a,b) => a.nama.localeCompare(b.nama)).map((p, idx) => (
-                                                                <option key={`ganti-${idx}`} value={p.nama}>{p.nama}</option>
-                                                            ))}
-                                                        </select>
-                                                        <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400 z-20">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <label className={formLabelClass}>Bahagian Pengganti</label>
-                                                    <input type="text" name="bahagianPengganti" value={formData.bahagianPengganti} onChange={handleChange} className={formInputClass} readOnly />
-                                                </div>
-                                                <div>
-                                                    <label className={formLabelClass}>No. Telefon Pengganti</label>
-                                                    <input type="text" name="noTelPengganti" value={formData.noTelPengganti} onChange={handleChange} className={formInputClass} placeholder="01X-XXXXXXX" />
-                                                </div>
-                                                <div className="md:col-span-2">
-                                                    <UniversalSelect 
-                                                        name="jenisAmbilAlih" 
-                                                        value={formData.jenisAmbilAlih} 
-                                                        label="Jenis Ambil Alih Tugas *" 
-                                                        options={["Ambil alih subjek / tugas sepenuhnya", "Ambil alih kawalan kelas / tugas"]} 
-                                                        onChange={handleChange} 
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
                                     
                                     <div className="md:col-span-2 mt-4 pt-6 border-t border-slate-100">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
