@@ -176,52 +176,14 @@ const malaysiaAirports = [
 // PENYELESAIAN: HIDE ON SCROLL DOWN + BOTTOM SHEET
 const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbw56_36pxhF3PVFyfI5trszw9glkxO6D0dz-M2GQdJKsjcqEWxQLzqiKzoAd3oQotyu9g/exec"; 
 
-const FeedbackButton = () => {
-  const [isLandingPage, setIsLandingPage] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+const FeedbackCard = () => {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [feedbackName, setFeedbackName] = useState('');
   const [feedbackEmail, setFeedbackEmail] = useState('');
   const [feedbackMessage, setFeedbackMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // --- LOGIK KESAN LANDING PAGE SAHAJA ---
-  useEffect(() => {
-    const checkPath = () => {
-      const currentPath = window.location.pathname;
-      if (currentPath === '/' || currentPath === '/iFMS/' || currentPath === '/iFMS') {
-        setIsLandingPage(true);
-      } else {
-        setIsLandingPage(false);
-      }
-    };
-    checkPath();
-    window.addEventListener('popstate', checkPath);
-    return () => window.removeEventListener('popstate', checkPath);
-  }, []);
-
-  // --- LOGIK SEMBUNYI BUTANG APABILA SKROL DOWN ---
-  const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
-
-  useEffect(() => {
-    if (!isLandingPage) return;
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      if (currentScrollY > lastScrollY && currentScrollY > 50) {
-        setIsVisible(false);
-      } else {
-        setIsVisible(true);
-      }
-      setLastScrollY(currentScrollY);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY, isLandingPage]);
-
-  // JIKA BUKAN DI LANDING PAGE, JANGAN PAPARKAN
-  if (!isLandingPage) return null;
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const getRatingLabel = (val) => {
     switch(val) {
@@ -230,7 +192,7 @@ const FeedbackButton = () => {
       case 3: return "Boleh Diterima";
       case 4: return "Sangat Baik";
       case 5: return "Cemerlang & Sempurna!";
-      default: return "Sila nilai pengalaman anda";
+      default: return "Sila pilih rating anda";
     }
   };
 
@@ -280,138 +242,130 @@ const FeedbackButton = () => {
       fetch(GOOGLE_DRIVE_FEEDBACK_URL, { method: 'POST', mode: 'no-cors', body: formData });
 
       setIsSubmitting(false);
-      setIsModalOpen(false);
+      setIsSuccess(true);
       
-      setRating(0); setFeedbackMessage(''); setFeedbackName(''); setFeedbackEmail('');
-      alert("✓ Terima kasih! Maklum balas anda telah disimpan ke sistem iFMS.");
+      // Kembalikan form selepas 5 saat
+      setTimeout(() => {
+        setRating(0); setFeedbackMessage(''); setFeedbackName(''); setFeedbackEmail('');
+        setIsSuccess(false);
+      }, 5000);
     }, 100);
   };
 
   return (
-    <>
-      {/* 1. BUTANG APUNG MODEN */}
-      <div 
-        className={`fixed z-[9999] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
-          isVisible 
-            ? 'bottom-6 right-6 md:bottom-10 md:right-10 translate-y-0 opacity-100' 
-            : 'bottom-[-100px] right-6 md:bottom-10 md:right-10 opacity-0 pointer-events-none'
-        }`}
-      >
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="group flex items-center gap-2.5 bg-white text-slate-800 p-3.5 md:px-6 md:py-3.5 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgba(37,99,235,0.2)] hover:-translate-y-1 active:scale-95 transition-all duration-300 border border-slate-100"
-        >
-          <div className="bg-blue-600 text-white p-1.5 rounded-full group-hover:scale-110 transition-transform duration-300">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-            </svg>
-          </div>
-          <span className="hidden md:inline font-semibold text-sm tracking-wide">Maklum Balas</span>
-        </button>
-      </div>
+    <section className="w-full max-w-6xl mx-auto px-4 py-12 md:py-20">
+      <div className="relative bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-[2.5rem] border border-slate-200/60 p-8 md:p-12 shadow-sm overflow-hidden">
+        
+        {/* Hiasan Latar Belakang Halus */}
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
-      {/* 2. MODAL SYSTEM (ULTRA-MODERN UI) */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-[10000] flex items-end sm:items-center justify-center bg-slate-900/30 backdrop-blur-md animate-fade-in">
-          <div className="bg-white/95 backdrop-blur-2xl w-full sm:max-w-md rounded-t-[2.5rem] sm:rounded-3xl shadow-2xl overflow-hidden animate-slide-up sm:animate-zoom-in border border-white/50">
-            
-            {/* Pemegang Seretan (Drag Handle) untuk Mobile */}
-            <div className="w-12 h-1.5 bg-slate-200/80 rounded-full mx-auto mt-4 mb-2 sm:hidden"></div>
-
-            {/* HEADER MODAL */}
-            <div className="px-7 py-5 flex justify-between items-center bg-transparent">
-              <div>
-                <h2 className="text-xl font-extrabold text-slate-800 tracking-tight">Maklum Balas</h2>
-                <p className="text-xs font-medium text-slate-500 mt-0.5">Bantu kami tingkatkan iFMS</p>
-              </div>
-              
-              {/* BUTANG PANGKAH (CLOSE) ULTRA-MODEN */}
-              <button 
-                onClick={() => setIsModalOpen(false)} 
-                className="group p-2.5 bg-slate-100/80 hover:bg-rose-50 text-slate-400 hover:text-rose-500 rounded-full transition-all duration-300" 
-                aria-label="Tutup"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 group-hover:rotate-90">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
+        <div className="relative z-10 flex flex-col lg:flex-row gap-12 lg:gap-20 items-center">
+          
+          {/* BAHAGIAN KIRI: Teks & Ajakan */}
+          <div className="w-full lg:w-5/12 space-y-5 text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-blue-600 text-xs font-bold tracking-widest uppercase">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Maklum Balas
             </div>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-800 tracking-tight leading-tight">
+              Bantu kami pertingkatkan <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">iFMS</span>
+            </h2>
+            <p className="text-slate-500 leading-relaxed text-sm md:text-base">
+              Pandangan anda amat berharga bagi kami. Kongsikan pengalaman atau cadangkan penambahbaikan agar kami dapat memberikan perkhidmatan yang lebih baik untuk anda.
+            </p>
+          </div>
 
-            {/* KANDUNGAN FORM */}
-            <div className="px-7 pb-8 pt-2 space-y-6 max-h-[75vh] overflow-y-auto custom-scrollbar">
-              
-              {/* RATING BINTANG */}
-              <div className="flex flex-col items-center justify-center space-y-3">
-                <p className="text-[11px] font-bold text-blue-600 uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-full">
-                  {getRatingLabel(hoverRating || rating)}
-                </p>
-                <div className="flex justify-center gap-1.5">
-                  {[1, 2, 3, 4, 5].map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      onMouseEnter={() => setHoverRating(s)}
-                      onMouseLeave={() => setHoverRating(0)}
-                      onClick={() => setRating(s)}
-                      className="transition-all duration-200 hover:scale-[1.15] active:scale-95 focus:outline-none"
-                    >
-                      <svg 
-                        className={`w-10 h-10 transition-colors duration-300 ${ (hoverRating || rating) >= s ? 'text-amber-400 drop-shadow-sm' : 'text-slate-200' }`} 
-                        fill="currentColor" viewBox="0 0 20 20"
-                      >
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                    </button>
-                  ))}
+          {/* BAHAGIAN KANAN: Borang Maklum Balas */}
+          <div className="w-full lg:w-7/12 bg-white rounded-3xl p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
+            {isSuccess ? (
+              <div className="flex flex-col items-center justify-center py-12 space-y-4 animate-fade-in">
+                <div className="w-16 h-16 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mb-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
+                <h3 className="text-xl font-bold text-slate-800">Terima Kasih!</h3>
+                <p className="text-slate-500 text-center text-sm">Maklum balas anda telah direkodkan dengan selamat.</p>
               </div>
+            ) : (
+              <div className="space-y-6">
+                
+                {/* BINTANG PENILAIAN */}
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex justify-between">
+                    <span>Tahap Kepuasan <span className="text-rose-500">*</span></span>
+                    <span className="text-blue-600">{getRatingLabel(hoverRating || rating)}</span>
+                  </label>
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onMouseEnter={() => setHoverRating(s)}
+                        onMouseLeave={() => setHoverRating(0)}
+                        onClick={() => setRating(s)}
+                        className="transition-transform duration-200 hover:scale-110 active:scale-95 focus:outline-none"
+                      >
+                        <svg 
+                          className={`w-9 h-9 md:w-10 md:h-10 transition-colors duration-300 ${ (hoverRating || rating) >= s ? 'text-amber-400' : 'text-slate-100 hover:text-slate-200' }`} 
+                          fill="currentColor" viewBox="0 0 20 20"
+                        >
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-              {/* INPUT FIELDS MODEN */}
-              <div className="space-y-3.5">
-                <input 
-                  type="text" placeholder="Nama Lengkap (Pilihan)"
-                  className="w-full bg-slate-50/50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
-                  value={feedbackName} onChange={(e) => setFeedbackName(e.target.value)}
-                />
+                {/* INPUT FIELDS */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <input 
+                    type="text" placeholder="Nama Lengkap (Pilihan)"
+                    className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-3 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
+                    value={feedbackName} onChange={(e) => setFeedbackName(e.target.value)}
+                  />
+                  <input 
+                    type="email" placeholder="Alamat Emel (Pilihan)"
+                    className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-3 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
+                    value={feedbackEmail} onChange={(e) => setFeedbackEmail(e.target.value)}
+                  />
+                </div>
+
                 <textarea 
-                  placeholder="Beritahu kami apa-apa sahaja..." rows="3"
-                  className="w-full bg-slate-50/50 border border-slate-200 rounded-2xl px-5 py-3.5 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all resize-none outline-none"
+                  placeholder="Kongsikan apa-apa sahaja secara terperinci..." rows="3"
+                  className="w-full bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-3 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all resize-none outline-none"
                   value={feedbackMessage} onChange={(e) => setFeedbackMessage(e.target.value)}
                 />
-              </div>
 
-              {/* BUTANG HANTAR PREMIUM */}
-              <button
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="group relative w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 rounded-2xl shadow-[0_8px_20px_rgba(37,99,235,0.25)] transition-all flex items-center justify-center gap-2.5 disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden"
-              >
-                {/* Kesan Kilauan Halus Dalam Butang */}
-                <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
-                
-                {isSubmitting ? (
-                  <span className="flex items-center gap-2 z-10">
-                    <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-                    Menghantar...
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2 z-10">
-                    Hantar Maklum Balas
-                    <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                  </span>
-                )}
-              </button>
-              
-              <div className="flex items-center justify-center gap-1.5 text-[10px] font-medium text-slate-400">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
-                Disulitkan secara automatik ke Google Drive
+                <div className="pt-2 flex flex-col md:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-1.5 text-[10px] font-medium text-slate-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+                    PDF Disulitkan & Automatik
+                  </div>
+                  
+                  <button
+                    onClick={handleSubmit}
+                    disabled={isSubmitting}
+                    className="w-full md:w-auto bg-slate-900 hover:bg-blue-600 text-white font-semibold px-8 py-3.5 rounded-xl shadow-[0_8px_20px_rgba(0,0,0,0.1)] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed active:scale-95"
+                  >
+                    {isSubmitting ? (
+                      <span className="flex items-center gap-2">
+                        <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                        Memproses...
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-2">
+                        Hantar Maklum Balas
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                      </span>
+                    )}
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
-      )}
-    </>
+      </div>
+    </section>
   );
 };
 
