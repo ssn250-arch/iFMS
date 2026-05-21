@@ -314,7 +314,7 @@ const FeedbackButton = () => {
           <div className="bg-white w-full sm:max-w-md rounded-t-[2.5rem] sm:rounded-[2rem] shadow-2xl overflow-hidden animate-slide-up sm:animate-zoom-in">
             <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mt-4 mb-2 sm:hidden"></div>
             <div className="px-8 py-4 flex justify-between items-center border-b border-slate-50">
-              <h2 className="text-xl font-bold text-slate-800">Suara Anda</h2>
+              <h2 className="text-xl font-bold text-slate-800">Kongsikan Maklum Balas Anda</h2>
               {/* ✅ FIXED: Correct close icon path */}
               <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -380,7 +380,7 @@ const FeedbackButton = () => {
                 )}
               </button>
               <p className="text-[10px] text-center text-slate-400">
-                Laporan PDF akan dijana secara automatik ke Google Drive iFMS.
+                Laporan PDF akan dijana secara automatik ke database iFMS.
               </p>
             </div>
           </div>
