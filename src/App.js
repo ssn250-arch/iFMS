@@ -173,7 +173,6 @@ const malaysiaAirports = [
 ];
 
 // ================== FEEDBACK BUTTON - SIMPAN SEBAGAI PDF ==================
-// GANTI DENGAN WEB APP URL GOOGLE APPS SCRIPT ANDA YANG BAHARU
 const GOOGLE_DRIVE_FEEDBACK_URL = "https://script.google.com/macros/s/AKfycbw56_36pxhF3PVFyfI5trszw9glkxO6D0dz-M2GQdJKsjcqEWxQLzqiKzoAd3oQotyu9g/exec"; 
 
 const FeedbackButton = () => {
@@ -185,7 +184,6 @@ const FeedbackButton = () => {
   const [feedbackMessage, setFeedbackMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // --- SCROLL DETECTION LOGIC ---
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
 
@@ -204,7 +202,6 @@ const FeedbackButton = () => {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
-  // ------------------------------
 
   const getRatingLabel = (val) => {
     switch(val) {
@@ -247,7 +244,6 @@ const FeedbackButton = () => {
     return { pdfBase64, filename };
   };
 
-  // ✅ FIXED: Fire-and-forget submission - closes modal immediately after sending
   const handleSubmit = async () => {
     if (rating === 0 || !feedbackMessage.trim()) {
       alert("Sila berikan rating dan maklum balas anda.");
@@ -264,14 +260,12 @@ const FeedbackButton = () => {
       formData.append('filename', filename);
       formData.append('base64', pdfBase64);
       
-      // 🔥 Fire-and-forget: Don't await the fetch to prevent UI waiting
       fetch(GOOGLE_DRIVE_FEEDBACK_URL, { 
         method: 'POST', 
         mode: 'no-cors', 
         body: formData 
       }).catch(err => console.error("Background upload error:", err));
       
-      // Immediately close modal and reset form for smooth user experience
       setIsModalOpen(false);
       setRating(0); 
       setFeedbackMessage(''); 
@@ -289,7 +283,6 @@ const FeedbackButton = () => {
 
   return (
     <>
-      {/* 1. FLOATING BUTTON DENGAN ANIMASI HIDE-ON-SCROLL */}
       <div 
         className={`fixed z-[9999] transition-all duration-500 ease-in-out ${
           isVisible 
@@ -308,14 +301,12 @@ const FeedbackButton = () => {
         </button>
       </div>
 
-      {/* 2. MODAL SYSTEM */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[10000] flex items-end sm:items-center justify-center bg-slate-900/40 backdrop-blur-sm animate-fade-in">
           <div className="bg-white w-full sm:max-w-md rounded-t-[2.5rem] sm:rounded-[2rem] shadow-2xl overflow-hidden animate-slide-up sm:animate-zoom-in">
             <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mt-4 mb-2 sm:hidden"></div>
             <div className="px-8 py-4 flex justify-between items-center border-b border-slate-50">
               <h2 className="text-xl font-bold text-slate-800">Kongsikan Maklum Balas Anda</h2>
-              {/* ✅ FIXED: Correct close icon path */}
               <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -390,26 +381,26 @@ const FeedbackButton = () => {
   );
 };
 
-// ================== KOMPONEN UTAMA App (SEMUA FUNGSI ASAL TIDAK DIUBAH) ==================
+// ================== KOMPONEN UTAMA App ==================
 function App() {
-    const [activeForm, setActiveForm] = useState(null); // 'tugas', 'cuti', or 'akujanji'
+    const [activeForm, setActiveForm] = useState(null);
     const today = new Date().toISOString().split('T')[0];
     const [formData, setFormData] = useState({
-        // Pegawai
         nama: '', jawatan: '', bahagian: '', noKp: '', noTel: '', noKenderaan: '',
-        // Tugas
         tujuan: '', tempat: '', tarikhPergi: today, tarikhBalik: today, km: '', caraPerjalanan: 'Kereta Sendiri', 
         sebab1: false, sebab2: false, sebab3: false, tuntutanBatu: false, tuntutanGantian: false,
-        // Tugas Pengganti
         subjek: '', semester: '', tarikhGantiDari: today, tarikhGantiHingga: today, catatanTugas: '', namaPengganti: '', bahagianPengganti: '', noTelPengganti: '', jenisAmbilAlih: 'Ambil alih subjek / tugas sepenuhnya',
-        // Penerbangan
+        // Penerbangan dengan sokongan dua sektor
+        flightType: 'single', // 'single' atau 'multi'
         flightPergiTarikh: today, flightPergiMasa: '', flightPergiDari: '', flightPergiKe: '',
-        flightBalikTarikh: today, flightBalikMasa: '', flightBalikDari: '', flightBalikKe: '', kodSyarikat: '', enrichId: '',
-        // Cuti
+        flightPergiLeg2Tarikh: today, flightPergiLeg2Masa: '', flightPergiLeg2Dari: '', flightPergiLeg2Ke: '',
+        flightBalikTarikh: today, flightBalikMasa: '', flightBalikDari: '', flightBalikKe: '',
+        flightBalikLeg2Tarikh: today, flightBalikLeg2Masa: '', flightBalikLeg2Dari: '', flightBalikLeg2Ke: '',
+        kodSyarikat: '', enrichId: '',
         jenisCuti: 'Cuti Rehat', cutiDari: today, cutiHingga: today, catatanCuti: '', ketuaSokongan: '', pegawaiPelulus: '',
-        // Akujanji Integriti (Baru)
+        // Untuk cuti ganti (borang tugas sementara)
+        cutiPenggantiNama: '', cutiPenggantiBahagian: '', cutiPenggantiNoTel: '', cutiPenggantiTugas: '',
         perananPeperiksaan: [], tandatangan: null,
-        // Laporan Pelaksanaan Peperiksaan (Baru)
         sesiPeperiksaan: '', tarikhPeperiksaan: today, namaPengawasLain: '',
         q1Status: 'YA', q1Catatan: '', q2Status: 'TIDAK', q2Catatan: '', q3Status: 'YA', q3Catatan: '', cadanganPeperiksaan: ''
     });
@@ -420,7 +411,6 @@ function App() {
     const [isEditingAutoFields, setIsEditingAutoFields] = useState(false);
     const [isGantiDateLocked, setIsGantiDateLocked] = useState(true);
 
-    // Signature Pad Refs
     const canvasRef = useRef(null);
     const isDrawing = useRef(false);
     const lastPos = useRef({ x: 0, y: 0 });
@@ -546,23 +536,34 @@ function App() {
     
     const isTugasComplete = formData.tujuan.trim() !== '' && formData.tempat.trim() !== '' && formData.tarikhPergi !== '' && formData.tarikhBalik !== '';
     const isPenggantiComplete = formData.namaPengganti.trim() !== '' && formData.subjek.trim() !== '';
-    const isPergiComplete = formData.flightPergiDari.length === 3 && formData.flightPergiKe.length === 3 && formData.flightPergiMasa;
-    const isBalikComplete = formData.flightBalikDari.length === 3 && formData.flightBalikKe.length === 3 && formData.flightBalikMasa;
-    const isTiketComplete = formData.caraPerjalanan === 'Kapal Terbang' ? (isPergiComplete && isBalikComplete) : true;
     
-    // Validation Cuti
+    // Validation tiket dengan sokongan multi-sektor
+    const isFlightSingleComplete = () => {
+        return formData.flightPergiDari.length === 3 && formData.flightPergiKe.length === 3 && formData.flightPergiMasa &&
+               formData.flightBalikDari.length === 3 && formData.flightBalikKe.length === 3 && formData.flightBalikMasa;
+    };
+    const isFlightMultiComplete = () => {
+        return formData.flightPergiDari.length === 3 && formData.flightPergiKe.length === 3 && formData.flightPergiMasa &&
+               formData.flightPergiLeg2Dari.length === 3 && formData.flightPergiLeg2Ke.length === 3 && formData.flightPergiLeg2Masa &&
+               formData.flightBalikDari.length === 3 && formData.flightBalikKe.length === 3 && formData.flightBalikMasa &&
+               formData.flightBalikLeg2Dari.length === 3 && formData.flightBalikLeg2Ke.length === 3 && formData.flightBalikLeg2Masa;
+    };
+    const isTiketComplete = formData.caraPerjalanan === 'Kapal Terbang' ? (formData.flightType === 'single' ? isFlightSingleComplete() : isFlightMultiComplete()) : true;
+    
     const isCutiComplete = formData.jenisCuti !== '' && formData.cutiDari !== '' && formData.cutiHingga !== '' && formData.ketuaSokongan !== '' && formData.pegawaiPelulus !== '';
+    const isCutiGantiComplete = () => {
+        if (formData.jenisCuti !== 'Cuti Ganti') return true;
+        return formData.cutiPenggantiNama.trim() !== '' && formData.cutiPenggantiTugas.trim() !== '';
+    };
 
-    // Validation Akujanji
     const isPerananComplete = formData.perananPeperiksaan.length > 0;
     const isTandatanganComplete = formData.tandatangan !== null;
 
-    // Validation Laporan Peperiksaan
     const isLaporanInfoComplete = formData.sesiPeperiksaan.trim() !== '' && formData.tarikhPeperiksaan !== '';
     const isLaporanSoalanComplete = formData.q1Status !== '' && formData.q2Status !== '' && formData.q3Status !== '';
 
     const isAllComplete = activeForm === 'cuti' 
-        ? (isPegawaiComplete && isCutiComplete)
+        ? (isPegawaiComplete && isCutiComplete && isCutiGantiComplete())
         : activeForm === 'akujanji' 
             ? (isPegawaiComplete && isPerananComplete && isTandatanganComplete)
             : activeForm === 'laporan'
@@ -571,8 +572,9 @@ function App() {
 
     let progressWidth = 0;
     if (activeForm === 'cuti') {
-        if (isPegawaiComplete) progressWidth += 50;
-        if (isCutiComplete) progressWidth += 50;
+        if (isPegawaiComplete) progressWidth += 40;
+        if (isCutiComplete) progressWidth += 40;
+        if (isCutiGantiComplete()) progressWidth += 20;
     } else if (activeForm === 'akujanji') {
         if (isPegawaiComplete) progressWidth = 33.33;
         if (isPegawaiComplete && isPerananComplete) progressWidth = 66.66;
@@ -676,20 +678,43 @@ function App() {
                 { id: 'wrap-subjek', val: formData.subjek, name: 'Subjek / Tugas Ditinggalkan' }
             ];
         } else if (sectionName === 'tiket' && formData.caraPerjalanan === 'Kapal Terbang') {
-            requiredFields = [
-                { id: 'wrap-flightPergiDari', val: formData.flightPergiDari, name: 'Dari (Laluan Pergi)' },
-                { id: 'wrap-flightPergiKe', val: formData.flightPergiKe, name: 'Ke (Laluan Pergi)' },
-                { id: 'wrap-flightPergiMasa', val: formData.flightPergiMasa, name: 'Masa Pergi' },
-                { id: 'wrap-flightBalikDari', val: formData.flightBalikDari, name: 'Dari (Laluan Balik)' },
-                { id: 'wrap-flightBalikKe', val: formData.flightBalikKe, name: 'Ke (Laluan Balik)' },
-                { id: 'wrap-flightBalikMasa', val: formData.flightBalikMasa, name: 'Masa Balik' }
-            ];
+            if (formData.flightType === 'single') {
+                requiredFields = [
+                    { id: 'wrap-flightPergiDari', val: formData.flightPergiDari, name: 'Dari (Laluan Pergi) - Leg 1' },
+                    { id: 'wrap-flightPergiKe', val: formData.flightPergiKe, name: 'Ke (Laluan Pergi) - Leg 1' },
+                    { id: 'wrap-flightPergiMasa', val: formData.flightPergiMasa, name: 'Masa Pergi' },
+                    { id: 'wrap-flightBalikDari', val: formData.flightBalikDari, name: 'Dari (Laluan Balik) - Leg 1' },
+                    { id: 'wrap-flightBalikKe', val: formData.flightBalikKe, name: 'Ke (Laluan Balik) - Leg 1' },
+                    { id: 'wrap-flightBalikMasa', val: formData.flightBalikMasa, name: 'Masa Balik' }
+                ];
+            } else {
+                requiredFields = [
+                    { id: 'wrap-flightPergiDari', val: formData.flightPergiDari, name: 'Dari (Pergi Leg 1)' },
+                    { id: 'wrap-flightPergiKe', val: formData.flightPergiKe, name: 'Ke (Pergi Leg 1)' },
+                    { id: 'wrap-flightPergiMasa', val: formData.flightPergiMasa, name: 'Masa Pergi Leg 1' },
+                    { id: 'wrap-flightPergiLeg2Dari', val: formData.flightPergiLeg2Dari, name: 'Dari (Pergi Leg 2)' },
+                    { id: 'wrap-flightPergiLeg2Ke', val: formData.flightPergiLeg2Ke, name: 'Ke (Pergi Leg 2)' },
+                    { id: 'wrap-flightPergiLeg2Masa', val: formData.flightPergiLeg2Masa, name: 'Masa Pergi Leg 2' },
+                    { id: 'wrap-flightBalikDari', val: formData.flightBalikDari, name: 'Dari (Balik Leg 1)' },
+                    { id: 'wrap-flightBalikKe', val: formData.flightBalikKe, name: 'Ke (Balik Leg 1)' },
+                    { id: 'wrap-flightBalikMasa', val: formData.flightBalikMasa, name: 'Masa Balik Leg 1' },
+                    { id: 'wrap-flightBalikLeg2Dari', val: formData.flightBalikLeg2Dari, name: 'Dari (Balik Leg 2)' },
+                    { id: 'wrap-flightBalikLeg2Ke', val: formData.flightBalikLeg2Ke, name: 'Ke (Balik Leg 2)' },
+                    { id: 'wrap-flightBalikLeg2Masa', val: formData.flightBalikLeg2Masa, name: 'Masa Balik Leg 2' }
+                ];
+            }
         } else if (sectionName === 'cuti') {
             requiredFields = [
                 { id: 'wrap-jenisCuti', val: formData.jenisCuti, name: 'Jenis Cuti' },
                 { id: 'wrap-ketuaSokongan', val: formData.ketuaSokongan, name: 'Ketua Sokongan' },
                 { id: 'wrap-pegawaiPelulus', val: formData.pegawaiPelulus, name: 'Pegawai Pelulus' }
             ];
+            if (formData.jenisCuti === 'Cuti Ganti') {
+                requiredFields.push(
+                    { id: 'wrap-cutiPenggantiNama', val: formData.cutiPenggantiNama, name: 'Nama Pengganti (Cuti Ganti)' },
+                    { id: 'wrap-cutiPenggantiTugas', val: formData.cutiPenggantiTugas, name: 'Tugas Ditinggalkan (Cuti Ganti)' }
+                );
+            }
         } else if (sectionName === 'peranan') {
             if (formData.perananPeperiksaan.length === 0) {
                 requiredFields = [{ id: 'wrap-peranan', val: '', name: 'Peranan Peperiksaan' }];
@@ -805,8 +830,9 @@ function App() {
         if (name === 'noKp') value = formatIC(value);
         if (name === 'noTel') value = formatPhone(value);
         if (name === 'noTelPengganti') value = formatPhone(value);
+        if (name === 'cutiPenggantiNoTel') value = formatPhone(value);
         
-        if (['flightPergiDari', 'flightPergiKe', 'flightBalikDari', 'flightBalikKe'].includes(name)) {
+        if (['flightPergiDari', 'flightPergiKe', 'flightBalikDari', 'flightBalikKe', 'flightPergiLeg2Dari', 'flightPergiLeg2Ke', 'flightBalikLeg2Dari', 'flightBalikLeg2Ke'].includes(name)) {
             value = value.toUpperCase().replace(/[^A-Z]/g, '').substring(0, 3);
         }
         
@@ -864,7 +890,17 @@ function App() {
     };
 
     const setRoute = (dari, ke) => {
-        setFormData(prev => ({ ...prev, flightPergiDari: dari, flightPergiKe: ke, flightBalikDari: ke, flightBalikKe: dari }));
+        // Untuk single sector, set leg1 sahaja
+        setFormData(prev => ({ 
+            ...prev, 
+            flightPergiDari: dari, 
+            flightPergiKe: ke, 
+            flightBalikDari: ke, 
+            flightBalikKe: dari,
+            // Reset leg2 sekiranya tukar route
+            flightPergiLeg2Dari: '', flightPergiLeg2Ke: '', flightPergiLeg2Masa: '', flightPergiLeg2Tarikh: today,
+            flightBalikLeg2Dari: '', flightBalikLeg2Ke: '', flightBalikLeg2Masa: '', flightBalikLeg2Tarikh: today
+        }));
     };
 
     const calculateDays = (start, end) => {
@@ -886,32 +922,26 @@ function App() {
     const val = (text) => (text && text.toString().trim() !== '') ? text : '-';
 
     // ================== LOGIK TANDATANGAN DIGITAL ==================
-    
-    // Setup canvas untuk melukis
     useEffect(() => {
         if (expanded.tandatangan && canvasRef.current) {
             const initCanvas = () => {
                 const canvas = canvasRef.current;
                 if (!canvas) return;
                 const ctx = canvas.getContext('2d');
-                
-                // Supaya canvas responsive tapi lukisan tajam (DPI Scaling resolusi tinggi)
                 const rect = canvas.parentElement.getBoundingClientRect();
                 const dpr = window.devicePixelRatio || 1;
                 
                 canvas.width = rect.width * dpr;
-                canvas.height = 200 * dpr; // Tinggi statik 200px di UI
+                canvas.height = 200 * dpr;
                 ctx.scale(dpr, dpr);
                 
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
                 ctx.lineWidth = 3;
-                ctx.strokeStyle = '#0f172a'; // Warna dakwat (slate-900)
+                ctx.strokeStyle = '#0f172a';
             };
 
             initCanvas();
-
-            // Event listener untuk memastikan kanvas responsif jika peranti diputar (rotate)
             window.addEventListener('resize', initCanvas);
             return () => window.removeEventListener('resize', initCanvas);
         }
@@ -942,20 +972,17 @@ function App() {
         const ctx = canvasRef.current.getContext('2d');
         ctx.beginPath();
         ctx.moveTo(coords.x, coords.y);
-        ctx.lineTo(coords.x, coords.y); // Letak titik sekiranya pengguna hanya klik
+        ctx.lineTo(coords.x, coords.y);
         ctx.stroke();
     };
 
     const draw = (e) => {
         if (!isDrawing.current) return;
-        
-        // Halang skrin daripada tertatal (scroll) sewaktu sign di telefon
         if (e.cancelable) e.preventDefault();
         
         const coords = getCoordinates(e);
         const ctx = canvasRef.current.getContext('2d');
         
-        // Lukisan garisan yang pantas & smooth
         ctx.beginPath();
         ctx.moveTo(lastPos.current.x, lastPos.current.y);
         ctx.lineTo(coords.x, coords.y);
@@ -980,7 +1007,6 @@ function App() {
         setFormData(prev => ({ ...prev, tandatangan: null }));
     };
 
-    // Fungsi Auto-Crop (Potong kanvas supaya sign sentiasa center & tidak ada ruang kosong)
     const cropCanvas = (sourceCanvas) => {
         const ctx = sourceCanvas.getContext('2d');
         const imageData = ctx.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
@@ -989,11 +1015,10 @@ function App() {
         let minX = sourceCanvas.width, minY = sourceCanvas.height, maxX = 0, maxY = 0;
         let hasPixels = false;
 
-        // Loop setiap piksel untuk mencari lokasi dakwat
         for (let y = 0; y < sourceCanvas.height; y++) {
             for (let x = 0; x < sourceCanvas.width; x++) {
                 const alpha = data[(y * sourceCanvas.width + x) * 4 + 3];
-                if (alpha > 5) { // Jika ada dakwat
+                if (alpha > 5) {
                     minX = Math.min(minX, x);
                     minY = Math.min(minY, y);
                     maxX = Math.max(maxX, x);
@@ -1005,7 +1030,6 @@ function App() {
 
         if (!hasPixels) return null;
 
-        // Tambah padding (ruang lega) sikit pada potongan
         const padding = 15;
         minX = Math.max(0, minX - padding);
         minY = Math.max(0, minY - padding);
@@ -1034,7 +1058,6 @@ function App() {
         }
     };
 
-    // Muat Naik dan Auto Transparent Dibaiki (Biar Warna Asal dan Buang Putih Sahaja)
     const handleSignatureUpload = (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -1057,25 +1080,19 @@ function App() {
                     const g = data[i+1];
                     const b = data[i+2];
                     
-                    // Gunakan formula Luminance untuk mengira kecerahan sebenar piksel
                     const brightness = (r * 0.299 + g * 0.587 + b * 0.114);
                     
-                    // Jika latar belakang bukan gelap (abu-abu/cerah), buang (Alpha = 0)
-                    // Nilai 130 disetkan untuk membuang kesan bayang-bayang kelabu dari kamera
                     if (brightness > 130) {
                         data[i+3] = 0; 
                     } else {
-                        // Jadikan dakwat hitam pekat untuk kualiti PDF yang lebih jelas
-                        data[i] = 15;     // R
-                        data[i+1] = 23;   // G
-                        data[i+2] = 42;   // B
-                        data[i+3] = 255;  // Alpha (Solid)
+                        data[i] = 15;
+                        data[i+1] = 23;
+                        data[i+2] = 42;
+                        data[i+3] = 255;
                     }
                 }
                 
                 ctx.putImageData(imageData, 0, 0);
-                
-                // Potong automatik selepas buang latar belakang
                 const croppedImage = cropCanvas(tempCanvas);
                 
                 if (croppedImage) {
@@ -1091,8 +1108,6 @@ function App() {
     };
 
     // ================== PENJANAAN PDF ==================
-    
-    // --- 1. BORANG TUGAS RASMI ---
     const generateForm1 = (doc, logoImgBase64) => {
         doc.setFont("helvetica"); doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text("LAMPIRAN A", 190, 15, { align: 'right' });
         
@@ -1160,7 +1175,9 @@ function App() {
         doc.setFontSize(7.5); doc.text("*Nota: Dalam keadaan tiada pelulus, maka pegawai yang menjalankan tugas pelulus boleh memberikan kelulusan ke atas permohonan ini.", 14, currentY);
     };
 
-    const generateForm2 = (doc, logoImgBase64) => {
+    const generateForm2 = (doc, logoImgBase64, customData = null) => {
+        // customData optional untuk cuti ganti
+        const data = customData || formData;
         doc.setFont("helvetica"); doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text("LAMPIRAN 7", 190, 15, { align: 'right' });
         
         let currentY = 12;
@@ -1176,8 +1193,8 @@ function App() {
         doc.text(text1 + text2, 105, currentY, { align: 'center' }); doc.line(startX + doc.getTextWidth(text1), currentY + 1, startX + totalWidth, currentY + 1); currentY += 8;
         doc.setFontSize(12); doc.setFont("helvetica", "bold"); doc.text("BORANG PELEPASAN TUGAS SEMENTARA", 105, currentY, { align: 'center' });
 
-        const tGantiDariFormat = formData.tarikhGantiDari ? formData.tarikhGantiDari.split('-').reverse().join('/') : '';
-        const tGantiHinggaFormat = formData.tarikhGantiHingga ? formData.tarikhGantiHingga.split('-').reverse().join('/') : '';
+        const tGantiDariFormat = data.tarikhGantiDari ? data.tarikhGantiDari.split('-').reverse().join('/') : '';
+        const tGantiHinggaFormat = data.tarikhGantiHingga ? data.tarikhGantiHingga.split('-').reverse().join('/') : '';
         
         let teksMasaGanti = '-';
         if (tGantiDariFormat && tGantiHinggaFormat) {
@@ -1194,19 +1211,19 @@ function App() {
             columnStyles: { 0: { cellWidth: 45 }, 1: { cellWidth: 55 }, 2: { cellWidth: 30 }, 3: { cellWidth: 42 }, 4: { cellWidth: 18, halign: 'center' } },
             body: [
                 [{ content: 'BAHAGIAN A: MAKLUMAT PEMOHON', colSpan: 5, styles: { fillColor: [215, 205, 170], halign: 'center', fontStyle: 'bold' } }],
-                [ { content: 'NAMA PEGAWAI:' }, { content: upperVal(formData.nama) }, { content: 'Sebab', colSpan: 2, styles: { fillColor: [215, 205, 170], halign: 'center' } }, { content: 'Sila\nTanda (/)', styles: { fillColor: [215, 205, 170], halign: 'center' } } ],
-                [ { content: 'BAHAGIAN:' }, { content: upperVal(formData.bahagian) }, { content: 'CUTI REHAT /-SAKIT / KECEMASAN', colSpan: 2 }, { content: '' } ],
-                [ { content: 'NO. TELEFON (H/P):' }, { content: upperVal(formData.noTel) }, { content: 'KURSUS / TUGAS RASMI', colSpan: 2 }, { content: '/', styles: { halign: 'center', fontStyle: 'bold' } } ],
-                [ { content: 'LOKASI SEMASA TUGAS:' }, { content: upperVal(formData.tempat) }, { content: 'LAIN-LAIN (SILA NYATAKAN)', colSpan: 2 }, { content: '' } ],
+                [ { content: 'NAMA PEGAWAI:' }, { content: upperVal(data.nama) }, { content: 'Sebab', colSpan: 2, styles: { fillColor: [215, 205, 170], halign: 'center' } }, { content: 'Sila\nTanda (/)', styles: { fillColor: [215, 205, 170], halign: 'center' } } ],
+                [ { content: 'BAHAGIAN:' }, { content: upperVal(data.bahagian) }, { content: 'CUTI REHAT /-SAKIT / KECEMASAN', colSpan: 2 }, { content: data.jenisCuti === 'Cuti Ganti' ? '/' : '' } ],
+                [ { content: 'NO. TELEFON (H/P):' }, { content: upperVal(data.noTel) }, { content: 'KURSUS / TUGAS RASMI', colSpan: 2 }, { content: data.jenisCuti !== 'Cuti Ganti' ? '/' : '' } ],
+                [ { content: 'LOKASI SEMASA TUGAS:' }, { content: upperVal(data.tempat || '-') }, { content: 'LAIN-LAIN (SILA NYATAKAN)', colSpan: 2 }, { content: '' } ],
                 [{ content: 'BAHAGIAN B: MAKLUMAT KELAS / TUGAS YANG DI TINGGAL', colSpan: 5, styles: { fillColor: [215, 205, 170], halign: 'center', fontStyle: 'bold' } }],
-                [ { content: 'SUBJEK / TUGAS:' }, { content: upperVal(formData.subjek) }, { content: 'CATATAN:\n\n' + upperVal(formData.catatanTugas), colSpan: 3, rowSpan: 2, styles: { valign: 'top' } } ],
-                [ { content: 'SEMESTER /\nKUMPULAN / UNIT /\nBAHAGIAN:' }, { content: upperVal(formData.semester) } ],
+                [ { content: 'SUBJEK / TUGAS:' }, { content: upperVal(data.cutiPenggantiTugas || data.subjek) }, { content: 'CATATAN:\n\n' + upperVal(data.catatanTugas || ''), colSpan: 3, rowSpan: 2, styles: { valign: 'top' } } ],
+                [ { content: 'SEMESTER /\nKUMPULAN / UNIT /\nBAHAGIAN:' }, { content: upperVal(data.semester || '') } ],
                 [ { content: 'TARIKH, HARI &\nMASA YANG\nPERLU DIGANTI:' }, { content: upperVal(teksMasaGanti) }, { content: 'TANDATANGAN &\nTARIKH:', styles: { valign: 'top' } }, { content: '', colSpan: 2 } ],
                 [{ content: 'BAHAGIAN C: MAKLUMAT PEGAWAI PENGGANTI', colSpan: 5, styles: { fillColor: [215, 205, 170], halign: 'center', fontStyle: 'bold' } }],
-                [ { content: 'NAMA PEGAWAI:' }, { content: upperVal(formData.namaPengganti) }, { content: 'Tugas', colSpan: 2, styles: { fillColor: [215, 205, 170], halign: 'center', fontStyle: 'bold' } }, { content: 'Sila Tanda\n(/)', styles: { fillColor: [215, 205, 170], halign: 'center', fontStyle: 'bold' } } ],
-                [ { content: 'BAHAGIAN:' }, { content: upperVal(formData.bahagianPengganti) }, { content: 'Ambil alih subjek / tugas sepenuhnya:', colSpan: 2, rowSpan: 2 }, { content: formData.jenisAmbilAlih === 'Ambil alih subjek / tugas sepenuhnya' ? '/' : '', rowSpan: 2, styles: { halign: 'center', valign: 'middle', fontStyle: 'bold' } } ],
-                [ { content: 'NO. TELEFON (H/P):' }, { content: upperVal(formData.noTelPengganti) } ],
-                [ { content: 'TANDATANGAN &\nTARIKH' }, { content: '' }, { content: 'Ambil alih kawalan kelas / tugas', colSpan: 2 }, { content: formData.jenisAmbilAlih === 'Ambil alih kawalan kelas / tugas' ? '/' : '', styles: { halign: 'center', fontStyle: 'bold' } } ],
+                [ { content: 'NAMA PEGAWAI:' }, { content: upperVal(data.cutiPenggantiNama || data.namaPengganti) }, { content: 'Tugas', colSpan: 2, styles: { fillColor: [215, 205, 170], halign: 'center', fontStyle: 'bold' } }, { content: 'Sila Tanda\n(/)', styles: { fillColor: [215, 205, 170], halign: 'center', fontStyle: 'bold' } } ],
+                [ { content: 'BAHAGIAN:' }, { content: upperVal(data.cutiPenggantiBahagian || data.bahagianPengganti) }, { content: 'Ambil alih subjek / tugas sepenuhnya:', colSpan: 2, rowSpan: 2 }, { content: '/', rowSpan: 2, styles: { halign: 'center', valign: 'middle', fontStyle: 'bold' } } ],
+                [ { content: 'NO. TELEFON (H/P):' }, { content: upperVal(data.cutiPenggantiNoTel || data.noTelPengganti) } ],
+                [ { content: 'TANDATANGAN &\nTARIKH' }, { content: '' }, { content: 'Ambil alih kawalan kelas / tugas', colSpan: 2 }, { content: '', styles: { halign: 'center', fontStyle: 'bold' } } ],
                 [{ content: 'BAHAGIAN D : UNTUK KELULUSAN KETUA BAHAGIAN / KETUA JABATAN', colSpan: 5, styles: { fillColor: [215, 205, 170], halign: 'center', fontStyle: 'bold' } }],
                 [ { content: 'NAMA,\nTANDATANGAN &\nTARIKH' }, { content: '' }, { content: 'CATATAN:\n\n\n\n\n', colSpan: 3, styles: { valign: 'top' } } ]
             ]
@@ -1245,7 +1262,6 @@ function App() {
         doc.text("NO. TEL PEGAWAI", 15, 128); doc.text(":", 58, 128); doc.line(61, 128, 110, 128); doc.text(upperVal(formData.noTel), 63, 127);
         doc.text("T/TANGAN :", 118, 128); 
 
-        // Letak Imej Tandatangan Pemohon
         if (formData.tandatangan) {
             try {
                 doc.addImage(formData.tandatangan, 'PNG', 140, 115, 40, 20);
@@ -1256,6 +1272,20 @@ function App() {
         drawSectionHeader("C. MAKLUMAT TIKET PENERBANGAN", 140, 75);
         const fPTFormat = formData.flightPergiTarikh ? formData.flightPergiTarikh.split('-').reverse().join('/') : '';
         const fBTFormat = formData.flightBalikTarikh ? formData.flightBalikTarikh.split('-').reverse().join('/') : '';
+        const fP2TFormat = formData.flightPergiLeg2Tarikh ? formData.flightPergiLeg2Tarikh.split('-').reverse().join('/') : '';
+        const fB2TFormat = formData.flightBalikLeg2Tarikh ? formData.flightBalikLeg2Tarikh.split('-').reverse().join('/') : '';
+
+        let tableRows = [];
+        // Pergi leg 1
+        tableRows.push(['PERGI (L1)', val(fPTFormat), upperVal(formData.flightPergiMasa), upperVal(formData.flightPergiDari), upperVal(formData.flightPergiKe), '*Waran Jabatan / Beli sendiri']);
+        if (formData.flightType === 'multi' && formData.flightPergiLeg2Dari && formData.flightPergiLeg2Ke) {
+            tableRows.push(['PERGI (L2)', val(fP2TFormat), upperVal(formData.flightPergiLeg2Masa), upperVal(formData.flightPergiLeg2Dari), upperVal(formData.flightPergiLeg2Ke), '*Waran Jabatan / Beli sendiri']);
+        }
+        // Balik leg 1
+        tableRows.push(['BALIK (L1)', val(fBTFormat), upperVal(formData.flightBalikMasa), upperVal(formData.flightBalikDari), upperVal(formData.flightBalikKe), '*Waran Jabatan / Beli sendiri']);
+        if (formData.flightType === 'multi' && formData.flightBalikLeg2Dari && formData.flightBalikLeg2Ke) {
+            tableRows.push(['BALIK (L2)', val(fB2TFormat), upperVal(formData.flightBalikLeg2Masa), upperVal(formData.flightBalikLeg2Dari), upperVal(formData.flightBalikLeg2Ke), '*Waran Jabatan / Beli sendiri']);
+        }
 
         autoTable(doc,{
             startY: 145, margin: { left: 15, right: 15 }, theme: 'grid',
@@ -1263,10 +1293,7 @@ function App() {
             bodyStyles: { textColor: [0, 0, 0], halign: 'center', valign: 'middle', lineColor: [0,0,0], lineWidth: 0.3 },
             columnStyles: { 0: { fillColor: [210, 210, 210], fontStyle: 'bold', cellWidth: 18 }, 1: { cellWidth: 28 }, 2: { cellWidth: 28 }, 3: { cellWidth: 28 }, 4: { cellWidth: 28 }, 5: { cellWidth: 'auto' } },
             head: [['', 'TARIKH', 'MASA', 'DARI', 'KE', 'CATATAN']],
-            body: [
-                ['PERGI', val(fPTFormat), upperVal(formData.flightPergiMasa), upperVal(formData.flightPergiDari), upperVal(formData.flightPergiKe), '*Waran Jabatan / Beli sendiri'],
-                ['BALIK', val(fBTFormat), upperVal(formData.flightBalikMasa), upperVal(formData.flightBalikDari), upperVal(formData.flightBalikKe), '*Waran Jabatan / Beli sendiri']
-            ]
+            body: tableRows
         });
 
         let currentY = doc.lastAutoTable.finalY + 8;
@@ -1302,7 +1329,6 @@ function App() {
         doc.setFontSize(7); doc.text("Nota: Para A dan B - diisi oleh pemohon", 15, currentY); doc.text("         Para C dan D - untuk kegunaan pejabat", 15, currentY + 3); doc.text("         ** Potong mana yang tidak berkenaan", 15, currentY + 6);
     };
 
-    // --- 2. BORANG CUTI MANUAL ---
     const generateFormCuti = (doc) => {
         doc.setFont("helvetica", "normal"); doc.setFontSize(9);
         doc.text("Surat Pekeliling Am bil.3 Tahun 1990", 195, 12, { align: 'right' });
@@ -1449,7 +1475,6 @@ function App() {
         doc.text("Nota: Pemakluman mengenai kelulusan cuti tuan / puan adalah seperti yang disenaraikan di papan putih di Bahagian Pentadbiran.", 15, currentY);
     };
 
-    // --- 3. BORANG AKUJANJI INTEGRITI (BARU) ---
     const generateFormAkujanji = (doc, logoImgBase64) => {
         doc.setFont("helvetica", "bold"); doc.setFontSize(10);
         doc.text("LAMPIRAN 11", 190, 15, { align: 'right' });
@@ -1470,24 +1495,20 @@ function App() {
         currentY += 15;
         doc.setFont("helvetica", "normal"); doc.setFontSize(10);
         
-        // Paragraph 1 (Teks di atas garisan titik-titik berterusan)
         doc.text("Adalah saya,", 15, currentY);
 
         doc.setLineWidth(0.4);
-        doc.setLineDashPattern([1, 2], 0); // Putus-putus titik
+        doc.setLineDashPattern([1, 2], 0);
         doc.line(38, currentY, 188, currentY); 
-        doc.setLineDashPattern([], 0); // Reset untuk lukis teks biasa
+        doc.setLineDashPattern([], 0);
         
         doc.text(val(formData.nama).toUpperCase(), 113, currentY - 1.5, { align: 'center' });
         doc.text(",", 190, currentY);
         
         currentY += 10;
         doc.text("No. Kad Pengenalan", 15, currentY);
-
-        // Justify "yang bertugas" ke margin kanan (x: 190)
         doc.text("yang bertugas", 190, currentY, { align: 'right' });
         
-        // Kira ruang automatik untuk garisan supaya bersambung kemas
         let textBertugasW = doc.getTextWidth("yang bertugas");
         let line2End = 190 - textBertugasW - 3;
         let line2Start = 49;
@@ -1520,7 +1541,6 @@ function App() {
         currentY += 10;
         doc.text("yang terlibat secara langsung dalam mengendalikan Peperiksaan Akhir JTM sebagai:", 15, currentY);
 
-        // Jadual Peranan
         currentY += 10;
         let tableData = peperiksaanRoles.map(role => {
             const isTicked = formData.perananPeperiksaan.includes(role);
@@ -1542,30 +1562,25 @@ function App() {
         currentY = doc.lastAutoTable.finalY + 5;
         doc.text("(Tanda /  pada ruangan yang berkenaan dan potong yang tidak berkenaan)", 105, currentY, { align: 'center' });
 
-        // Paragraph 2
         currentY += 15;
         const p2 = "berjanji bahawasanya saya akan menjaga segala kerahsiaan yang berkaitan dengan aktiviti-aktiviti peperiksaan jabatan ini. Saya faham bahawa jika saya membocor maklumat-maklumat berkaitan peperiksaan ini atau melanggar integriti dengan apa cara sekali pun kepada mana-mana pihak maka saya boleh dikenakan tindakan di bawah Akta Rahsia Rasmi 1972.";
         const splitP2 = doc.splitTextToSize(p2, 175);
         doc.text(splitP2, 15, currentY, { align: 'justify', maxWidth: 175 });
 
-        // Bahagian Tandatangan
         currentY += 35;
         doc.text("Yang Benar :", 15, currentY);
         doc.text("Disaksikan oleh :", 120, currentY);
 
         currentY += 25;
         
-        // Letak Imej Tandatangan jika ada
         if (formData.tandatangan) {
             try {
-                // Saiz dikecilkan sedikit dan kedudukan Y dilaras agar ngam di atas garisan
                 doc.addImage(formData.tandatangan, 'PNG', 17, currentY - 18, 40, 18);
             } catch(e) {
                 console.warn("Gagal render tandatangan:", e);
             }
         }
 
-        // Guna titik-titik bagi menggantikan garisan supaya nampak seperti borang manual
         doc.text("..................................................................", 15, currentY);
         doc.text("..................................................................", 120, currentY);
 
@@ -1578,7 +1593,6 @@ function App() {
         doc.text("Tarikh :", 120, currentY);
     };
 
-    // --- 4. BORANG LAPORAN PEPERIKSAAN ---
     const generateFormLaporan = (doc, logoImgBase64) => {
         doc.setFont("helvetica", "bold"); doc.setFontSize(10);
         doc.text("LAMPIRAN 12", 190, 15, { align: 'right' });
@@ -1682,9 +1696,25 @@ function App() {
                 
                 if (activeForm === 'cuti') {
                     generateFormCuti(doc);
+                    // Jika cuti ganti, tambah borang tugas sementara
+                    if (formData.jenisCuti === 'Cuti Ganti' && formData.cutiPenggantiNama.trim() !== '') {
+                        // Gunakan data cuti untuk mengisi borang tugas sementara
+                        const cutiData = {
+                            ...formData,
+                            tarikhGantiDari: formData.cutiDari,
+                            tarikhGantiHingga: formData.cutiHingga,
+                            namaPengganti: formData.cutiPenggantiNama,
+                            bahagianPengganti: formData.cutiPenggantiBahagian,
+                            noTelPengganti: formData.cutiPenggantiNoTel,
+                            subjek: formData.cutiPenggantiTugas,
+                            jenisCuti: 'Cuti Ganti'
+                        };
+                        doc.addPage();
+                        generateForm2(doc, preloadedLogo, cutiData);
+                    }
                     const namaFail = formData.nama ? `Borang_Cuti_${formData.nama.replace(/\s+/g, '_')}.pdf` : 'Borang_Cuti.pdf';
                     doc.save(namaFail);
-                    showNotification("Borang Cuti (Manual) berjaya dijana!");
+                    showNotification("Borang Cuti (Manual) berjaya dijana!" + (formData.jenisCuti === 'Cuti Ganti' ? " Borang Tugas Sementara turut disertakan." : ""));
                 } else if (activeForm === 'akujanji') {
                     generateFormAkujanji(doc, preloadedLogo);
                     const namaFail = formData.nama ? `Akujanji_Peperiksaan_${formData.nama.replace(/\s+/g, '_')}.pdf` : 'Akujanji_Peperiksaan.pdf';
@@ -1715,34 +1745,36 @@ function App() {
                 }
                 setIsGenerating(false);
 
-                // ===== LOGIK AUTO RESET SELEPAS BERJAYA JANA =====
+                // Reset setelah jana
                 setTimeout(() => {
                     setFormData(prev => ({
                         ...prev,
-                        // Kekalkan profil (nama, jawatan, bahagian, nokp, notel), reset ruangan borang sahaja
                         tujuan: '', tempat: '', tarikhPergi: today, tarikhBalik: today, km: '', caraPerjalanan: 'Kereta Sendiri', 
                         sebab1: false, sebab2: false, sebab3: false, tuntutanBatu: false, tuntutanGantian: false, noKenderaan: '',
                         subjek: '', semester: '', tarikhGantiDari: today, tarikhGantiHingga: today, catatanTugas: '', namaPengganti: '', bahagianPengganti: '', noTelPengganti: '', jenisAmbilAlih: 'Ambil alih subjek / tugas sepenuhnya',
+                        flightType: 'single',
                         flightPergiTarikh: today, flightPergiMasa: '', flightPergiDari: '', flightPergiKe: '',
-                        flightBalikTarikh: today, flightBalikMasa: '', flightBalikDari: '', flightBalikKe: '', kodSyarikat: '', enrichId: '',
+                        flightPergiLeg2Tarikh: today, flightPergiLeg2Masa: '', flightPergiLeg2Dari: '', flightPergiLeg2Ke: '',
+                        flightBalikTarikh: today, flightBalikMasa: '', flightBalikDari: '', flightBalikKe: '',
+                        flightBalikLeg2Tarikh: today, flightBalikLeg2Masa: '', flightBalikLeg2Dari: '', flightBalikLeg2Ke: '',
+                        kodSyarikat: '', enrichId: '',
                         jenisCuti: 'Cuti Rehat', cutiDari: today, cutiHingga: today, catatanCuti: '', ketuaSokongan: '', pegawaiPelulus: '',
+                        cutiPenggantiNama: '', cutiPenggantiBahagian: '', cutiPenggantiNoTel: '', cutiPenggantiTugas: '',
                         perananPeperiksaan: [], tandatangan: null,
                         sesiPeperiksaan: '', tarikhPeperiksaan: today, namaPengawasLain: '', q1Status: 'YA', q1Catatan: '', q2Status: 'TIDAK', q2Catatan: '', q3Status: 'YA', q3Catatan: '', cadanganPeperiksaan: ''
                     }));
                     
-                    // Padam kanvas tandatangan
                     const canvas = canvasRef.current;
                     if(canvas) {
                         const ctx = canvas.getContext('2d');
                         ctx.clearRect(0, 0, canvas.width, canvas.height);
                     }
                     
-                    // Kembali ke halaman utama dan reset section yang terbuka
                     setActiveForm(null); 
                     setExpanded({ pegawai: true, tugas: false, pengganti: false, tiket: false, cuti: false, peranan: false, tandatangan: false, laporanInfo: false, laporanSoalan: false });
                     
                     showNotification("Borang telah direset untuk permohonan baharu.", "success");
-                }, 2500); // Tunggu 2.5 saat sebelum reset
+                }, 2500);
                 
             } catch (error) {
                 console.error(error);
@@ -1875,7 +1907,6 @@ function App() {
                         <p className="text-[13px] font-bold text-slate-500 tracking-wide">&copy; 2026 Kolej Teknologi Termaju Jabatan Tenaga Manusia (ADTEC) Kampus Sandakan. Hak cipta terpelihara.</p>
                     </div>
                 </div>
-                {/* ========== BUTANG MAKLUM BALAS DITAMBAH DI SINI ========== */}
                 <FeedbackButton />
             </div>
         );
@@ -1929,10 +1960,16 @@ function App() {
                                 <span className={`text-[11px] font-extrabold uppercase tracking-widest transition-colors ${s1Done ? 'text-blue-600' : 'text-blue-600'}`}>Pegawai</span>
                             </div>
                             <div className="flex flex-col items-center gap-2.5 group">
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-[14px] transition-all duration-500 z-10 ${s4Done ? 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/40 ring-[5px] ring-[#f8fafc]' : (s1Done ? 'bg-white text-emerald-600 border-[2.5px] border-emerald-500 ring-[5px] ring-[#f8fafc] shadow-md shadow-emerald-500/20' : 'bg-white text-slate-400 border-2 border-slate-200')}`}>
-                                    {s4Done ? <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> : '2'}
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-[14px] transition-all duration-500 z-10 ${s2Done ? 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/40 ring-[5px] ring-[#f8fafc]' : (s1Done ? 'bg-white text-emerald-600 border-[2.5px] border-emerald-500 ring-[5px] ring-[#f8fafc] shadow-md shadow-emerald-500/20' : 'bg-white text-slate-400 border-2 border-slate-200')}`}>
+                                    {s2Done ? <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> : '2'}
                                 </div>
-                                <span className={`text-[11px] font-extrabold uppercase tracking-widest transition-colors ${s4Done ? 'text-emerald-600' : (s1Done ? 'text-emerald-600' : 'text-slate-400')}`}>Maklumat Cuti</span>
+                                <span className={`text-[11px] font-extrabold uppercase tracking-widest transition-colors ${s2Done ? 'text-emerald-600' : (s1Done ? 'text-emerald-600' : 'text-slate-400')}`}>Cuti</span>
+                            </div>
+                            <div className="flex flex-col items-center gap-2.5 group">
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-[14px] transition-all duration-500 z-10 ${s3Done ? 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/40 ring-[5px] ring-[#f8fafc]' : (s2Done ? 'bg-white text-emerald-600 border-[2.5px] border-emerald-500 ring-[5px] ring-[#f8fafc] shadow-md shadow-emerald-500/20' : 'bg-white text-slate-400 border-2 border-slate-200')}`}>
+                                    {s3Done ? <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> : '3'}
+                                </div>
+                                <span className={`text-[11px] font-extrabold uppercase tracking-widest transition-colors ${s3Done ? 'text-emerald-600' : (s2Done ? 'text-emerald-600' : 'text-slate-400')}`}>Selesai</span>
                             </div>
                         </div>
                     ) : activeForm === 'akujanji' ? (
@@ -2038,7 +2075,7 @@ function App() {
 
             <div className="max-w-[800px] mx-auto px-4 space-y-5 relative z-10">
                 
-                {/* 1. MAKLUMAT PEGAWAI (Digunakan untuk semua form) */}
+                {/* 1. MAKLUMAT PEGAWAI */}
                 <div id="section-pegawai" className={`bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden transition-all duration-500 ${expanded.pegawai ? 'ring-[3px] ring-blue-500/20' : 'hover:shadow-md'} ${shakeSection === 'pegawai' ? 'animate-shake border-red-400' : ''}`}>
                     <div onClick={() => toggleSection('pegawai')} className="cursor-pointer px-6 py-5 flex items-center justify-between bg-white hover:bg-slate-50 transition-colors">
                         <div className="flex items-center gap-4">
@@ -2171,7 +2208,7 @@ function App() {
                                             name="jenisCuti" 
                                             value={formData.jenisCuti} 
                                             label={<>Jenis Cuti <span className="text-red-500">*</span></>} 
-                                            options={["Cuti Rehat", "Cuti Kecemasan", "Cuti Tanpa Rekod"]} 
+                                            options={["Cuti Rehat", "Cuti Kecemasan", "Cuti Tanpa Rekod", "Cuti Ganti"]} 
                                             onChange={handleChange} 
                                         />
                                     </div>
@@ -2187,6 +2224,46 @@ function App() {
                                         <label className={formLabelClass}>Catatan (Pilihan)</label>
                                         <input type="text" name="catatanCuti" value={formData.catatanCuti} onChange={handleChange} className={formInputClass} placeholder="Contoh: Cuti Ganti / Cuti Sakit" />
                                     </div>
+
+                                    {formData.jenisCuti === 'Cuti Ganti' && (
+                                        <div className="md:col-span-2 mt-4 bg-slate-50 border border-slate-200 rounded-[1.5rem] p-6">
+                                            <h3 className="text-[14px] font-extrabold uppercase text-slate-500 mb-5 tracking-wide">Maklumat Pegawai Pengganti (Cuti Ganti)</h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div className="md:col-span-2">
+                                                    <label className={formLabelClass}>Nama Pengganti <span className="text-red-500">*</span></label>
+                                                    <div className="relative">
+                                                        <select 
+                                                            id="wrap-cutiPenggantiNama"
+                                                            name="cutiPenggantiNama" 
+                                                            value={formData.cutiPenggantiNama} 
+                                                            onChange={handleChange}
+                                                            className={`block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-[15px] font-semibold shadow-sm transition-all duration-300 focus:border-blue-500 focus:outline-none focus:ring-[4px] focus:ring-blue-500/10 appearance-none relative z-10 cursor-pointer ${formData.cutiPenggantiNama ? 'text-slate-800' : 'text-slate-400 font-medium'}`}
+                                                        >
+                                                            <option value="" disabled>-- Sila Pilih Pengganti --</option>
+                                                            {pegawaiDatabase.filter(p => p.nama !== formData.nama).sort((a,b) => a.nama.localeCompare(b.nama)).map((p, idx) => (
+                                                                <option key={`cutiGanti-${idx}`} value={p.nama}>{p.nama} ({p.bahagian})</option>
+                                                            ))}
+                                                        </select>
+                                                        <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400 z-20">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className={formLabelClass}>Bahagian</label>
+                                                    <input type="text" name="cutiPenggantiBahagian" value={formData.cutiPenggantiBahagian} onChange={handleChange} className={formInputClass} readOnly />
+                                                </div>
+                                                <div>
+                                                    <label className={formLabelClass}>No. Telefon</label>
+                                                    <input id="wrap-cutiPenggantiNoTel" type="text" name="cutiPenggantiNoTel" value={formData.cutiPenggantiNoTel} onChange={handleChange} className={formInputClass} placeholder="Contoh: 01X-XXXXXXX" />
+                                                </div>
+                                                <div className="md:col-span-2">
+                                                    <label className={formLabelClass}>Tugas / Subjek Ditinggalkan <span className="text-red-500">*</span></label>
+                                                    <input id="wrap-cutiPenggantiTugas" type="text" name="cutiPenggantiTugas" value={formData.cutiPenggantiTugas} onChange={handleChange} className={formInputClass} placeholder="Contoh: Mengajar Kelas TKR 3" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                     
                                     <div className="md:col-span-2 mt-4 pt-6 border-t border-slate-100">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2247,7 +2324,6 @@ function App() {
                 {/* SEKSYEN KHAS UNTUK AKUJANJI INTEGRITI */}
                 {activeForm === 'akujanji' && (
                     <>
-                        {/* PERANAN PEPERIKSAAN */}
                         <div id="section-peranan" className={`bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border overflow-hidden transition-all duration-500 ${!isPegawaiComplete ? 'border-slate-200/50 opacity-60 grayscale-[20%]' : (expanded.peranan ? 'border-slate-100 ring-[3px] ring-indigo-500/20' : 'border-slate-100 hover:shadow-md')} ${shakeSection === 'peranan' ? 'animate-shake border-red-400' : ''}`}>
                             <div onClick={() => isPegawaiComplete && toggleSection('peranan')} className={`px-6 py-5 flex items-center justify-between transition-colors ${!isPegawaiComplete ? 'bg-slate-50/50 cursor-not-allowed' : 'bg-white hover:bg-slate-50 cursor-pointer'}`}>
                                 <div className="flex items-center gap-4">
@@ -2294,7 +2370,6 @@ function App() {
                             )}
                         </div>
 
-                        {/* TANDATANGAN DIGITAL */}
                         <div id="section-tandatangan" className={`bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border overflow-hidden transition-all duration-500 ${!isPerananComplete ? 'border-slate-200/50 opacity-60 grayscale-[20%]' : (expanded.tandatangan ? 'border-slate-100 ring-[3px] ring-purple-500/20' : 'border-slate-100 hover:shadow-md')} ${shakeSection === 'tandatangan' ? 'animate-shake border-red-400' : ''}`}>
                             <div onClick={() => isPerananComplete && toggleSection('tandatangan')} className={`px-6 py-5 flex items-center justify-between transition-colors ${!isPerananComplete ? 'bg-slate-50/50 cursor-not-allowed' : 'bg-white hover:bg-slate-50 cursor-pointer'}`}>
                                 <div className="flex items-center gap-4">
@@ -2384,7 +2459,6 @@ function App() {
                 {/* SEKSYEN KHAS UNTUK LAPORAN PEPERIKSAAN */}
                 {activeForm === 'laporan' && (
                     <>
-                        {/* MAKLUMAT PEPERIKSAAN */}
                         <div id="section-laporanInfo" className={`bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border overflow-hidden transition-all duration-500 ${!isPegawaiComplete ? 'border-slate-200/50 opacity-60 grayscale-[20%]' : (expanded.laporanInfo ? 'border-slate-100 ring-[3px] ring-orange-500/20' : 'border-slate-100 hover:shadow-md')} ${shakeSection === 'laporanInfo' ? 'animate-shake border-red-400' : ''}`}>
                             <div onClick={() => isPegawaiComplete && toggleSection('laporanInfo')} className={`px-6 py-5 flex items-center justify-between transition-colors ${!isPegawaiComplete ? 'bg-slate-50/50 cursor-not-allowed' : 'bg-white hover:bg-slate-50 cursor-pointer'}`}>
                                 <div className="flex items-center gap-4">
@@ -2428,7 +2502,6 @@ function App() {
                             )}
                         </div>
 
-                        {/* STATUS & CADANGAN (Laporan) */}
                         <div id="section-laporanSoalan" className={`bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border overflow-hidden transition-all duration-500 ${!isLaporanInfoComplete ? 'border-slate-200/50 opacity-60 grayscale-[20%]' : (expanded.laporanSoalan ? 'border-slate-100 ring-[3px] ring-red-500/20' : 'border-slate-100 hover:shadow-md')} ${shakeSection === 'laporanSoalan' ? 'animate-shake border-red-400' : ''}`}>
                             <div onClick={() => isLaporanInfoComplete && toggleSection('laporanSoalan')} className={`px-6 py-5 flex items-center justify-between transition-colors ${!isLaporanInfoComplete ? 'bg-slate-50/50 cursor-not-allowed' : 'bg-white hover:bg-slate-50 cursor-pointer'}`}>
                                 <div className="flex items-center gap-4">
@@ -2450,7 +2523,6 @@ function App() {
                             {expanded.laporanSoalan && isLaporanInfoComplete && (
                                 <div className="p-6 md:p-8 pt-2 border-t border-slate-100 animate-slide-up">
                                     <div className="flex flex-col gap-6">
-                                        {/* Q1 */}
                                         <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
                                             <p className="font-bold text-[15px] text-slate-800 mb-4">1. Bilangan kertas soalan dan jawapan mencukupi?</p>
                                             <div className="flex flex-wrap gap-4 mb-3">
@@ -2474,7 +2546,6 @@ function App() {
                                             </div>
                                         </div>
 
-                                        {/* Q2 */}
                                         <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
                                             <p className="font-bold text-[15px] text-slate-800 mb-4">2. Kesalahan cetakan kertas soalan?</p>
                                             <div className="flex flex-wrap gap-4 mb-3">
@@ -2498,7 +2569,6 @@ function App() {
                                             </div>
                                         </div>
 
-                                        {/* Q3 */}
                                         <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
                                             <p className="font-bold text-[15px] text-slate-800 mb-4">3. Peperiksaan berjalan lancar?</p>
                                             <div className="flex flex-wrap gap-4 mb-3">
@@ -2537,7 +2607,6 @@ function App() {
                             )}
                         </div>
 
-                        {/* TANDATANGAN DIGITAL (Didaur semula) */}
                         <div id="section-tandatangan" className={`bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border overflow-hidden transition-all duration-500 ${!isLaporanSoalanComplete ? 'border-slate-200/50 opacity-60 grayscale-[20%]' : (expanded.tandatangan ? 'border-slate-100 ring-[3px] ring-purple-500/20' : 'border-slate-100 hover:shadow-md')} ${shakeSection === 'tandatangan' ? 'animate-shake border-red-400' : ''}`}>
                             <div onClick={() => isLaporanSoalanComplete && toggleSection('tandatangan')} className={`px-6 py-5 flex items-center justify-between transition-colors ${!isLaporanSoalanComplete ? 'bg-slate-50/50 cursor-not-allowed' : 'bg-white hover:bg-slate-50 cursor-pointer'}`}>
                                 <div className="flex items-center gap-4">
@@ -2863,7 +2932,7 @@ function App() {
                     </div>
                 )}
 
-                {/* SEKSYEN TUGAS RASMI: 4. TIKET PENERBANGAN */}
+                {/* SEKSYEN TUGAS RASMI: 4. TIKET PENERBANGAN (SOKONGAN MULTI SECTOR) */}
                 {activeForm === 'tugas' && (
                     <div id="section-tiket" className={`transition-all duration-700 overflow-hidden ${formData.caraPerjalanan === 'Kapal Terbang' ? 'max-h-[3000px] opacity-100 mt-5' : 'max-h-0 opacity-0 m-0'}`}>
                         <div className={`bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border overflow-hidden transition-all duration-500 ${!isTugasComplete ? 'border-slate-200/50 opacity-60 grayscale-[20%]' : (expanded.tiket ? 'border-slate-100 ring-[3px] ring-sky-500/20' : 'border-slate-100 hover:shadow-md')} ${shakeSection === 'tiket' ? 'animate-shake border-red-400' : ''}`}>
@@ -2892,6 +2961,20 @@ function App() {
                                         <button onClick={() => setRoute('BKI', 'KUL')} className="px-4 py-2 bg-white border border-slate-200 hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700 text-slate-600 text-[13px] font-bold rounded-full transition-all shadow-sm active:scale-95">BKI ⇄ KUL</button>
                                     </div>
 
+                                    {/* Pilihan Jenis Penerbangan: Single atau Multi Sektor */}
+                                    <div className="bg-white p-4 rounded-2xl border border-slate-200 mb-6 shadow-sm">
+                                        <div className="flex items-center gap-4 justify-center">
+                                            <label className={`flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer transition-all ${formData.flightType === 'single' ? 'bg-sky-100 border-sky-400 text-sky-700 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-500'}`}>
+                                                <input type="radio" name="flightType" value="single" checked={formData.flightType === 'single'} onChange={handleChange} className="hidden" />
+                                                <span className="font-bold">Sektor Tunggal (Terus)</span>
+                                            </label>
+                                            <label className={`flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer transition-all ${formData.flightType === 'multi' ? 'bg-sky-100 border-sky-400 text-sky-700 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-500'}`}>
+                                                <input type="radio" name="flightType" value="multi" checked={formData.flightType === 'multi'} onChange={handleChange} className="hidden" />
+                                                <span className="font-bold">Dua Sektor (Contoh SDK-KUL, KUL-PEN)</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
                                     {/* KAD TIKET PERGI */}
                                     <div className="bg-white rounded-[24px] shadow-sm border border-slate-200 overflow-hidden mb-8 relative">
                                         <div className="ticket-cutout left"></div>
@@ -2906,47 +2989,97 @@ function App() {
                                         </div>
 
                                         <div className="p-6 md:p-8">
-                                            <div className="flex items-center justify-between mb-8">
-                                                <div className="w-[40%] text-left group">
-                                                    <label className="text-[11px] uppercase tracking-widest text-slate-400 font-bold mb-2 block">Dari (Origin) <span className="text-red-500">*</span></label>
-                                                    <div id="wrap-flightPergiDari" className="relative cursor-pointer rounded-xl transition-all duration-300 border border-transparent">
-                                                        <div className={`flight-input text-4xl sm:text-5xl w-full transition-colors ${formData.flightPergiDari ? 'text-slate-800' : 'text-slate-200'}`}>
-                                                            {formData.flightPergiDari || "---"}
+                                            {/* Leg 1 Pergi */}
+                                            <div className="mb-6 border-b border-slate-100 pb-6">
+                                                <div className="text-xs font-bold text-slate-400 uppercase mb-3">Leg 1</div>
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <div className="w-[40%] text-left group">
+                                                        <label className="text-[11px] uppercase tracking-widest text-slate-400 font-bold mb-2 block">Dari (Origin) <span className="text-red-500">*</span></label>
+                                                        <div id="wrap-flightPergiDari" className="relative cursor-pointer rounded-xl transition-all duration-300 border border-transparent">
+                                                            <div className={`flight-input text-4xl sm:text-5xl w-full transition-colors ${formData.flightPergiDari ? 'text-slate-800' : 'text-slate-200'}`}>
+                                                                {formData.flightPergiDari || "---"}
+                                                            </div>
+                                                            <select name="flightPergiDari" value={formData.flightPergiDari} onChange={handleChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                                                                <option value="" disabled>Pilih</option>
+                                                                {malaysiaAirports.map(apt => <option key={apt.code} value={apt.code}>{apt.code} - {apt.name}</option>)}
+                                                            </select>
                                                         </div>
-                                                        <select name="flightPergiDari" value={formData.flightPergiDari} onChange={handleChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                                                            <option value="" disabled>Pilih</option>
-                                                            {malaysiaAirports.map(apt => <option key={apt.code} value={apt.code}>{apt.code} - {apt.name}</option>)}
-                                                        </select>
+                                                        <div className="text-[13px] font-semibold text-slate-500 mt-2 truncate w-full group-hover:text-sky-600 transition-colors">{getAirportName(formData.flightPergiDari)}</div>
                                                     </div>
-                                                    <div className="text-[13px] font-semibold text-slate-500 mt-2 truncate w-full group-hover:text-sky-600 transition-colors">{getAirportName(formData.flightPergiDari)}</div>
-                                                </div>
 
-                                                <div className="flex-1 flex justify-center items-center px-4 relative">
-                                                    <div className="w-full h-[2px] bg-transparent border-t-2 border-dashed border-slate-300"></div>
-                                                    <div className="absolute bg-white px-3 text-sky-400">
-                                                        <PlaneTakeoffIcon className="w-6 h-6 text-sky-500 transform hover:scale-110 transition-transform cursor-pointer" />
-                                                    </div>
-                                                </div>
-
-                                                <div className="w-[40%] text-right group">
-                                                    <label className="text-[11px] uppercase tracking-widest text-slate-400 font-bold mb-2 block">Ke (Destination) <span className="text-red-500">*</span></label>
-                                                    <div id="wrap-flightPergiKe" className="relative cursor-pointer rounded-xl transition-all duration-300 border border-transparent">
-                                                        <div className={`flight-input text-4xl sm:text-5xl text-right w-full transition-colors ${formData.flightPergiKe ? 'text-slate-800' : 'text-slate-200'}`}>
-                                                            {formData.flightPergiKe || "---"}
+                                                    <div className="flex-1 flex justify-center items-center px-4 relative">
+                                                        <div className="w-full h-[2px] bg-transparent border-t-2 border-dashed border-slate-300"></div>
+                                                        <div className="absolute bg-white px-3 text-sky-400">
+                                                            <PlaneTakeoffIcon className="w-6 h-6 text-sky-500 transform hover:scale-110 transition-transform cursor-pointer" />
                                                         </div>
-                                                        <select name="flightPergiKe" value={formData.flightPergiKe} onChange={handleChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                                                            <option value="" disabled>Pilih</option>
-                                                            {malaysiaAirports.map(apt => <option key={apt.code} value={apt.code}>{apt.code} - {apt.name}</option>)}
-                                                        </select>
                                                     </div>
-                                                    <div className="text-[13px] font-semibold text-slate-500 mt-2 truncate w-full group-hover:text-sky-600 transition-colors">{getAirportName(formData.flightPergiKe)}</div>
+
+                                                    <div className="w-[40%] text-right group">
+                                                        <label className="text-[11px] uppercase tracking-widest text-slate-400 font-bold mb-2 block">Ke (Destination) <span className="text-red-500">*</span></label>
+                                                        <div id="wrap-flightPergiKe" className="relative cursor-pointer rounded-xl transition-all duration-300 border border-transparent">
+                                                            <div className={`flight-input text-4xl sm:text-5xl text-right w-full transition-colors ${formData.flightPergiKe ? 'text-slate-800' : 'text-slate-200'}`}>
+                                                                {formData.flightPergiKe || "---"}
+                                                            </div>
+                                                            <select name="flightPergiKe" value={formData.flightPergiKe} onChange={handleChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                                                                <option value="" disabled>Pilih</option>
+                                                                {malaysiaAirports.map(apt => <option key={apt.code} value={apt.code}>{apt.code} - {apt.name}</option>)}
+                                                            </select>
+                                                        </div>
+                                                        <div className="text-[13px] font-semibold text-slate-500 mt-2 truncate w-full group-hover:text-sky-600 transition-colors">{getAirportName(formData.flightPergiKe)}</div>
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                    <ModernDatePicker name="flightPergiTarikh" value={formData.flightPergiTarikh} label="Tarikh Berlepas" onChange={handleChange} slim={true} />
+                                                    <ModernTimePicker wrapperId="wrap-flightPergiMasa" name="flightPergiMasa" value={formData.flightPergiMasa} label={<>Masa Pergi <span className="text-red-500">*</span></>} onChange={handleChange} slim={true} />
                                                 </div>
                                             </div>
 
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-slate-100 pt-6">
-                                                <ModernDatePicker name="flightPergiTarikh" value={formData.flightPergiTarikh} label="Tarikh Berlepas" onChange={handleChange} slim={true} />
-                                                <ModernTimePicker wrapperId="wrap-flightPergiMasa" name="flightPergiMasa" value={formData.flightPergiMasa} label={<>Masa Pergi <span className="text-red-500">*</span></>} onChange={handleChange} slim={true} />
-                                            </div>
+                                            {/* Leg 2 Pergi (hanya jika multi) */}
+                                            {formData.flightType === 'multi' && (
+                                                <div className="pt-4">
+                                                    <div className="text-xs font-bold text-slate-400 uppercase mb-3">Leg 2</div>
+                                                    <div className="flex items-center justify-between mb-4">
+                                                        <div className="w-[40%] text-left group">
+                                                            <label className="text-[11px] uppercase tracking-widest text-slate-400 font-bold mb-2 block">Dari (Origin) <span className="text-red-500">*</span></label>
+                                                            <div id="wrap-flightPergiLeg2Dari" className="relative cursor-pointer rounded-xl transition-all duration-300 border border-transparent">
+                                                                <div className={`flight-input text-4xl sm:text-5xl w-full transition-colors ${formData.flightPergiLeg2Dari ? 'text-slate-800' : 'text-slate-200'}`}>
+                                                                    {formData.flightPergiLeg2Dari || "---"}
+                                                                </div>
+                                                                <select name="flightPergiLeg2Dari" value={formData.flightPergiLeg2Dari} onChange={handleChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                                                                    <option value="" disabled>Pilih</option>
+                                                                    {malaysiaAirports.map(apt => <option key={apt.code} value={apt.code}>{apt.code} - {apt.name}</option>)}
+                                                                </select>
+                                                            </div>
+                                                            <div className="text-[13px] font-semibold text-slate-500 mt-2 truncate w-full group-hover:text-sky-600 transition-colors">{getAirportName(formData.flightPergiLeg2Dari)}</div>
+                                                        </div>
+
+                                                        <div className="flex-1 flex justify-center items-center px-4 relative">
+                                                            <div className="w-full h-[2px] bg-transparent border-t-2 border-dashed border-slate-300"></div>
+                                                            <div className="absolute bg-white px-3 text-sky-400">
+                                                                <PlaneTakeoffIcon className="w-6 h-6 text-sky-500 transform hover:scale-110 transition-transform cursor-pointer" />
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="w-[40%] text-right group">
+                                                            <label className="text-[11px] uppercase tracking-widest text-slate-400 font-bold mb-2 block">Ke (Destination) <span className="text-red-500">*</span></label>
+                                                            <div id="wrap-flightPergiLeg2Ke" className="relative cursor-pointer rounded-xl transition-all duration-300 border border-transparent">
+                                                                <div className={`flight-input text-4xl sm:text-5xl text-right w-full transition-colors ${formData.flightPergiLeg2Ke ? 'text-slate-800' : 'text-slate-200'}`}>
+                                                                    {formData.flightPergiLeg2Ke || "---"}
+                                                                </div>
+                                                                <select name="flightPergiLeg2Ke" value={formData.flightPergiLeg2Ke} onChange={handleChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                                                                    <option value="" disabled>Pilih</option>
+                                                                    {malaysiaAirports.map(apt => <option key={apt.code} value={apt.code}>{apt.code} - {apt.name}</option>)}
+                                                                </select>
+                                                            </div>
+                                                            <div className="text-[13px] font-semibold text-slate-500 mt-2 truncate w-full group-hover:text-sky-600 transition-colors">{getAirportName(formData.flightPergiLeg2Ke)}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                        <ModernDatePicker name="flightPergiLeg2Tarikh" value={formData.flightPergiLeg2Tarikh} label="Tarikh Berlepas Leg 2" onChange={handleChange} slim={true} />
+                                                        <ModernTimePicker wrapperId="wrap-flightPergiLeg2Masa" name="flightPergiLeg2Masa" value={formData.flightPergiLeg2Masa} label={<>Masa Pergi Leg 2 <span className="text-red-500">*</span></>} onChange={handleChange} slim={true} />
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 
@@ -2964,51 +3097,101 @@ function App() {
                                         </div>
 
                                         <div className="p-6 md:p-8">
-                                            <div className="flex items-center justify-between mb-8">
-                                                <div className="w-[40%] text-left group">
-                                                    <label className="text-[11px] uppercase tracking-widest text-slate-400 font-bold mb-2 block">Dari (Origin) <span className="text-red-500">*</span></label>
-                                                    <div id="wrap-flightBalikDari" className="relative cursor-pointer rounded-xl transition-all duration-300 border border-transparent">
-                                                        <div className={`flight-input text-4xl sm:text-5xl w-full transition-colors ${formData.flightBalikDari ? 'text-slate-800' : 'text-slate-200'}`}>
-                                                            {formData.flightBalikDari || "---"}
+                                            {/* Leg 1 Balik */}
+                                            <div className="mb-6 border-b border-slate-100 pb-6">
+                                                <div className="text-xs font-bold text-slate-400 uppercase mb-3">Leg 1</div>
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <div className="w-[40%] text-left group">
+                                                        <label className="text-[11px] uppercase tracking-widest text-slate-400 font-bold mb-2 block">Dari (Origin) <span className="text-red-500">*</span></label>
+                                                        <div id="wrap-flightBalikDari" className="relative cursor-pointer rounded-xl transition-all duration-300 border border-transparent">
+                                                            <div className={`flight-input text-4xl sm:text-5xl w-full transition-colors ${formData.flightBalikDari ? 'text-slate-800' : 'text-slate-200'}`}>
+                                                                {formData.flightBalikDari || "---"}
+                                                            </div>
+                                                            <select name="flightBalikDari" value={formData.flightBalikDari} onChange={handleChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                                                                <option value="" disabled>Pilih</option>
+                                                                {malaysiaAirports.map(apt => <option key={apt.code} value={apt.code}>{apt.code} - {apt.name}</option>)}
+                                                            </select>
                                                         </div>
-                                                        <select name="flightBalikDari" value={formData.flightBalikDari} onChange={handleChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                                                            <option value="" disabled>Pilih</option>
-                                                            {malaysiaAirports.map(apt => <option key={apt.code} value={apt.code}>{apt.code} - {apt.name}</option>)}
-                                                        </select>
+                                                        <div className="text-[13px] font-semibold text-slate-500 mt-2 truncate w-full group-hover:text-indigo-600 transition-colors">{getAirportName(formData.flightBalikDari)}</div>
                                                     </div>
-                                                    <div className="text-[13px] font-semibold text-slate-500 mt-2 truncate w-full group-hover:text-indigo-600 transition-colors">{getAirportName(formData.flightBalikDari)}</div>
-                                                </div>
 
-                                                <div className="flex-1 flex justify-center items-center px-4 relative">
-                                                    <div className="w-full h-[2px] bg-transparent border-t-2 border-dashed border-slate-300"></div>
-                                                    <div className="absolute bg-white px-3 text-indigo-400">
-                                                        <PlaneLandingIcon className="w-6 h-6 text-indigo-500 transform hover:scale-110 transition-transform cursor-pointer" />
-                                                    </div>
-                                                </div>
-
-                                                <div className="w-[40%] text-right group">
-                                                    <label className="text-[11px] uppercase tracking-widest text-slate-400 font-bold mb-2 block">Ke (Destination) <span className="text-red-500">*</span></label>
-                                                    <div id="wrap-flightBalikKe" className="relative cursor-pointer rounded-xl transition-all duration-300 border border-transparent">
-                                                        <div className={`flight-input text-4xl sm:text-5xl text-right w-full transition-colors ${formData.flightBalikKe ? 'text-slate-800' : 'text-slate-200'}`}>
-                                                            {formData.flightBalikKe || "---"}
+                                                    <div className="flex-1 flex justify-center items-center px-4 relative">
+                                                        <div className="w-full h-[2px] bg-transparent border-t-2 border-dashed border-slate-300"></div>
+                                                        <div className="absolute bg-white px-3 text-indigo-400">
+                                                            <PlaneLandingIcon className="w-6 h-6 text-indigo-500 transform hover:scale-110 transition-transform cursor-pointer" />
                                                         </div>
-                                                        <select name="flightBalikKe" value={formData.flightBalikKe} onChange={handleChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                                                            <option value="" disabled>Pilih</option>
-                                                            {malaysiaAirports.map(apt => <option key={apt.code} value={apt.code}>{apt.code} - {apt.name}</option>)}
-                                                        </select>
                                                     </div>
-                                                    <div className="text-[13px] font-semibold text-slate-500 mt-2 truncate w-full group-hover:text-indigo-600 transition-colors">{getAirportName(formData.flightBalikKe)}</div>
+
+                                                    <div className="w-[40%] text-right group">
+                                                        <label className="text-[11px] uppercase tracking-widest text-slate-400 font-bold mb-2 block">Ke (Destination) <span className="text-red-500">*</span></label>
+                                                        <div id="wrap-flightBalikKe" className="relative cursor-pointer rounded-xl transition-all duration-300 border border-transparent">
+                                                            <div className={`flight-input text-4xl sm:text-5xl text-right w-full transition-colors ${formData.flightBalikKe ? 'text-slate-800' : 'text-slate-200'}`}>
+                                                                {formData.flightBalikKe || "---"}
+                                                            </div>
+                                                            <select name="flightBalikKe" value={formData.flightBalikKe} onChange={handleChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                                                                <option value="" disabled>Pilih</option>
+                                                                {malaysiaAirports.map(apt => <option key={apt.code} value={apt.code}>{apt.code} - {apt.name}</option>)}
+                                                            </select>
+                                                        </div>
+                                                        <div className="text-[13px] font-semibold text-slate-500 mt-2 truncate w-full group-hover:text-indigo-600 transition-colors">{getAirportName(formData.flightBalikKe)}</div>
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                    <ModernDatePicker name="flightBalikTarikh" value={formData.flightBalikTarikh} label="Tarikh Pulang" min={formData.flightPergiTarikh} onChange={handleChange} slim={true} />
+                                                    <ModernTimePicker wrapperId="wrap-flightBalikMasa" name="flightBalikMasa" value={formData.flightBalikMasa} label={<>Masa Balik <span className="text-red-500">*</span></>} onChange={handleChange} slim={true} />
                                                 </div>
                                             </div>
 
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-slate-100 pt-6">
-                                                <ModernDatePicker name="flightBalikTarikh" value={formData.flightBalikTarikh} label="Tarikh Pulang" min={formData.flightPergiTarikh} onChange={handleChange} slim={true} />
-                                                <ModernTimePicker wrapperId="wrap-flightBalikMasa" name="flightBalikMasa" value={formData.flightBalikMasa} label={<>Masa Balik <span className="text-red-500">*</span></>} onChange={handleChange} slim={true} />
-                                            </div>
+                                            {/* Leg 2 Balik (hanya jika multi) */}
+                                            {formData.flightType === 'multi' && (
+                                                <div className="pt-4">
+                                                    <div className="text-xs font-bold text-slate-400 uppercase mb-3">Leg 2</div>
+                                                    <div className="flex items-center justify-between mb-4">
+                                                        <div className="w-[40%] text-left group">
+                                                            <label className="text-[11px] uppercase tracking-widest text-slate-400 font-bold mb-2 block">Dari (Origin) <span className="text-red-500">*</span></label>
+                                                            <div id="wrap-flightBalikLeg2Dari" className="relative cursor-pointer rounded-xl transition-all duration-300 border border-transparent">
+                                                                <div className={`flight-input text-4xl sm:text-5xl w-full transition-colors ${formData.flightBalikLeg2Dari ? 'text-slate-800' : 'text-slate-200'}`}>
+                                                                    {formData.flightBalikLeg2Dari || "---"}
+                                                                </div>
+                                                                <select name="flightBalikLeg2Dari" value={formData.flightBalikLeg2Dari} onChange={handleChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                                                                    <option value="" disabled>Pilih</option>
+                                                                    {malaysiaAirports.map(apt => <option key={apt.code} value={apt.code}>{apt.code} - {apt.name}</option>)}
+                                                                </select>
+                                                            </div>
+                                                            <div className="text-[13px] font-semibold text-slate-500 mt-2 truncate w-full group-hover:text-indigo-600 transition-colors">{getAirportName(formData.flightBalikLeg2Dari)}</div>
+                                                        </div>
+
+                                                        <div className="flex-1 flex justify-center items-center px-4 relative">
+                                                            <div className="w-full h-[2px] bg-transparent border-t-2 border-dashed border-slate-300"></div>
+                                                            <div className="absolute bg-white px-3 text-indigo-400">
+                                                                <PlaneLandingIcon className="w-6 h-6 text-indigo-500 transform hover:scale-110 transition-transform cursor-pointer" />
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="w-[40%] text-right group">
+                                                            <label className="text-[11px] uppercase tracking-widest text-slate-400 font-bold mb-2 block">Ke (Destination) <span className="text-red-500">*</span></label>
+                                                            <div id="wrap-flightBalikLeg2Ke" className="relative cursor-pointer rounded-xl transition-all duration-300 border border-transparent">
+                                                                <div className={`flight-input text-4xl sm:text-5xl text-right w-full transition-colors ${formData.flightBalikLeg2Ke ? 'text-slate-800' : 'text-slate-200'}`}>
+                                                                    {formData.flightBalikLeg2Ke || "---"}
+                                                                </div>
+                                                                <select name="flightBalikLeg2Ke" value={formData.flightBalikLeg2Ke} onChange={handleChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                                                                    <option value="" disabled>Pilih</option>
+                                                                    {malaysiaAirports.map(apt => <option key={apt.code} value={apt.code}>{apt.code} - {apt.name}</option>)}
+                                                                </select>
+                                                            </div>
+                                                            <div className="text-[13px] font-semibold text-slate-500 mt-2 truncate w-full group-hover:text-indigo-600 transition-colors">{getAirportName(formData.flightBalikLeg2Ke)}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                        <ModernDatePicker name="flightBalikLeg2Tarikh" value={formData.flightBalikLeg2Tarikh} label="Tarikh Pulang Leg 2" onChange={handleChange} slim={true} />
+                                                        <ModernTimePicker wrapperId="wrap-flightBalikLeg2Masa" name="flightBalikLeg2Masa" value={formData.flightBalikLeg2Masa} label={<>Masa Balik Leg 2 <span className="text-red-500">*</span></>} onChange={handleChange} slim={true} />
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 
-                                    {/* MAKLUMAT TAMBAHAN (Syarikat & Keahlian) */}
+                                    {/* MAKLUMAT TAMBAHAN */}
                                     <div className="bg-white border border-slate-200 rounded-[20px] p-6 shadow-sm relative overflow-hidden">
                                         <div className="absolute top-0 left-0 w-1 h-full bg-slate-300"></div>
                                         <h3 className="text-[13px] font-extrabold uppercase text-slate-500 mb-5 tracking-wide flex items-center gap-2">
@@ -3075,6 +3258,10 @@ function App() {
                                   (activeForm === 'cuti' && !isCutiComplete) ? 'KLIK UNTUK ISI MAKLUMAT CUTI' : 
                                   (activeForm === 'akujanji' && !isPerananComplete) ? 'KLIK UNTUK ISI PERANAN' :
                                   (activeForm === 'akujanji' && !isTandatanganComplete) ? 'KLIK UNTUK ISI TANDATANGAN' :
+                                  (activeForm === 'laporan' && !isLaporanInfoComplete) ? 'KLIK UNTUK ISI MAKLUMAT PEPERIKSAAN' :
+                                  (activeForm === 'laporan' && !isLaporanSoalanComplete) ? 'KLIK UNTUK ISI STATUS' :
+                                  (activeForm === 'laporan' && !isTandatanganComplete) ? 'KLIK UNTUK ISI TANDATANGAN' :
+                                  (activeForm === 'cuti' && formData.jenisCuti === 'Cuti Ganti' && !isCutiGantiComplete()) ? 'KLIK UNTUK ISI MAKLUMAT PENGGANTI (CUTI GANTI)' :
                                   (activeForm === 'tugas' && !isTiketComplete) ? 'KLIK UNTUK ISI MAKLUMAT TIKET' : 
                                   'JANA & MUAT TURUN (FAIL PDF)')}
                             </span>
@@ -3099,7 +3286,6 @@ function App() {
                     </button>
                 )}
             </div>
-            {/* ========== BUTANG MAKLUM BALAS DITAMBAH DI SINI ========== */}
             <FeedbackButton />
         </div>
     );
