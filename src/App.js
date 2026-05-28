@@ -1909,7 +1909,7 @@ function App() {
                     </div>
                     
                     <div className="text-center mt-12 opacity-80 hover:opacity-100 transition-opacity">
-                        <p className="text-[13px] font-bold text-slate-500 tracking-wide">&copy; 2026 Kolej Teknologi Termaju Jabatan Tenaga Manusia (ADTEC) Kampus Sandakan. Hak cipta terpelihara.</p>
+                        <p className="text-[13px] font-bold text-slate-500 tracking-wide"> Hak cipta terpelihara &copy; 2026 Kolej Teknologi Termaju Jabatan Tenaga Manusia (ADTEC) Kampus Sandakan.</p>
                     </div>
                 </div>
                 <FeedbackButton />
