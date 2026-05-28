@@ -866,6 +866,19 @@ function App() {
         }
     };
 
+    // Fungsi khas untuk pengganti dalam borang cuti (Cuti Ganti / Cuti Tanpa Rekod)
+    const handleCutiPenggantiChange = (e) => {
+        const selectedName = e.target.value;
+        if (!selectedName) {
+            setFormData(prev => ({ ...prev, cutiPenggantiNama: '', cutiPenggantiBahagian: '', cutiPenggantiNoTel: '' }));
+            return;
+        }
+        const p = pegawaiDatabase.find(x => x.nama === selectedName);
+        if (p) {
+            setFormData(prev => ({ ...prev, cutiPenggantiNama: p.nama, cutiPenggantiBahagian: p.bahagian, cutiPenggantiNoTel: p.noTel || '' }));
+        }
+    };
+
     const toggleAutoFieldsEdit = () => {
         if (isEditingAutoFields) {
             const selected = pegawaiDatabase.find(p => p.nama === formData.nama);
@@ -2231,11 +2244,12 @@ function App() {
                                                             id="wrap-cutiPenggantiNama"
                                                             name="cutiPenggantiNama" 
                                                             value={formData.cutiPenggantiNama} 
-                                                            onChange={handleChange}
+                                                            onChange={handleCutiPenggantiChange}
                                                             className={`block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-[15px] font-semibold shadow-sm transition-all duration-300 focus:border-blue-500 focus:outline-none focus:ring-[4px] focus:ring-blue-500/10 appearance-none relative z-10 cursor-pointer ${formData.cutiPenggantiNama ? 'text-slate-800' : 'text-slate-400 font-medium'}`}
                                                         >
                                                             <option value="" disabled>-- Sila Pilih Pengganti --</option>
-                                                            {pegawaiDatabase.filter(p => p.nama !== formData.nama).sort((a,b) => a.nama.localeCompare(b.nama)).map((p, idx) => (
+                                                            {/* Hanya papar pegawai dari bahagian yang sama dengan pemohon */}
+                                                            {pegawaiDatabase.filter(p => p.nama !== formData.nama && p.bahagian === formData.bahagian).sort((a,b) => a.nama.localeCompare(b.nama)).map((p, idx) => (
                                                                 <option key={`cutiGanti-${idx}`} value={p.nama}>{p.nama} ({p.bahagian})</option>
                                                             ))}
                                                         </select>
