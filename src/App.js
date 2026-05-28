@@ -3,7 +3,6 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import './index.css';
 
-
 // ================== KONSTAN DAN KOMPONEN SEDIA ADA (TIDAK DIUBAH) ==================
 const formInputClass = "block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-[15px] font-semibold text-slate-800 shadow-sm transition-all duration-300 placeholder:text-slate-400 placeholder:font-medium focus:border-blue-500 focus:outline-none focus:ring-[4px] focus:ring-blue-500/10 hover:border-slate-300";
 const formLabelClass = "block text-[13px] font-bold uppercase tracking-wider text-slate-500 mb-2 ml-1";
@@ -390,15 +389,13 @@ function App() {
         tujuan: '', tempat: '', tarikhPergi: today, tarikhBalik: today, km: '', caraPerjalanan: 'Kereta Sendiri', 
         sebab1: false, sebab2: false, sebab3: false, tuntutanBatu: false, tuntutanGantian: false,
         subjek: '', semester: '', tarikhGantiDari: today, tarikhGantiHingga: today, catatanTugas: '', namaPengganti: '', bahagianPengganti: '', noTelPengganti: '', jenisAmbilAlih: 'Ambil alih subjek / tugas sepenuhnya',
-        // Penerbangan dengan sokongan dua sektor
-        flightType: 'single', // 'single' atau 'multi'
+        flightType: 'single',
         flightPergiTarikh: today, flightPergiMasa: '', flightPergiDari: '', flightPergiKe: '',
         flightPergiLeg2Tarikh: today, flightPergiLeg2Masa: '', flightPergiLeg2Dari: '', flightPergiLeg2Ke: '',
         flightBalikTarikh: today, flightBalikMasa: '', flightBalikDari: '', flightBalikKe: '',
         flightBalikLeg2Tarikh: today, flightBalikLeg2Masa: '', flightBalikLeg2Dari: '', flightBalikLeg2Ke: '',
         kodSyarikat: '', enrichId: '',
         jenisCuti: 'Cuti Rehat', cutiDari: today, cutiHingga: today, catatanCuti: '', ketuaSokongan: '', pegawaiPelulus: '',
-        // Untuk cuti ganti (borang tugas sementara)
         cutiPenggantiNama: '', cutiPenggantiBahagian: '', cutiPenggantiNoTel: '', cutiPenggantiTugas: '',
         perananPeperiksaan: [], tandatangan: null,
         sesiPeperiksaan: '', tarikhPeperiksaan: today, namaPengawasLain: '',
@@ -537,7 +534,6 @@ function App() {
     const isTugasComplete = formData.tujuan.trim() !== '' && formData.tempat.trim() !== '' && formData.tarikhPergi !== '' && formData.tarikhBalik !== '';
     const isPenggantiComplete = formData.namaPengganti.trim() !== '' && formData.subjek.trim() !== '';
     
-    // Validation tiket dengan sokongan multi-sektor
     const isFlightSingleComplete = () => {
         return formData.flightPergiDari.length === 3 && formData.flightPergiKe.length === 3 && formData.flightPergiMasa &&
                formData.flightBalikDari.length === 3 && formData.flightBalikKe.length === 3 && formData.flightBalikMasa;
@@ -551,8 +547,10 @@ function App() {
     const isTiketComplete = formData.caraPerjalanan === 'Kapal Terbang' ? (formData.flightType === 'single' ? isFlightSingleComplete() : isFlightMultiComplete()) : true;
     
     const isCutiComplete = formData.jenisCuti !== '' && formData.cutiDari !== '' && formData.cutiHingga !== '' && formData.ketuaSokongan !== '' && formData.pegawaiPelulus !== '';
+    
+    // Fungsi semak pengganti untuk cuti ganti ATAU cuti tanpa rekod
     const isCutiGantiComplete = () => {
-        if (formData.jenisCuti !== 'Cuti Ganti') return true;
+        if (formData.jenisCuti !== 'Cuti Ganti' && formData.jenisCuti !== 'Cuti Tanpa Rekod') return true;
         return formData.cutiPenggantiNama.trim() !== '' && formData.cutiPenggantiTugas.trim() !== '';
     };
 
@@ -709,10 +707,10 @@ function App() {
                 { id: 'wrap-ketuaSokongan', val: formData.ketuaSokongan, name: 'Ketua Sokongan' },
                 { id: 'wrap-pegawaiPelulus', val: formData.pegawaiPelulus, name: 'Pegawai Pelulus' }
             ];
-            if (formData.jenisCuti === 'Cuti Ganti') {
+            if (formData.jenisCuti === 'Cuti Ganti' || formData.jenisCuti === 'Cuti Tanpa Rekod') {
                 requiredFields.push(
-                    { id: 'wrap-cutiPenggantiNama', val: formData.cutiPenggantiNama, name: 'Nama Pengganti (Cuti Ganti)' },
-                    { id: 'wrap-cutiPenggantiTugas', val: formData.cutiPenggantiTugas, name: 'Tugas Ditinggalkan (Cuti Ganti)' }
+                    { id: 'wrap-cutiPenggantiNama', val: formData.cutiPenggantiNama, name: 'Nama Pengganti (Cuti Ganti/Tanpa Rekod)' },
+                    { id: 'wrap-cutiPenggantiTugas', val: formData.cutiPenggantiTugas, name: 'Tugas Ditinggalkan (Cuti Ganti/Tanpa Rekod)' }
                 );
             }
         } else if (sectionName === 'peranan') {
@@ -890,14 +888,12 @@ function App() {
     };
 
     const setRoute = (dari, ke) => {
-        // Untuk single sector, set leg1 sahaja
         setFormData(prev => ({ 
             ...prev, 
             flightPergiDari: dari, 
             flightPergiKe: ke, 
             flightBalikDari: ke, 
             flightBalikKe: dari,
-            // Reset leg2 sekiranya tukar route
             flightPergiLeg2Dari: '', flightPergiLeg2Ke: '', flightPergiLeg2Masa: '', flightPergiLeg2Tarikh: today,
             flightBalikLeg2Dari: '', flightBalikLeg2Ke: '', flightBalikLeg2Masa: '', flightBalikLeg2Tarikh: today
         }));
@@ -1176,7 +1172,6 @@ function App() {
     };
 
     const generateForm2 = (doc, logoImgBase64, customData = null) => {
-        // customData optional untuk cuti ganti
         const data = customData || formData;
         doc.setFont("helvetica"); doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text("LAMPIRAN 7", 190, 15, { align: 'right' });
         
@@ -1276,12 +1271,10 @@ function App() {
         const fB2TFormat = formData.flightBalikLeg2Tarikh ? formData.flightBalikLeg2Tarikh.split('-').reverse().join('/') : '';
 
         let tableRows = [];
-        // Pergi leg 1
         tableRows.push(['PERGI (L1)', val(fPTFormat), upperVal(formData.flightPergiMasa), upperVal(formData.flightPergiDari), upperVal(formData.flightPergiKe), '*Waran Jabatan / Beli sendiri']);
         if (formData.flightType === 'multi' && formData.flightPergiLeg2Dari && formData.flightPergiLeg2Ke) {
             tableRows.push(['PERGI (L2)', val(fP2TFormat), upperVal(formData.flightPergiLeg2Masa), upperVal(formData.flightPergiLeg2Dari), upperVal(formData.flightPergiLeg2Ke), '*Waran Jabatan / Beli sendiri']);
         }
-        // Balik leg 1
         tableRows.push(['BALIK (L1)', val(fBTFormat), upperVal(formData.flightBalikMasa), upperVal(formData.flightBalikDari), upperVal(formData.flightBalikKe), '*Waran Jabatan / Beli sendiri']);
         if (formData.flightType === 'multi' && formData.flightBalikLeg2Dari && formData.flightBalikLeg2Ke) {
             tableRows.push(['BALIK (L2)', val(fB2TFormat), upperVal(formData.flightBalikLeg2Masa), upperVal(formData.flightBalikLeg2Dari), upperVal(formData.flightBalikLeg2Ke), '*Waran Jabatan / Beli sendiri']);
@@ -1696,9 +1689,8 @@ function App() {
                 
                 if (activeForm === 'cuti') {
                     generateFormCuti(doc);
-                    // Jika cuti ganti, tambah borang tugas sementara
-                    if (formData.jenisCuti === 'Cuti Ganti' && formData.cutiPenggantiNama.trim() !== '') {
-                        // Gunakan data cuti untuk mengisi borang tugas sementara
+                    // Sertakan Borang Tugas Sementara untuk Cuti Ganti ATAU Cuti Tanpa Rekod
+                    if ((formData.jenisCuti === 'Cuti Ganti' || formData.jenisCuti === 'Cuti Tanpa Rekod') && formData.cutiPenggantiNama.trim() !== '') {
                         const cutiData = {
                             ...formData,
                             tarikhGantiDari: formData.cutiDari,
@@ -1707,14 +1699,14 @@ function App() {
                             bahagianPengganti: formData.cutiPenggantiBahagian,
                             noTelPengganti: formData.cutiPenggantiNoTel,
                             subjek: formData.cutiPenggantiTugas,
-                            jenisCuti: 'Cuti Ganti'
+                            jenisCuti: formData.jenisCuti
                         };
                         doc.addPage();
                         generateForm2(doc, preloadedLogo, cutiData);
                     }
                     const namaFail = formData.nama ? `Borang_Cuti_${formData.nama.replace(/\s+/g, '_')}.pdf` : 'Borang_Cuti.pdf';
                     doc.save(namaFail);
-                    showNotification("Borang Cuti (Manual) berjaya dijana!" + (formData.jenisCuti === 'Cuti Ganti' ? " Borang Tugas Sementara turut disertakan." : ""));
+                    showNotification("Borang Cuti (Manual) berjaya dijana!" + ((formData.jenisCuti === 'Cuti Ganti' || formData.jenisCuti === 'Cuti Tanpa Rekod') ? " Borang Tugas Sementara turut disertakan." : ""));
                 } else if (activeForm === 'akujanji') {
                     generateFormAkujanji(doc, preloadedLogo);
                     const namaFail = formData.nama ? `Akujanji_Peperiksaan_${formData.nama.replace(/\s+/g, '_')}.pdf` : 'Akujanji_Peperiksaan.pdf';
@@ -2225,9 +2217,12 @@ function App() {
                                         <input type="text" name="catatanCuti" value={formData.catatanCuti} onChange={handleChange} className={formInputClass} placeholder="Contoh: Cuti Ganti / Cuti Sakit" />
                                     </div>
 
-                                    {formData.jenisCuti === 'Cuti Ganti' && (
+                                    {/* Maklumat Pengganti untuk Cuti Ganti ATAU Cuti Tanpa Rekod */}
+                                    {(formData.jenisCuti === 'Cuti Ganti' || formData.jenisCuti === 'Cuti Tanpa Rekod') && (
                                         <div className="md:col-span-2 mt-4 bg-slate-50 border border-slate-200 rounded-[1.5rem] p-6">
-                                            <h3 className="text-[14px] font-extrabold uppercase text-slate-500 mb-5 tracking-wide">Maklumat Pegawai Pengganti (Cuti Ganti)</h3>
+                                            <h3 className="text-[14px] font-extrabold uppercase text-slate-500 mb-5 tracking-wide">
+                                                Maklumat Pegawai Pengganti {formData.jenisCuti === 'Cuti Ganti' ? '(Cuti Ganti)' : '(Cuti Tanpa Rekod)'}
+                                            </h3>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 <div className="md:col-span-2">
                                                     <label className={formLabelClass}>Nama Pengganti <span className="text-red-500">*</span></label>
@@ -3261,7 +3256,7 @@ function App() {
                                   (activeForm === 'laporan' && !isLaporanInfoComplete) ? 'KLIK UNTUK ISI MAKLUMAT PEPERIKSAAN' :
                                   (activeForm === 'laporan' && !isLaporanSoalanComplete) ? 'KLIK UNTUK ISI STATUS' :
                                   (activeForm === 'laporan' && !isTandatanganComplete) ? 'KLIK UNTUK ISI TANDATANGAN' :
-                                  (activeForm === 'cuti' && formData.jenisCuti === 'Cuti Ganti' && !isCutiGantiComplete()) ? 'KLIK UNTUK ISI MAKLUMAT PENGGANTI (CUTI GANTI)' :
+                                  (activeForm === 'cuti' && (formData.jenisCuti === 'Cuti Ganti' || formData.jenisCuti === 'Cuti Tanpa Rekod') && !isCutiGantiComplete()) ? 'KLIK UNTUK ISI MAKLUMAT PENGGANTI (CUTI GANTI/TANPA REKOD)' :
                                   (activeForm === 'tugas' && !isTiketComplete) ? 'KLIK UNTUK ISI MAKLUMAT TIKET' : 
                                   'JANA & MUAT TURUN (FAIL PDF)')}
                             </span>
