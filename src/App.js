@@ -548,7 +548,6 @@ function App() {
     
     const isCutiComplete = formData.jenisCuti !== '' && formData.cutiDari !== '' && formData.cutiHingga !== '' && formData.ketuaSokongan !== '' && formData.pegawaiPelulus !== '';
     
-    // Fungsi semak pengganti untuk cuti ganti ATAU cuti tanpa rekod
     const isCutiGantiComplete = () => {
         if (formData.jenisCuti !== 'Cuti Ganti' && formData.jenisCuti !== 'Cuti Tanpa Rekod') return true;
         return formData.cutiPenggantiNama.trim() !== '' && formData.cutiPenggantiTugas.trim() !== '';
@@ -866,7 +865,6 @@ function App() {
         }
     };
 
-    // Fungsi khas untuk pengganti dalam borang cuti (Cuti Ganti / Cuti Tanpa Rekod)
     const handleCutiPenggantiChange = (e) => {
         const selectedName = e.target.value;
         if (!selectedName) {
@@ -1819,12 +1817,13 @@ function App() {
     if (activeForm === null) {
         return (
             <div className="min-h-screen relative flex flex-col justify-center overflow-hidden px-4 sm:px-6 animate-slide-up">
+                {/* Blurred background circles */}
                 <div className="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-400/20 rounded-full blur-[100px] pointer-events-none"></div>
                 <div className="fixed bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-emerald-400/20 rounded-full blur-[100px] pointer-events-none"></div>
 
                 <div className="max-w-5xl mx-auto w-full relative z-10 pt-10 pb-16">
                     <div className="text-center mb-12">
-                        <div className="inline-flex items-center justify-center p-4 bg-white rounded-[2rem] mb-8 shadow-xl shadow-slate-200/50 border border-slate-100 transform -rotate-3 hover:rotate-0 transition-transform duration-500">
+                        <div className="inline-flex items-center justify-center p-4 bg-white/60 backdrop-blur-xl rounded-[2rem] mb-8 shadow-xl shadow-slate-200/50 border border-white/40 transform -rotate-3 hover:rotate-0 transition-transform duration-500">
                             {isLogoLoading ? (
                                 <div className="w-16 h-16 rounded-full border-[4px] border-slate-100 border-t-blue-600 animate-spin"></div>
                             ) : preloadedLogo ? (
@@ -1841,66 +1840,96 @@ function App() {
                             Sistem pengurusan dan penjanaan dokumen rasmi secara digital, pantas dan sistematik.
                         </p>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto">
+                        {/* ★★★★★ KAD UTAMA DENGAN GLASSMORPHISM ★★★★★ */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
+                            {/* Tugas Rasmi */}
                             <button 
                                 onClick={() => { setActiveForm('tugas'); setExpanded({...expanded, cuti: false, peranan: false, tandatangan: false, tugas: false, laporanInfo: false, laporanSoalan: false, pegawai: true}); }}
-                                className="w-full px-6 py-5 bg-slate-900 hover:bg-slate-800 text-white text-[15px] font-bold rounded-[1.5rem] shadow-xl transition-all transform hover:-translate-y-1 active:scale-95 flex flex-col items-center justify-center gap-3 group"
+                                className="group w-full px-6 py-6 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl transition-all duration-500 hover:bg-white/20 hover:border-white/40 shadow-lg hover:shadow-xl transform hover:-translate-y-2 active:scale-95 flex flex-col items-center justify-center gap-4"
                             >
-                                <div className="bg-slate-700 p-3 rounded-2xl group-hover:bg-slate-600 transition-colors">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                                <div className="relative">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-white/10 rounded-2xl blur-md group-hover:blur-xl transition-all"></div>
+                                    <div className="relative bg-gradient-to-br from-white/30 to-white/10 p-4 rounded-2xl backdrop-blur-sm border border-white/30 shadow-inner group-hover:scale-110 transition-transform">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white drop-shadow"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                                    </div>
                                 </div>
-                                <span>Borang Tugas Rasmi</span>
+                                <div className="flex flex-col items-center">
+                                    <span className="text-white font-bold text-[17px] tracking-tight">Borang Tugas Rasmi</span>
+                                    <span className="text-white/70 text-xs font-semibold mt-1">Lampiran A & 7</span>
+                                </div>
                             </button>
                             
+                            {/* Surat Akujanji */}
                             <button 
                                 onClick={() => { setActiveForm('akujanji'); setExpanded({...expanded, tugas: false, tiket: false, cuti: false, pengganti: false, laporanInfo: false, laporanSoalan: false, pegawai: true}); }}
-                                className="w-full px-6 py-5 bg-indigo-600 hover:bg-indigo-500 text-white text-[15px] font-bold rounded-[1.5rem] shadow-xl transition-all transform hover:-translate-y-1 active:scale-95 flex flex-col items-center justify-center gap-3 group"
+                                className="group w-full px-6 py-6 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl transition-all duration-500 hover:bg-white/20 hover:border-white/40 shadow-lg hover:shadow-xl transform hover:-translate-y-2 active:scale-95 flex flex-col items-center justify-center gap-4"
                             >
-                                <div className="bg-indigo-500 p-3 rounded-2xl group-hover:bg-indigo-400 transition-colors">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="m9 15 2 2 4-4"/></svg>
+                                <div className="relative">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-white/10 rounded-2xl blur-md group-hover:blur-xl transition-all"></div>
+                                    <div className="relative bg-gradient-to-br from-white/30 to-white/10 p-4 rounded-2xl backdrop-blur-sm border border-white/30 shadow-inner group-hover:scale-110 transition-transform">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white drop-shadow"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="m9 15 2 2 4-4"/></svg>
+                                    </div>
                                 </div>
-                                <span>Surat Akujanji Peperiksaan</span>
+                                <div className="flex flex-col items-center">
+                                    <span className="text-white font-bold text-[17px] tracking-tight">Surat Akujanji</span>
+                                    <span className="text-white/70 text-xs font-semibold mt-1">Integriti Peperiksaan</span>
+                                </div>
                             </button>
 
+                            {/* Laporan Peperiksaan */}
                             <button 
                                 onClick={() => { setActiveForm('laporan'); setExpanded({...expanded, tugas: false, peranan: false, tandatangan: false, cuti: false, pengganti: false, tiket: false, pegawai: true}); }}
-                                className="w-full px-6 py-5 bg-amber-500 hover:bg-amber-400 text-white text-[15px] font-bold rounded-[1.5rem] shadow-xl transition-all transform hover:-translate-y-1 active:scale-95 flex flex-col items-center justify-center gap-3 group"
+                                className="group w-full px-6 py-6 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl transition-all duration-500 hover:bg-white/20 hover:border-white/40 shadow-lg hover:shadow-xl transform hover:-translate-y-2 active:scale-95 flex flex-col items-center justify-center gap-4"
                             >
-                                <div className="bg-amber-400 p-3 rounded-2xl group-hover:bg-amber-300 transition-colors">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                                <div className="relative">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-white/10 rounded-2xl blur-md group-hover:blur-xl transition-all"></div>
+                                    <div className="relative bg-gradient-to-br from-white/30 to-white/10 p-4 rounded-2xl backdrop-blur-sm border border-white/30 shadow-inner group-hover:scale-110 transition-transform">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white drop-shadow"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                                    </div>
                                 </div>
-                                <span>Laporan Peperiksaan</span>
+                                <div className="flex flex-col items-center">
+                                    <span className="text-white font-bold text-[17px] tracking-tight">Laporan Peperiksaan</span>
+                                    <span className="text-white/70 text-xs font-semibold mt-1">Akhir JTM</span>
+                                </div>
                             </button>
 
+                            {/* Borang Cuti Manual */}
                             <button 
                                 onClick={() => { setActiveForm('cuti'); setExpanded({...expanded, tugas: false, peranan: false, tandatangan: false, laporanInfo: false, laporanSoalan: false, pegawai: true}); }}
-                                className="w-full px-6 py-5 bg-emerald-600 hover:bg-emerald-500 text-white text-[15px] font-bold rounded-[1.5rem] shadow-xl transition-all transform hover:-translate-y-1 active:scale-95 flex flex-col items-center justify-center gap-3 group"
+                                className="group w-full px-6 py-6 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl transition-all duration-500 hover:bg-white/20 hover:border-white/40 shadow-lg hover:shadow-xl transform hover:-translate-y-2 active:scale-95 flex flex-col items-center justify-center gap-4"
                             >
-                                <div className="bg-emerald-500 p-3 rounded-2xl group-hover:bg-emerald-400 transition-colors">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="m9 16 2 2 4-4"></path></svg>
+                                <div className="relative">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-white/10 rounded-2xl blur-md group-hover:blur-xl transition-all"></div>
+                                    <div className="relative bg-gradient-to-br from-white/30 to-white/10 p-4 rounded-2xl backdrop-blur-sm border border-white/30 shadow-inner group-hover:scale-110 transition-transform">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white drop-shadow"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="m9 16 2 2 4-4"></path></svg>
+                                    </div>
                                 </div>
-                                <span>Borang Cuti (Manual)</span>
+                                <div className="flex flex-col items-center">
+                                    <span className="text-white font-bold text-[17px] tracking-tight">Borang Cuti</span>
+                                    <span className="text-white/70 text-xs font-semibold mt-1">Manual</span>
+                                </div>
                             </button>
                         </div>
                     </div>
 
+                    {/* KAD FEATURE DENGAN GLASSMORPHISM */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto px-4 mt-12">
-                        <div className="bg-white/70 backdrop-blur-xl border border-white p-7 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_15px_40px_rgb(0,0,0,0.08)] transition-all transform hover:-translate-y-1">
-                            <div className="w-14 h-14 bg-blue-100/80 text-blue-600 rounded-2xl flex items-center justify-center mb-5 border border-blue-200">
+                        <div className="bg-white/70 backdrop-blur-xl border border-white/40 p-7 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_15px_40px_rgb(0,0,0,0.08)] transition-all transform hover:-translate-y-1">
+                            <div className="w-14 h-14 bg-blue-100/80 text-blue-600 rounded-2xl flex items-center justify-center mb-5 border border-blue-200/60 backdrop-blur-sm">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                             </div>
                             <h3 className="text-[17px] font-extrabold text-slate-800 mb-2.5">Penjanaan PDF Automatik</h3>
                             <p className="text-[14px] text-slate-500 font-semibold leading-relaxed">Format Lampiran JTM rasmi disusun dan dijanakan terus tanpa perlu aplikasi luaran.</p>
                         </div>
-                        <div className="bg-white/70 backdrop-blur-xl border border-white p-7 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_15px_40px_rgb(0,0,0,0.08)] transition-all transform hover:-translate-y-1">
-                            <div className="w-14 h-14 bg-indigo-100/80 text-indigo-600 rounded-2xl flex items-center justify-center mb-5 border border-indigo-200">
+                        <div className="bg-white/70 backdrop-blur-xl border border-white/40 p-7 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_15px_40px_rgb(0,0,0,0.08)] transition-all transform hover:-translate-y-1">
+                            <div className="w-14 h-14 bg-indigo-100/80 text-indigo-600 rounded-2xl flex items-center justify-center mb-5 border border-indigo-200/60 backdrop-blur-sm">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
                             </div>
                             <h3 className="text-[17px] font-extrabold text-slate-800 mb-2.5">Tandatangan Digital Pintar</h3>
                             <p className="text-[14px] text-slate-500 font-semibold leading-relaxed">Lukis terus di skrin atau muat naik gambar sign. Sistem automatik remove background.</p>
                         </div>
-                        <div className="bg-white/70 backdrop-blur-xl border border-white p-7 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_15px_40px_rgb(0,0,0,0.08)] transition-all transform hover:-translate-y-1">
-                            <div className="w-14 h-14 bg-emerald-100/80 text-emerald-600 rounded-2xl flex items-center justify-center mb-5 border border-emerald-200">
+                        <div className="bg-white/70 backdrop-blur-xl border border-white/40 p-7 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_15px_40px_rgb(0,0,0,0.08)] transition-all transform hover:-translate-y-1">
+                            <div className="w-14 h-14 bg-emerald-100/80 text-emerald-600 rounded-2xl flex items-center justify-center mb-5 border border-emerald-200/60 backdrop-blur-sm">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
                             </div>
                             <h3 className="text-[17px] font-extrabold text-slate-800 mb-2.5">Mesra Peranti</h3>
@@ -2400,7 +2429,6 @@ function App() {
                             {expanded.tandatangan && isPerananComplete && (
                                 <div className="p-6 md:p-8 pt-2 border-t border-slate-100 animate-slide-up">
                                     <div id="wrap-tandatangan" className="bg-slate-50 border border-slate-200 rounded-[1.5rem] p-4 sm:p-6 transition-all duration-300">
-                                        
                                         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
                                             <label className={formLabelClass}>Sila lukis tandatangan anda <span className="text-red-500">*</span></label>
                                             <div className="relative">
