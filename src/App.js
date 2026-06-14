@@ -151,7 +151,10 @@ function App() {
     const isPenggantiComplete = formData.namaPengganti.trim() !== '' && formData.subjek.trim() !== '';
     const isFlightSingleComplete = () => formData.flightPergiDari.length === 3 && formData.flightPergiKe.length === 3 && formData.flightPergiMasa && formData.flightBalikDari.length === 3 && formData.flightBalikKe.length === 3 && formData.flightBalikMasa;
     const isFlightMultiComplete = () => formData.flightPergiDari.length === 3 && formData.flightPergiKe.length === 3 && formData.flightPergiMasa && formData.flightPergiLeg2Dari.length === 3 && formData.flightPergiLeg2Ke.length === 3 && formData.flightPergiLeg2Masa && formData.flightBalikDari.length === 3 && formData.flightBalikKe.length === 3 && formData.flightBalikMasa && formData.flightBalikLeg2Dari.length === 3 && formData.flightBalikLeg2Ke.length === 3 && formData.flightBalikLeg2Masa;
-    const isTiketComplete = formData.caraPerjalanan === 'Kapal Terbang' ? (formData.flightType === 'single' ? isFlightSingleComplete() : isFlightMultiComplete()) : true;
+    
+    // ✅ KEMAS KINI: Borang tiket (Lampiran 3) HANYA perlu untuk "Kapal Terbang (Waran Jabatan)"
+    const isTiketComplete = formData.caraPerjalanan === 'Kapal Terbang (Waran Jabatan)' ? (formData.flightType === 'single' ? isFlightSingleComplete() : isFlightMultiComplete()) : true;
+    
     const isCutiComplete = formData.jenisCuti !== '' && formData.cutiDari !== '' && formData.cutiHingga !== '' && formData.ketuaSokongan !== '' && formData.pegawaiPelulus !== '';
     const isCutiGantiComplete = () => (formData.jenisCuti !== 'Cuti Ganti' && formData.jenisCuti !== 'Cuti Tanpa Rekod') ? true : formData.cutiPenggantiNama.trim() !== '' && formData.cutiPenggantiTugas.trim() !== '';
     const isPerananComplete = formData.perananPeperiksaan.length > 0;
@@ -234,7 +237,8 @@ function App() {
     };
 
     const nextSection = (current, nextSectionName) => {
-        if (activeForm === 'tugas' && nextSectionName === 'tiket' && formData.caraPerjalanan !== 'Kapal Terbang') nextSectionName = 'jana';
+        // ✅ KEMAS KINI: Lompat ke butang "Jana" jika bukan Waran Jabatan
+        if (activeForm === 'tugas' && nextSectionName === 'tiket' && formData.caraPerjalanan !== 'Kapal Terbang (Waran Jabatan)') nextSectionName = 'jana';
         setExpanded({
             pegawai: nextSectionName === 'pegawai', tugas: nextSectionName === 'tugas', pengganti: nextSectionName === 'pengganti',
             tiket: nextSectionName === 'tiket', cuti: nextSectionName === 'cuti', peranan: nextSectionName === 'peranan',
@@ -399,7 +403,10 @@ function App() {
                 } else {
                     generateForm1(doc, preloadedLogo, formData);
                     if ((formData.subjek.trim() !== '' || formData.namaPengganti.trim() !== '') && formData.namaPengganti !== 'TIADA PENGGANTI') { doc.addPage(); generateForm2(doc, preloadedLogo, formData); }
-                    if (formData.caraPerjalanan === 'Kapal Terbang') { doc.addPage(); generateForm3(doc, formData); }
+                    
+                    // ✅ KEMAS KINI: Tiket PDF (Lampiran 3) hanya dicetak jika menggunakan Waran Jabatan
+                    if (formData.caraPerjalanan === 'Kapal Terbang (Waran Jabatan)') { doc.addPage(); generateForm3(doc, formData); }
+                    
                     doc.save(formData.nama ? `Borang_TugasRasmi_${formData.nama.replace(/\s+/g, '_')}.pdf` : 'Borang_TugasRasmi.pdf');
                     showNotification("Semua dokumen rasmi berjaya disatukan ke dalam 1 fail PDF!");
                 }

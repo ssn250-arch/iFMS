@@ -17,7 +17,8 @@ const PlaneLandingIcon = ({ className }) => (
 
 const quickTemplates = [
     { label: "Mesyuarat", icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>, tujuan: "Menghadiri Mesyuarat Rasmi", perjalanan: "Kereta Sendiri" },
-    { label: "Kursus", icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>, tujuan: "Menghadiri Kursus/Latihan", perjalanan: "Kapal Terbang" },
+    { label: "Kursus", icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>, tujuan: "Menghadiri Kursus/Latihan", perjalanan: "Kapal Terbang (Waran Jabatan)" },
+    { label: "Tugas Rasmi", icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>, tujuan: "Menghadiri tugas rasmi", perjalanan: "Kapal Terbang (Tiket Sendiri)" },
     { label: "Lawatan", icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>, tujuan: "Lawatan Sambil Belajar", perjalanan: "Kereta Jabatan" },
     { label: "Bengkel", icon: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>, tujuan: "Menghadiri Bengkel", perjalanan: "Lain-lain" }
 ];
@@ -53,12 +54,12 @@ const FormTugas = ({
                     <div className="p-6 md:p-8 pt-2 border-t border-slate-100 animate-slide-up">
                         <div className="mb-8">
                             <label className={formLabelClass}>Isi Pantas Tugasan (Pilihan)</label>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mt-3">
                                 {quickTemplates.map((t, idx) => (
                                     <button 
                                         key={idx} 
                                         onClick={() => setFormData(prev => ({ ...prev, tujuan: t.tujuan, caraPerjalanan: t.perjalanan }))}
-                                        className="flex flex-col items-center justify-center p-3 rounded-2xl bg-white border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50 hover:text-indigo-700 transition-all text-slate-600 font-bold text-[13px] gap-2 active:scale-95 shadow-sm"
+                                        className="flex flex-col items-center justify-center p-3 rounded-2xl bg-white border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50 hover:text-indigo-700 transition-all text-slate-600 font-bold text-[13px] gap-2 active:scale-95 shadow-sm text-center"
                                     >
                                         <div className="text-indigo-500">{t.icon}</div>
                                         <span>{t.label}</span>
@@ -89,7 +90,7 @@ const FormTugas = ({
                                     name="caraPerjalanan" 
                                     value={formData.caraPerjalanan} 
                                     label="Cara Perjalanan Pilihan" 
-                                    options={["Kereta Sendiri", "Kereta Jabatan", "Kereta Rasmi Jawatan", "Kapal Terbang", "Lain-lain"]} 
+                                    options={["Kereta Sendiri", "Kereta Jabatan", "Kereta Rasmi Jawatan", "Kapal Terbang (Waran Jabatan)", "Kapal Terbang (Tiket Sendiri)", "Lain-lain"]} 
                                     onChange={handleChange} 
                                     placeholder="Sila Pilih" 
                                 />
@@ -186,8 +187,8 @@ const FormTugas = ({
                                         >
                                             <option value="" disabled>-- Sila Pilih Pengganti --</option>
                                             <option value="TIADA PENGGANTI">-- TIADA PENGGANTI (TUGAS PEJABAT SAHAJA) --</option>
-                                            {pegawaiDatabase.filter(p => p.nama !== formData.nama && p.bahagian === formData.bahagian).sort((a,b) => a.nama.localeCompare(b.nama)).map((p, idx) => (
-                                                <option key={`sama-${idx}`} value={p.nama}>{p.nama}</option>
+                                            {pegawaiDatabase.filter(p => p.nama !== formData.nama).sort((a,b) => a.nama.localeCompare(b.nama)).map((p, idx) => (
+                                                <option key={`pengganti-${idx}`} value={p.nama}>{p.nama} ({p.bahagian})</option>
                                             ))}
                                         </select>
                                         <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400 z-20">
@@ -257,8 +258,8 @@ const FormTugas = ({
                         </div>
 
                         <div className="mt-8 flex justify-end">
-                            <button onClick={() => nextSection('pengganti', formData.caraPerjalanan === 'Kapal Terbang' ? 'tiket' : 'jana')} className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-2">
-                                {formData.caraPerjalanan === 'Kapal Terbang' ? 'Ke Tiket Penerbangan' : 'Selesai'} <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                            <button onClick={() => nextSection('pengganti', formData.caraPerjalanan === 'Kapal Terbang (Waran Jabatan)' ? 'tiket' : 'jana')} className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-2">
+                                {formData.caraPerjalanan === 'Kapal Terbang (Waran Jabatan)' ? 'Ke Tiket Penerbangan' : 'Selesai'} <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                             </button>
                         </div>
                     </div>
@@ -266,7 +267,7 @@ const FormTugas = ({
             </div>
 
             {/* 4. TIKET PENERBANGAN */}
-            <div id="section-tiket" className={`transition-all duration-700 overflow-hidden ${formData.caraPerjalanan === 'Kapal Terbang' ? 'max-h-[3000px] opacity-100 mt-5' : 'max-h-0 opacity-0 m-0'}`}>
+            <div id="section-tiket" className={`transition-all duration-700 overflow-hidden ${formData.caraPerjalanan === 'Kapal Terbang (Waran Jabatan)' ? 'max-h-[3000px] opacity-100 mt-5' : 'max-h-0 opacity-0 m-0'}`}>
                 <div className={`bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border overflow-hidden transition-all duration-500 ${!isTugasComplete ? 'border-slate-200/50 opacity-60 grayscale-[20%]' : (expanded.tiket ? 'border-slate-100 ring-[3px] ring-sky-500/20' : 'border-slate-100 hover:shadow-md')} ${shakeSection === 'tiket' ? 'animate-shake border-red-400' : ''}`}>
                     <div onClick={() => isTugasComplete && toggleSection('tiket')} className={`px-6 py-5 flex items-center justify-between transition-colors ${!isTugasComplete ? 'bg-slate-50/50 cursor-not-allowed' : 'bg-white hover:bg-slate-50 cursor-pointer'}`}>
                         <div className="flex items-center gap-4">
