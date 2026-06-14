@@ -64,10 +64,15 @@ export const generateForm1 = (doc, logoImgBase64, formData) => {
     };
 
     doc.text("6.", 18, currentY); doc.text("Cara Perjalanan:", 28, currentY); currentY += 7;
-    drawBigCheckbox(28, currentY, formData.caraPerjalanan === 'Kereta Rasmi Jawatan', "Kereta Rasmi Jawatan"); drawBigCheckbox(85, currentY, formData.caraPerjalanan === 'Kapal Terbang', "Kapal Terbang");
+    drawBigCheckbox(28, currentY, formData.caraPerjalanan === 'Kereta Rasmi Jawatan', "Kereta Rasmi Jawatan"); 
+    
+    // ✅ KEMAS KINI: Guna .includes() supaya Tiket Sendiri atau Waran Jabatan dua-dua kena tick
+    drawBigCheckbox(85, currentY, formData.caraPerjalanan.includes('Kapal Terbang'), "Kapal Terbang");
+    
     drawBigCheckbox(135, currentY, formData.caraPerjalanan === 'Lain-lain', "Lain-lain (Sila nyatakan)"); currentY += 7;
     drawBigCheckbox(28, currentY, formData.caraPerjalanan === 'Kereta Sendiri', "Kereta Sendiri");
     drawBigCheckbox(85, currentY, formData.caraPerjalanan === 'Kereta Jabatan', "Kereta Jabatan"); doc.setLineWidth(0.4); doc.line(135, currentY + 1.5, 185, currentY + 1.5); currentY += 10;
+    
     doc.text("7.", 18, currentY); doc.text("Jika ", 28, currentY); doc.setFont("helvetica", "bold"); doc.text("perjalanan melebihi 240 kilometer", 35, currentY);
     let txtW = doc.getTextWidth("perjalanan melebihi 240 kilometer"); doc.setFont("helvetica", "normal");
     doc.text(", Kelulusan menggunakan kenderaan sendiri bagi perjalanan melebihi 240", 35 + txtW, currentY);
@@ -455,13 +460,32 @@ export const generateFormAkujanji = (doc, logoImgBase64, formData, peperiksaanRo
     doc.line(30, currentY, 100, currentY);
     doc.setLineDashPattern([], 0);
 
+    // ✅ KEMAS KINI: Teks penuh dengan pecahan baris untuk institusi bertugas
     doc.text(val(formData.jawatan).toUpperCase(), 65, currentY - 1.5, { align: 'center' });
     doc.text("di", 103, currentY);
-    let tempatStr = "ADTEC JTM KAMPUS SANDAKAN";
+    
+    let tempatStr = "Kolej Teknologi Termaju (ADTEC), Jabatan Tenaga Manusia, Kampus Sandakan, Sabah.";
+    let splitTempat = doc.splitTextToSize(tempatStr, 80);
+
     doc.setLineDashPattern([1, 2], 0);
     doc.line(108, currentY, 188, currentY);
     doc.setLineDashPattern([], 0);
-    doc.text(tempatStr, 148, currentY - 1.5, { align: 'center' });
+    doc.text(splitTempat[0], 148, currentY - 1.5, { align: 'center' });
+
+    if (splitTempat.length > 1) {
+        currentY += 10;
+        let textRemaining = splitTempat.slice(1).join(" ");
+        let splitRemaining = doc.splitTextToSize(textRemaining, 173);
+        
+        for(let i = 0; i < splitRemaining.length; i++) {
+            doc.setLineDashPattern([1, 2], 0);
+            doc.line(15, currentY, 188, currentY);
+            doc.setLineDashPattern([], 0);
+            doc.text(splitRemaining[i], 101.5, currentY - 1.5, { align: 'center' });
+            
+            if(i < splitRemaining.length - 1) currentY += 10;
+        }
+    }
     doc.text(",", 190, currentY);
 
     currentY += 10;
