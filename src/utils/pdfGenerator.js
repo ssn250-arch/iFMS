@@ -10,6 +10,15 @@ const calculateDays = (start, end) => {
     return diffDays > 0 ? diffDays : 0;
 };
 
+// Fungsi dapatkan tarikh semasa format DD/MM/YYYY
+const getCurrentDateStr = () => {
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0'); // January is 0!
+    const yyyy = today.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+};
+
 // ================== PENJANAAN PDF ==================
 
 export const generateForm1 = (doc, logoImgBase64, formData) => {
@@ -66,7 +75,7 @@ export const generateForm1 = (doc, logoImgBase64, formData) => {
     doc.text("6.", 18, currentY); doc.text("Cara Perjalanan:", 28, currentY); currentY += 7;
     drawBigCheckbox(28, currentY, formData.caraPerjalanan === 'Kereta Rasmi Jawatan', "Kereta Rasmi Jawatan"); 
     
-    // ✅ KEMAS KINI: Guna .includes() supaya Tiket Sendiri atau Waran Jabatan dua-dua kena tick
+    // Tiket Sendiri atau Waran Jabatan dua-dua akan tick Kapal Terbang
     drawBigCheckbox(85, currentY, formData.caraPerjalanan.includes('Kapal Terbang'), "Kapal Terbang");
     
     drawBigCheckbox(135, currentY, formData.caraPerjalanan === 'Lain-lain', "Lain-lain (Sila nyatakan)"); currentY += 7;
@@ -87,7 +96,20 @@ export const generateForm1 = (doc, logoImgBase64, formData) => {
     currentY += 7;
     drawBigCheckbox(28, currentY, formData.tuntutanBatu, "Elaun hitungan batu/ tuntutan bekalan bahan api"); currentY += 8;
     drawBigCheckbox(28, currentY, formData.tuntutanGantian, "Gantian Tambang Kapal Terbang/Keretapi", "(Mengikut kelayakan bagi perjalanan melebihi 240 kilometer)"); currentY += 12;
-    doc.text("Tarikh : ................................................................", 28, currentY); doc.text("(Tandatangan Pemohon)", 165, currentY + 4, { align: 'center' }); currentY += 9;
+    
+    // TANDATANGAN & TARIKH PEMOHON
+    doc.text(`Tarikh : ${getCurrentDateStr()}`, 28, currentY); 
+    
+    if (formData.tandatangan) {
+        try {
+            doc.addImage(formData.tandatangan, 'PNG', 145, currentY - 14, 40, 18);
+        } catch(e) {
+            console.warn("Gagal render tandatangan pada Lampiran A");
+        }
+    }
+    doc.text("(Tandatangan Pemohon)", 165, currentY + 4, { align: 'center' }); 
+    currentY += 9;
+    
     doc.setFont("helvetica", "bold");
     doc.text("SOKONGAN", 28, currentY); doc.setFont("helvetica", "normal"); currentY += 5; doc.text("Permohonan ini disokong / tidak disokong.", 28, currentY); currentY += 9;
     doc.text("Tarikh : ................................................................", 28, currentY); doc.text("(Tandatangan & Cop Penyokong)", 165, currentY + 4, { align: 'center' }); currentY += 9;
@@ -117,6 +139,7 @@ export const generateForm2 = (doc, logoImgBase64, formData, customData = null) =
     doc.text(text1 + text2, 105, currentY, { align: 'center' }); doc.line(startX + doc.getTextWidth(text1), currentY + 1, startX + totalWidth, currentY + 1);
     currentY += 8;
     doc.setFontSize(12); doc.setFont("helvetica", "bold"); doc.text("BORANG PELEPASAN TUGAS SEMENTARA", 105, currentY, { align: 'center' });
+    
     const tGantiDariFormat = data.tarikhGantiDari ? data.tarikhGantiDari.split('-').reverse().join('/') : '';
     const tGantiHinggaFormat = data.tarikhGantiHingga ? data.tarikhGantiHingga.split('-').reverse().join('/') : '';
     
@@ -128,6 +151,7 @@ export const generateForm2 = (doc, logoImgBase64, formData, customData = null) =
     }
 
     const upperVal = (text) => val(text).toUpperCase();
+    
     autoTable(doc,{
         startY: currentY + 5, margin: { left: 10, right: 10 }, theme: 'grid',
         styles: { font: 'helvetica', fontSize: 8.5, textColor: [0, 0, 0], lineColor: [0, 0, 0], lineWidth: 0.2, valign: 'middle', cellPadding: 2.5 },
@@ -141,7 +165,10 @@ export const generateForm2 = (doc, logoImgBase64, formData, customData = null) =
             [{ content: 'BAHAGIAN B: MAKLUMAT KELAS / TUGAS YANG DI TINGGAL', colSpan: 5, styles: { fillColor: [215, 205, 170], halign: 'center', fontStyle: 'bold' } }],
             [ { content: 'SUBJEK / TUGAS:' }, { content: upperVal(data.cutiPenggantiTugas || data.subjek) }, { content: 'CATATAN:\n\n' + upperVal(data.catatanTugas || ''), colSpan: 3, rowSpan: 2, styles: { valign: 'top' } } ],
             [ { content: 'SEMESTER /\nKUMPULAN / UNIT /\nBAHAGIAN:' }, { content: upperVal(data.semester || '') } ],
-            [ { content: 'TARIKH, HARI &\nMASA YANG\nPERLU DIGANTI:' }, { content: upperVal(teksMasaGanti) }, { content: 'TANDATANGAN &\nTARIKH:', styles: { valign: 'top' } }, { content: '', colSpan: 2 } ],
+            
+            // Ruangan kosong \n untuk berikan ketinggian table yang sesuai untuk gambar tandatangan
+            [ { content: 'TARIKH, HARI &\nMASA YANG\nPERLU DIGANTI:' }, { content: upperVal(teksMasaGanti) }, { content: 'TANDATANGAN &\nTARIKH:', styles: { valign: 'top' } }, { content: '\n\n\n\n', colSpan: 2 } ],
+            
             [{ content: 'BAHAGIAN C: MAKLUMAT PEGAWAI PENGGANTI', colSpan: 5, styles: { fillColor: [215, 205, 170], halign: 'center', fontStyle: 'bold' } }],
             [ { content: 'NAMA PEGAWAI:' }, { content: upperVal(data.cutiPenggantiNama || data.namaPengganti) }, { content: 'Tugas', colSpan: 2, styles: { fillColor: [215, 205, 170], halign: 'center', fontStyle: 'bold' } }, { content: 'Sila Tanda\n(/)', styles: { fillColor: [215, 205, 170], halign: 'center', fontStyle: 'bold' } } ],
             [ { content: 'BAHAGIAN:' }, { content: upperVal(data.cutiPenggantiBahagian || data.bahagianPengganti) }, { content: 'Ambil alih subjek / tugas sepenuhnya:', colSpan: 2, rowSpan: 2 }, { content: '/', rowSpan: 2, styles: { halign: 'center', valign: 'middle', fontStyle: 'bold' } } ],
@@ -149,7 +176,20 @@ export const generateForm2 = (doc, logoImgBase64, formData, customData = null) =
             [ { content: 'TANDATANGAN &\nTARIKH' }, { content: '' }, { content: 'Ambil alih kawalan kelas / tugas', colSpan: 2 }, { content: '', styles: { halign: 'center', fontStyle: 'bold' } } ],
             [{ content: 'BAHAGIAN D : UNTUK KELULUSAN KETUA BAHAGIAN / KETUA JABATAN', colSpan: 5, styles: { fillColor: [215, 205, 170], halign: 'center', fontStyle: 'bold' } }],
             [ { content: 'NAMA,\nTANDATANGAN &\nTARIKH' }, { content: '' }, { content: 'CATATAN:\n\n\n\n\n', colSpan: 3, styles: { valign: 'top' } } ]
-        ]
+        ],
+        // Hook autotable untuk lukis imej di dalam sel (Cell)
+        didDrawCell: (hookData) => {
+            // Cell untuk Tandatangan Bahagian B
+            if (hookData.section === 'body' && hookData.row.index === 8 && hookData.column.index === 3) {
+                if (data.tandatangan) {
+                    try {
+                        doc.addImage(data.tandatangan, 'PNG', hookData.cell.x + 5, hookData.cell.y + 2, 35, 16);
+                    } catch(e) {}
+                }
+                doc.setFontSize(8);
+                doc.text(getCurrentDateStr(), hookData.cell.x + 15, hookData.cell.y + 22);
+            }
+        }
     });
 };
 
@@ -267,7 +307,7 @@ export const generateForm3 = (doc, formData) => {
     doc.text("         ** Potong mana yang tidak berkenaan", 15, currentY + 6);
 };
 
-export const generateFormCuti = (doc, formData, pegawaiDatabase, today) => {
+export const generateFormCuti = (doc, formData, pegawaiDatabase) => {
     doc.setFont("helvetica", "normal"); doc.setFontSize(9);
     doc.text("Surat Pekeliling Am bil.3 Tahun 1990", 195, 12, { align: 'right' });
 
@@ -323,7 +363,7 @@ export const generateFormCuti = (doc, formData, pegawaiDatabase, today) => {
     doc.line(125, currentY, 185, currentY);
     currentY += 7;
     doc.text("Tarikh", 85, currentY); doc.text(":", 120, currentY);
-    doc.text(val(today.split('-').reverse().join('/')), 125, currentY-1); 
+    doc.text(getCurrentDateStr(), 125, currentY-1); 
     doc.line(125, currentY, 185, currentY);
 
     currentY += 8;
@@ -411,7 +451,7 @@ export const generateFormCuti = (doc, formData, pegawaiDatabase, today) => {
     doc.text("Nota: Pemakluman mengenai kelulusan cuti tuan / puan adalah seperti yang disenaraikan di papan putih di Bahagian Pentadbiran.", 15, currentY);
 };
 
-export const generateFormAkujanji = (doc, logoImgBase64, formData, peperiksaanRoles, today) => {
+export const generateFormAkujanji = (doc, logoImgBase64, formData, peperiksaanRoles) => {
     doc.setFont("helvetica", "bold"); doc.setFontSize(10);
     doc.text("LAMPIRAN 11", 190, 15, { align: 'right' });
 
@@ -460,7 +500,6 @@ export const generateFormAkujanji = (doc, logoImgBase64, formData, peperiksaanRo
     doc.line(30, currentY, 100, currentY);
     doc.setLineDashPattern([], 0);
 
-    // ✅ KEMAS KINI: Teks penuh dengan pecahan baris untuk institusi bertugas
     doc.text(val(formData.jawatan).toUpperCase(), 65, currentY - 1.5, { align: 'center' });
     doc.text("di", 103, currentY);
     
@@ -534,9 +573,10 @@ export const generateFormAkujanji = (doc, logoImgBase64, formData, peperiksaanRo
     doc.text("Nama : " + val(formData.nama), 15, currentY);
     doc.text("Nama :", 120, currentY);
 
+    // KEMAS KINI: Tarikh ditambah di kedua-dua belah
     currentY += 8;
-    doc.text("Tarikh : " + val(today.split('-').reverse().join('/')), 15, currentY);
-    doc.text("Tarikh :", 120, currentY);
+    doc.text("Tarikh : " + getCurrentDateStr(), 15, currentY);
+    doc.text("Tarikh : " + getCurrentDateStr(), 120, currentY);
 };
 
 export const generateFormLaporan = (doc, logoImgBase64, formData) => {

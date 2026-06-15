@@ -152,7 +152,7 @@ function App() {
     const isFlightSingleComplete = () => formData.flightPergiDari.length === 3 && formData.flightPergiKe.length === 3 && formData.flightPergiMasa && formData.flightBalikDari.length === 3 && formData.flightBalikKe.length === 3 && formData.flightBalikMasa;
     const isFlightMultiComplete = () => formData.flightPergiDari.length === 3 && formData.flightPergiKe.length === 3 && formData.flightPergiMasa && formData.flightPergiLeg2Dari.length === 3 && formData.flightPergiLeg2Ke.length === 3 && formData.flightPergiLeg2Masa && formData.flightBalikDari.length === 3 && formData.flightBalikKe.length === 3 && formData.flightBalikMasa && formData.flightBalikLeg2Dari.length === 3 && formData.flightBalikLeg2Ke.length === 3 && formData.flightBalikLeg2Masa;
     
-    // ✅ KEMAS KINI: Borang tiket (Lampiran 3) HANYA perlu untuk "Kapal Terbang (Waran Jabatan)"
+    // Tiket hanya diwajibkan bila guna Waran Jabatan
     const isTiketComplete = formData.caraPerjalanan === 'Kapal Terbang (Waran Jabatan)' ? (formData.flightType === 'single' ? isFlightSingleComplete() : isFlightMultiComplete()) : true;
     
     const isCutiComplete = formData.jenisCuti !== '' && formData.cutiDari !== '' && formData.cutiHingga !== '' && formData.ketuaSokongan !== '' && formData.pegawaiPelulus !== '';
@@ -162,10 +162,11 @@ function App() {
     const isLaporanInfoComplete = formData.sesiPeperiksaan.trim() !== '' && formData.tarikhPeperiksaan !== '';
     const isLaporanSoalanComplete = formData.q1Status !== '' && formData.q2Status !== '' && formData.q3Status !== '';
     
+    // Pastikan semua form ada validation untuk isTandatanganComplete jika diperlukan
     const isAllComplete = activeForm === 'cuti' ? (isPegawaiComplete && isCutiComplete && isCutiGantiComplete())
         : activeForm === 'akujanji' ? (isPegawaiComplete && isPerananComplete && isTandatanganComplete)
         : activeForm === 'laporan' ? (isPegawaiComplete && isLaporanInfoComplete && isLaporanSoalanComplete && isTandatanganComplete)
-        : (isPegawaiComplete && isTugasComplete && isPenggantiComplete && isTiketComplete);
+        : (isPegawaiComplete && isTugasComplete && isPenggantiComplete && isTiketComplete && isTandatanganComplete);
 
     let progressWidth = 0;
     if (activeForm === 'cuti') {
@@ -182,9 +183,10 @@ function App() {
         if (isPegawaiComplete && isLaporanInfoComplete && isLaporanSoalanComplete) progressWidth = 75;
         if (isPegawaiComplete && isLaporanInfoComplete && isLaporanSoalanComplete && isTandatanganComplete) progressWidth = 100;
     } else if (activeForm === 'tugas') {
-        if (isPegawaiComplete) progressWidth = 33.33;
-        if (isPegawaiComplete && isTugasComplete) progressWidth = 66.66;
-        if (isPegawaiComplete && isTugasComplete && isPenggantiComplete) progressWidth = isTiketComplete ? 100 : 85; 
+        if (isPegawaiComplete) progressWidth = 25;
+        if (isPegawaiComplete && isTugasComplete) progressWidth = 50;
+        if (isPegawaiComplete && isTugasComplete && isPenggantiComplete) progressWidth = isTiketComplete ? 75 : 60; 
+        if (isAllComplete) progressWidth = 100;
     }
 
     const s1Done = isPegawaiComplete;
@@ -208,6 +210,11 @@ function App() {
             showNotification("Sila lengkapkan Maklumat Tugasan terlebih dahulu.", "error");
             document.getElementById('section-tugas')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             setShakeSection('tugas'); setTimeout(() => setShakeSection(null), 500); return;
+        }
+        if (activeForm === 'tugas' && section === 'tandatangan' && (!isTugasComplete || !isPenggantiComplete || !isTiketComplete)) {
+            showNotification("Sila lengkapkan maklumat Tugasan & Pengganti terlebih dahulu.", "error");
+            document.getElementById('section-pengganti')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setShakeSection('pengganti'); setTimeout(() => setShakeSection(null), 500); return;
         }
         if (activeForm === 'akujanji' && section === 'tandatangan' && !isPerananComplete) {
             showNotification("Sila pilih sekurang-kurangnya satu Peranan Peperiksaan.", "error");
@@ -237,8 +244,11 @@ function App() {
     };
 
     const nextSection = (current, nextSectionName) => {
-        // ✅ KEMAS KINI: Lompat ke butang "Jana" jika bukan Waran Jabatan
-        if (activeForm === 'tugas' && nextSectionName === 'tiket' && formData.caraPerjalanan !== 'Kapal Terbang (Waran Jabatan)') nextSectionName = 'jana';
+        // Lompat ke Tandatangan jika tiket tak perlu diisi
+        if (activeForm === 'tugas' && nextSectionName === 'tiket' && formData.caraPerjalanan !== 'Kapal Terbang (Waran Jabatan)') {
+            nextSectionName = 'tandatangan';
+        }
+
         setExpanded({
             pegawai: nextSectionName === 'pegawai', tugas: nextSectionName === 'tugas', pengganti: nextSectionName === 'pengganti',
             tiket: nextSectionName === 'tiket', cuti: nextSectionName === 'cuti', peranan: nextSectionName === 'peranan',
@@ -401,11 +411,16 @@ function App() {
                     doc.save(formData.nama ? `Laporan_Peperiksaan_${formData.nama.replace(/\s+/g, '_')}.pdf` : 'Laporan_Peperiksaan.pdf');
                     showNotification("Laporan Pelaksanaan Peperiksaan berjaya dijana!");
                 } else {
+                    // Penjanaan Borang Tugas
                     generateForm1(doc, preloadedLogo, formData);
-                    if ((formData.subjek.trim() !== '' || formData.namaPengganti.trim() !== '') && formData.namaPengganti !== 'TIADA PENGGANTI') { doc.addPage(); generateForm2(doc, preloadedLogo, formData); }
-                    
-                    // ✅ KEMAS KINI: Tiket PDF (Lampiran 3) hanya dicetak jika menggunakan Waran Jabatan
-                    if (formData.caraPerjalanan === 'Kapal Terbang (Waran Jabatan)') { doc.addPage(); generateForm3(doc, formData); }
+                    if ((formData.subjek.trim() !== '' || formData.namaPengganti.trim() !== '') && formData.namaPengganti !== 'TIADA PENGGANTI') { 
+                        doc.addPage(); 
+                        generateForm2(doc, preloadedLogo, formData); 
+                    }
+                    if (formData.caraPerjalanan === 'Kapal Terbang (Waran Jabatan)') { 
+                        doc.addPage(); 
+                        generateForm3(doc, formData); 
+                    }
                     
                     doc.save(formData.nama ? `Borang_TugasRasmi_${formData.nama.replace(/\s+/g, '_')}.pdf` : 'Borang_TugasRasmi.pdf');
                     showNotification("Semua dokumen rasmi berjaya disatukan ke dalam 1 fail PDF!");
@@ -501,7 +516,6 @@ function App() {
             )}
 
             <div className="max-w-[800px] mx-auto px-4 space-y-5 relative z-10">
-                {/* 1. MAKLUMAT PEGAWAI (DIKONGSI OLEH SEMUA BORANG) */}
                 <div id="section-pegawai" className={`bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden transition-all duration-500 ${expanded.pegawai ? 'ring-[3px] ring-blue-500/20' : 'hover:shadow-md'} ${shakeSection === 'pegawai' ? 'animate-shake border-red-400' : ''}`}>
                     <div onClick={() => toggleSection('pegawai')} className="cursor-pointer px-6 py-5 flex items-center justify-between bg-white hover:bg-slate-50 transition-colors">
                         <div className="flex items-center gap-4">
@@ -572,7 +586,7 @@ function App() {
                 {activeForm === 'cuti' && <FormCuti formData={formData} handleChange={handleChange} expanded={expanded} toggleSection={toggleSection} nextSection={nextSection} formInputClass={formInputClass} formLabelClass={formLabelClass} pegawaiDatabase={pegawaiDatabase} isPegawaiComplete={isPegawaiComplete} isCutiComplete={isCutiComplete} calculateDays={calculateDays} handleCutiPenggantiChange={handleCutiPenggantiChange} shakeSection={shakeSection} isCutiGantiComplete={isCutiGantiComplete} />}
                 {activeForm === 'akujanji' && <FormAkujanji formData={formData} expanded={expanded} toggleSection={toggleSection} nextSection={nextSection} formLabelClass={formLabelClass} peperiksaanRoles={peperiksaanRoles} handleCheckboxPeranan={handleCheckboxPeranan} isPegawaiComplete={isPegawaiComplete} isPerananComplete={isPerananComplete} isTandatanganComplete={isTandatanganComplete} canvasRef={canvasRef} startDrawing={startDrawing} draw={draw} stopDrawing={stopDrawing} clearSignature={clearSignature} handleSignatureUpload={handleSignatureUpload} shakeSection={shakeSection} />}
                 {activeForm === 'laporan' && <FormLaporan formData={formData} handleChange={handleChange} expanded={expanded} toggleSection={toggleSection} nextSection={nextSection} formInputClass={formInputClass} formLabelClass={formLabelClass} isPegawaiComplete={isPegawaiComplete} isLaporanInfoComplete={isLaporanInfoComplete} isLaporanSoalanComplete={isLaporanSoalanComplete} isTandatanganComplete={isTandatanganComplete} canvasRef={canvasRef} startDrawing={startDrawing} draw={draw} stopDrawing={stopDrawing} clearSignature={clearSignature} handleSignatureUpload={handleSignatureUpload} shakeSection={shakeSection} />}
-                {activeForm === 'tugas' && <FormTugas formData={formData} handleChange={handleChange} setFormData={setFormData} expanded={expanded} toggleSection={toggleSection} nextSection={nextSection} formInputClass={formInputClass} formLabelClass={formLabelClass} pegawaiDatabase={pegawaiDatabase} malaysiaAirports={malaysiaAirports} getAirportName={getAirportName} setRoute={setRoute} isPegawaiComplete={isPegawaiComplete} isTugasComplete={isTugasComplete} isPenggantiComplete={isPenggantiComplete} isTiketComplete={isTiketComplete} jumlahHari={jumlahHari} isGantiDateLocked={isGantiDateLocked} setIsGantiDateLocked={setIsGantiDateLocked} handlePenggantiChange={handlePenggantiChange} shakeSection={shakeSection} />}
+                {activeForm === 'tugas' && <FormTugas formData={formData} handleChange={handleChange} setFormData={setFormData} expanded={expanded} toggleSection={toggleSection} nextSection={nextSection} formInputClass={formInputClass} formLabelClass={formLabelClass} pegawaiDatabase={pegawaiDatabase} malaysiaAirports={malaysiaAirports} getAirportName={getAirportName} setRoute={setRoute} isPegawaiComplete={isPegawaiComplete} isTugasComplete={isTugasComplete} isPenggantiComplete={isPenggantiComplete} isTiketComplete={isTiketComplete} isTandatanganComplete={isTandatanganComplete} jumlahHari={jumlahHari} isGantiDateLocked={isGantiDateLocked} setIsGantiDateLocked={setIsGantiDateLocked} handlePenggantiChange={handlePenggantiChange} shakeSection={shakeSection} canvasRef={canvasRef} startDrawing={startDrawing} draw={draw} stopDrawing={stopDrawing} clearSignature={clearSignature} handleSignatureUpload={handleSignatureUpload} />}
 
                 {/* BUTANG JANA PDF */}
                 <div id="jana-button-container" className="mt-12 mb-16 animate-slide-up" style={{animationDelay: '0.5s'}}>
