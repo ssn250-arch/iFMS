@@ -97,9 +97,10 @@ export const generateForm1 = (doc, logoImgBase64, formData) => {
     drawBigCheckbox(28, currentY, formData.tuntutanBatu, "Elaun hitungan batu/ tuntutan bekalan bahan api"); currentY += 8;
     drawBigCheckbox(28, currentY, formData.tuntutanGantian, "Gantian Tambang Kapal Terbang/Keretapi", "(Mengikut kelayakan bagi perjalanan melebihi 240 kilometer)"); currentY += 12;
     
-    // TANDATANGAN & TARIKH PEMOHON
-    doc.text(`Tarikh : ${getCurrentDateStr()}`, 28, currentY); 
+    // ✅ KEMAS KINI: Tarikh dikembalikan ke bentuk garisan putus-putus
+    doc.text("Tarikh : ................................................................", 28, currentY); 
     
+    // TANDATANGAN DIGITAL TETAP DIKEKALKAN
     if (formData.tandatangan) {
         try {
             doc.addImage(formData.tandatangan, 'PNG', 145, currentY - 14, 40, 18);
@@ -165,10 +166,7 @@ export const generateForm2 = (doc, logoImgBase64, formData, customData = null) =
             [{ content: 'BAHAGIAN B: MAKLUMAT KELAS / TUGAS YANG DI TINGGAL', colSpan: 5, styles: { fillColor: [215, 205, 170], halign: 'center', fontStyle: 'bold' } }],
             [ { content: 'SUBJEK / TUGAS:' }, { content: upperVal(data.cutiPenggantiTugas || data.subjek) }, { content: 'CATATAN:\n\n' + upperVal(data.catatanTugas || ''), colSpan: 3, rowSpan: 2, styles: { valign: 'top' } } ],
             [ { content: 'SEMESTER /\nKUMPULAN / UNIT /\nBAHAGIAN:' }, { content: upperVal(data.semester || '') } ],
-            
-            // Ruangan kosong \n untuk berikan ketinggian table yang sesuai untuk gambar tandatangan
             [ { content: 'TARIKH, HARI &\nMASA YANG\nPERLU DIGANTI:' }, { content: upperVal(teksMasaGanti) }, { content: 'TANDATANGAN &\nTARIKH:', styles: { valign: 'top' } }, { content: '\n\n\n\n', colSpan: 2 } ],
-            
             [{ content: 'BAHAGIAN C: MAKLUMAT PEGAWAI PENGGANTI', colSpan: 5, styles: { fillColor: [215, 205, 170], halign: 'center', fontStyle: 'bold' } }],
             [ { content: 'NAMA PEGAWAI:' }, { content: upperVal(data.cutiPenggantiNama || data.namaPengganti) }, { content: 'Tugas', colSpan: 2, styles: { fillColor: [215, 205, 170], halign: 'center', fontStyle: 'bold' } }, { content: 'Sila Tanda\n(/)', styles: { fillColor: [215, 205, 170], halign: 'center', fontStyle: 'bold' } } ],
             [ { content: 'BAHAGIAN:' }, { content: upperVal(data.cutiPenggantiBahagian || data.bahagianPengganti) }, { content: 'Ambil alih subjek / tugas sepenuhnya:', colSpan: 2, rowSpan: 2 }, { content: '/', rowSpan: 2, styles: { halign: 'center', valign: 'middle', fontStyle: 'bold' } } ],
@@ -181,13 +179,13 @@ export const generateForm2 = (doc, logoImgBase64, formData, customData = null) =
         didDrawCell: (hookData) => {
             // Cell untuk Tandatangan Bahagian B
             if (hookData.section === 'body' && hookData.row.index === 8 && hookData.column.index === 3) {
+                // TANDATANGAN DIGITAL TETAP DIKEKALKAN
                 if (data.tandatangan) {
                     try {
                         doc.addImage(data.tandatangan, 'PNG', hookData.cell.x + 5, hookData.cell.y + 2, 35, 16);
                     } catch(e) {}
                 }
-                doc.setFontSize(8);
-                doc.text(getCurrentDateStr(), hookData.cell.x + 15, hookData.cell.y + 22);
+                // ✅ KEMAS KINI: Tarikh automatik dibuang daripada Bahagian B
             }
         }
     });
@@ -307,7 +305,7 @@ export const generateForm3 = (doc, formData) => {
     doc.text("         ** Potong mana yang tidak berkenaan", 15, currentY + 6);
 };
 
-export const generateFormCuti = (doc, formData, pegawaiDatabase) => {
+export const generateFormCuti = (doc, formData, pegawaiDatabase, today) => {
     doc.setFont("helvetica", "normal"); doc.setFontSize(9);
     doc.text("Surat Pekeliling Am bil.3 Tahun 1990", 195, 12, { align: 'right' });
 
@@ -573,7 +571,6 @@ export const generateFormAkujanji = (doc, logoImgBase64, formData, peperiksaanRo
     doc.text("Nama : " + val(formData.nama), 15, currentY);
     doc.text("Nama :", 120, currentY);
 
-    // KEMAS KINI: Tarikh ditambah di kedua-dua belah
     currentY += 8;
     doc.text("Tarikh : " + getCurrentDateStr(), 15, currentY);
     doc.text("Tarikh : " + getCurrentDateStr(), 120, currentY);
