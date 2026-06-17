@@ -10,14 +10,7 @@ const calculateDays = (start, end) => {
     return diffDays > 0 ? diffDays : 0;
 };
 
-// Fungsi dapatkan tarikh semasa format DD/MM/YYYY
-const getCurrentDateStr = () => {
-    const today = new Date();
-    const dd = String(today.getDate()).padStart(2, '0');
-    const mm = String(today.getMonth() + 1).padStart(2, '0'); // January is 0!
-    const yyyy = today.getFullYear();
-    return `${dd}/${mm}/${yyyy}`;
-};
+const getCurrentDateStr = () => new Date().toLocaleDateString('en-GB');
 
 // ================== PENJANAAN PDF ==================
 
@@ -73,14 +66,13 @@ export const generateForm1 = (doc, logoImgBase64, formData) => {
     };
 
     doc.text("6.", 18, currentY); doc.text("Cara Perjalanan:", 28, currentY); currentY += 7;
-    drawBigCheckbox(28, currentY, formData.caraPerjalanan === 'Kereta Rasmi Jawatan', "Kereta Rasmi Jawatan"); 
     
-    // Tiket Sendiri atau Waran Jabatan dua-dua akan tick Kapal Terbang
-    drawBigCheckbox(85, currentY, formData.caraPerjalanan.includes('Kapal Terbang'), "Kapal Terbang");
-    
-    drawBigCheckbox(135, currentY, formData.caraPerjalanan === 'Lain-lain', "Lain-lain (Sila nyatakan)"); currentY += 7;
-    drawBigCheckbox(28, currentY, formData.caraPerjalanan === 'Kereta Sendiri', "Kereta Sendiri");
-    drawBigCheckbox(85, currentY, formData.caraPerjalanan === 'Kereta Jabatan', "Kereta Jabatan"); doc.setLineWidth(0.4); doc.line(135, currentY + 1.5, 185, currentY + 1.5); currentY += 10;
+    // ✅ KEMAS KINI: Validation untuk format Array
+    drawBigCheckbox(28, currentY, formData.caraPerjalanan.includes('Kereta Rasmi Jawatan'), "Kereta Rasmi Jawatan"); 
+    drawBigCheckbox(85, currentY, formData.caraPerjalanan.some(c => c.includes('Kapal Terbang')), "Kapal Terbang");
+    drawBigCheckbox(135, currentY, formData.caraPerjalanan.includes('Lain-lain'), "Lain-lain (Sila nyatakan)"); currentY += 7;
+    drawBigCheckbox(28, currentY, formData.caraPerjalanan.includes('Kereta Sendiri'), "Kereta Sendiri");
+    drawBigCheckbox(85, currentY, formData.caraPerjalanan.includes('Kereta Jabatan'), "Kereta Jabatan"); doc.setLineWidth(0.4); doc.line(135, currentY + 1.5, 185, currentY + 1.5); currentY += 10;
     
     doc.text("7.", 18, currentY); doc.text("Jika ", 28, currentY); doc.setFont("helvetica", "bold"); doc.text("perjalanan melebihi 240 kilometer", 35, currentY);
     let txtW = doc.getTextWidth("perjalanan melebihi 240 kilometer"); doc.setFont("helvetica", "normal");
@@ -97,10 +89,8 @@ export const generateForm1 = (doc, logoImgBase64, formData) => {
     drawBigCheckbox(28, currentY, formData.tuntutanBatu, "Elaun hitungan batu/ tuntutan bekalan bahan api"); currentY += 8;
     drawBigCheckbox(28, currentY, formData.tuntutanGantian, "Gantian Tambang Kapal Terbang/Keretapi", "(Mengikut kelayakan bagi perjalanan melebihi 240 kilometer)"); currentY += 12;
     
-    // ✅ KEMAS KINI: Tarikh dikembalikan ke bentuk garisan putus-putus
     doc.text("Tarikh : ................................................................", 28, currentY); 
     
-    // TANDATANGAN DIGITAL TETAP DIKEKALKAN
     if (formData.tandatangan) {
         try {
             doc.addImage(formData.tandatangan, 'PNG', 145, currentY - 14, 40, 18);
@@ -175,17 +165,14 @@ export const generateForm2 = (doc, logoImgBase64, formData, customData = null) =
             [{ content: 'BAHAGIAN D : UNTUK KELULUSAN KETUA BAHAGIAN / KETUA JABATAN', colSpan: 5, styles: { fillColor: [215, 205, 170], halign: 'center', fontStyle: 'bold' } }],
             [ { content: 'NAMA,\nTANDATANGAN &\nTARIKH' }, { content: '' }, { content: 'CATATAN:\n\n\n\n\n', colSpan: 3, styles: { valign: 'top' } } ]
         ],
-        // Hook autotable untuk lukis imej di dalam sel (Cell)
         didDrawCell: (hookData) => {
             // Cell untuk Tandatangan Bahagian B
             if (hookData.section === 'body' && hookData.row.index === 8 && hookData.column.index === 3) {
-                // TANDATANGAN DIGITAL TETAP DIKEKALKAN
                 if (data.tandatangan) {
                     try {
                         doc.addImage(data.tandatangan, 'PNG', hookData.cell.x + 5, hookData.cell.y + 2, 35, 16);
                     } catch(e) {}
                 }
-                // ✅ KEMAS KINI: Tarikh automatik dibuang daripada Bahagian B
             }
         }
     });

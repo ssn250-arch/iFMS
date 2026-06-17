@@ -31,7 +31,9 @@ function App() {
     
     const [formData, setFormData] = useState({
         nama: '', jawatan: '', bahagian: '', noKp: '', noTel: '', noKenderaan: '',
-        tujuan: '', tempat: '', tarikhPergi: today, tarikhBalik: today, km: '', caraPerjalanan: 'Kereta Sendiri', 
+        tujuan: '', tempat: '', tarikhPergi: today, tarikhBalik: today, km: '', 
+        // ✅ KEMAS KINI: Ditukar kepada Array untuk sokong multiple pilihan
+        caraPerjalanan: ['Kereta Sendiri'], 
         sebab1: false, sebab2: false, sebab3: false, tuntutanBatu: false, tuntutanGantian: false,
         subjek: '', semester: '', tarikhGantiDari: today, tarikhGantiHingga: today, catatanTugas: '', namaPengganti: '', bahagianPengganti: '', noTelPengganti: '', jenisAmbilAlih: 'Ambil alih subjek / tugas sepenuhnya',
         flightType: 'single',
@@ -147,13 +149,16 @@ function App() {
 
     // ================== LOGIK PENGESAHAN (VALIDATION) ==================
     const isPegawaiComplete = formData.nama.trim() !== '' && formData.jawatan.trim() !== '' && formData.bahagian.trim() !== '' && formData.noKp.trim() !== '' && (activeForm === 'akujanji' || activeForm === 'laporan' || formData.noTel.trim() !== '');
-    const isTugasComplete = formData.tujuan.trim() !== '' && formData.tempat.trim() !== '' && formData.tarikhPergi !== '' && formData.tarikhBalik !== '';
+    
+    // Pastikan sekurang-kurangnya satu cara perjalanan dipilih
+    const isTugasComplete = formData.tujuan.trim() !== '' && formData.tempat.trim() !== '' && formData.tarikhPergi !== '' && formData.tarikhBalik !== '' && formData.caraPerjalanan.length > 0;
+    
     const isPenggantiComplete = formData.namaPengganti.trim() !== '' && formData.subjek.trim() !== '';
     const isFlightSingleComplete = () => formData.flightPergiDari.length === 3 && formData.flightPergiKe.length === 3 && formData.flightPergiMasa && formData.flightBalikDari.length === 3 && formData.flightBalikKe.length === 3 && formData.flightBalikMasa;
     const isFlightMultiComplete = () => formData.flightPergiDari.length === 3 && formData.flightPergiKe.length === 3 && formData.flightPergiMasa && formData.flightPergiLeg2Dari.length === 3 && formData.flightPergiLeg2Ke.length === 3 && formData.flightPergiLeg2Masa && formData.flightBalikDari.length === 3 && formData.flightBalikKe.length === 3 && formData.flightBalikMasa && formData.flightBalikLeg2Dari.length === 3 && formData.flightBalikLeg2Ke.length === 3 && formData.flightBalikLeg2Masa;
     
-    // Tiket hanya diwajibkan bila guna Waran Jabatan
-    const isTiketComplete = formData.caraPerjalanan === 'Kapal Terbang (Waran Jabatan)' ? (formData.flightType === 'single' ? isFlightSingleComplete() : isFlightMultiComplete()) : true;
+    // Gunakan includes kerana ia sekarang Array
+    const isTiketComplete = formData.caraPerjalanan.includes('Kapal Terbang (Waran Jabatan)') ? (formData.flightType === 'single' ? isFlightSingleComplete() : isFlightMultiComplete()) : true;
     
     const isCutiComplete = formData.jenisCuti !== '' && formData.cutiDari !== '' && formData.cutiHingga !== '' && formData.ketuaSokongan !== '' && formData.pegawaiPelulus !== '';
     const isCutiGantiComplete = () => (formData.jenisCuti !== 'Cuti Ganti' && formData.jenisCuti !== 'Cuti Tanpa Rekod') ? true : formData.cutiPenggantiNama.trim() !== '' && formData.cutiPenggantiTugas.trim() !== '';
@@ -162,7 +167,6 @@ function App() {
     const isLaporanInfoComplete = formData.sesiPeperiksaan.trim() !== '' && formData.tarikhPeperiksaan !== '';
     const isLaporanSoalanComplete = formData.q1Status !== '' && formData.q2Status !== '' && formData.q3Status !== '';
     
-    // Pastikan semua form ada validation untuk isTandatanganComplete jika diperlukan
     const isAllComplete = activeForm === 'cuti' ? (isPegawaiComplete && isCutiComplete && isCutiGantiComplete())
         : activeForm === 'akujanji' ? (isPegawaiComplete && isPerananComplete && isTandatanganComplete)
         : activeForm === 'laporan' ? (isPegawaiComplete && isLaporanInfoComplete && isLaporanSoalanComplete && isTandatanganComplete)
@@ -244,8 +248,7 @@ function App() {
     };
 
     const nextSection = (current, nextSectionName) => {
-        // Lompat ke Tandatangan jika tiket tak perlu diisi
-        if (activeForm === 'tugas' && nextSectionName === 'tiket' && formData.caraPerjalanan !== 'Kapal Terbang (Waran Jabatan)') {
+        if (activeForm === 'tugas' && nextSectionName === 'tiket' && !formData.caraPerjalanan.includes('Kapal Terbang (Waran Jabatan)')) {
             nextSectionName = 'tandatangan';
         }
 
@@ -384,7 +387,7 @@ function App() {
         }; reader.readAsDataURL(file);
     };
 
-    // ================== JANA PDF (INTEGRASI DARI FUNGSI LUAR) ==================
+    // ================== JANA PDF ==================
     const handleGenerateAll = () => {
         if (isLogoLoading) { showNotification("Sistem sedang memuatkan logo Jata Negara...", "error"); return; }
         if (!isAllComplete) { showNotification("Sila lengkapkan semua ruangan sebelum menjana.", "error"); return; }
@@ -411,13 +414,12 @@ function App() {
                     doc.save(formData.nama ? `Laporan_Peperiksaan_${formData.nama.replace(/\s+/g, '_')}.pdf` : 'Laporan_Peperiksaan.pdf');
                     showNotification("Laporan Pelaksanaan Peperiksaan berjaya dijana!");
                 } else {
-                    // Penjanaan Borang Tugas
                     generateForm1(doc, preloadedLogo, formData);
                     if ((formData.subjek.trim() !== '' || formData.namaPengganti.trim() !== '') && formData.namaPengganti !== 'TIADA PENGGANTI') { 
                         doc.addPage(); 
                         generateForm2(doc, preloadedLogo, formData); 
                     }
-                    if (formData.caraPerjalanan === 'Kapal Terbang (Waran Jabatan)') { 
+                    if (formData.caraPerjalanan.includes('Kapal Terbang (Waran Jabatan)')) { 
                         doc.addPage(); 
                         generateForm3(doc, formData); 
                     }
@@ -429,7 +431,7 @@ function App() {
                 setIsGenerating(false);
                 setTimeout(() => {
                     setFormData(prev => ({
-                        ...prev, tujuan: '', tempat: '', tarikhPergi: today, tarikhBalik: today, km: '', caraPerjalanan: 'Kereta Sendiri', sebab1: false, sebab2: false, sebab3: false, tuntutanBatu: false, tuntutanGantian: false, noKenderaan: '', subjek: '', semester: '', tarikhGantiDari: today, tarikhGantiHingga: today, catatanTugas: '', namaPengganti: '', bahagianPengganti: '', noTelPengganti: '', jenisAmbilAlih: 'Ambil alih subjek / tugas sepenuhnya', flightType: 'single', flightPergiTarikh: today, flightPergiMasa: '', flightPergiDari: '', flightPergiKe: '', flightPergiLeg2Tarikh: today, flightPergiLeg2Masa: '', flightPergiLeg2Dari: '', flightPergiLeg2Ke: '', flightBalikTarikh: today, flightBalikMasa: '', flightBalikDari: '', flightBalikKe: '', flightBalikLeg2Tarikh: today, flightBalikLeg2Masa: '', flightBalikLeg2Dari: '', flightBalikLeg2Ke: '', kodSyarikat: '', enrichId: '', jenisCuti: 'Cuti Rehat', cutiDari: today, cutiHingga: today, catatanCuti: '', ketuaSokongan: '', pegawaiPelulus: '', cutiPenggantiNama: '', cutiPenggantiBahagian: '', cutiPenggantiNoTel: '', cutiPenggantiTugas: '', perananPeperiksaan: [], tandatangan: null, sesiPeperiksaan: '', tarikhPeperiksaan: today, namaPengawasLain: '', q1Status: 'YA', q1Catatan: '', q2Status: 'TIDAK', q2Catatan: '', q3Status: 'YA', q3Catatan: '', cadanganPeperiksaan: ''
+                        ...prev, tujuan: '', tempat: '', tarikhPergi: today, tarikhBalik: today, km: '', caraPerjalanan: ['Kereta Sendiri'], sebab1: false, sebab2: false, sebab3: false, tuntutanBatu: false, tuntutanGantian: false, noKenderaan: '', subjek: '', semester: '', tarikhGantiDari: today, tarikhGantiHingga: today, catatanTugas: '', namaPengganti: '', bahagianPengganti: '', noTelPengganti: '', jenisAmbilAlih: 'Ambil alih subjek / tugas sepenuhnya', flightType: 'single', flightPergiTarikh: today, flightPergiMasa: '', flightPergiDari: '', flightPergiKe: '', flightPergiLeg2Tarikh: today, flightPergiLeg2Masa: '', flightPergiLeg2Dari: '', flightPergiLeg2Ke: '', flightBalikTarikh: today, flightBalikMasa: '', flightBalikDari: '', flightBalikKe: '', flightBalikLeg2Tarikh: today, flightBalikLeg2Masa: '', flightBalikLeg2Dari: '', flightBalikLeg2Ke: '', kodSyarikat: '', enrichId: '', jenisCuti: 'Cuti Rehat', cutiDari: today, cutiHingga: today, catatanCuti: '', ketuaSokongan: '', pegawaiPelulus: '', cutiPenggantiNama: '', cutiPenggantiBahagian: '', cutiPenggantiNoTel: '', cutiPenggantiTugas: '', perananPeperiksaan: [], tandatangan: null, sesiPeperiksaan: '', tarikhPeperiksaan: today, namaPengawasLain: '', q1Status: 'YA', q1Catatan: '', q2Status: 'TIDAK', q2Catatan: '', q3Status: 'YA', q3Catatan: '', cadanganPeperiksaan: ''
                     }));
                     if(canvasRef.current) canvasRef.current.getContext('2d').clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
                     setActiveForm(null);
@@ -582,7 +584,7 @@ function App() {
                     )}
                 </div>
 
-                {/* KOMPONEN BORANG BERSYARAT (CONDITIONAL FORMS) */}
+                {/* KOMPONEN BORANG BERSYARAT */}
                 {activeForm === 'cuti' && <FormCuti formData={formData} handleChange={handleChange} expanded={expanded} toggleSection={toggleSection} nextSection={nextSection} formInputClass={formInputClass} formLabelClass={formLabelClass} pegawaiDatabase={pegawaiDatabase} isPegawaiComplete={isPegawaiComplete} isCutiComplete={isCutiComplete} calculateDays={calculateDays} handleCutiPenggantiChange={handleCutiPenggantiChange} shakeSection={shakeSection} isCutiGantiComplete={isCutiGantiComplete} />}
                 {activeForm === 'akujanji' && <FormAkujanji formData={formData} expanded={expanded} toggleSection={toggleSection} nextSection={nextSection} formLabelClass={formLabelClass} peperiksaanRoles={peperiksaanRoles} handleCheckboxPeranan={handleCheckboxPeranan} isPegawaiComplete={isPegawaiComplete} isPerananComplete={isPerananComplete} isTandatanganComplete={isTandatanganComplete} canvasRef={canvasRef} startDrawing={startDrawing} draw={draw} stopDrawing={stopDrawing} clearSignature={clearSignature} handleSignatureUpload={handleSignatureUpload} shakeSection={shakeSection} />}
                 {activeForm === 'laporan' && <FormLaporan formData={formData} handleChange={handleChange} expanded={expanded} toggleSection={toggleSection} nextSection={nextSection} formInputClass={formInputClass} formLabelClass={formLabelClass} isPegawaiComplete={isPegawaiComplete} isLaporanInfoComplete={isLaporanInfoComplete} isLaporanSoalanComplete={isLaporanSoalanComplete} isTandatanganComplete={isTandatanganComplete} canvasRef={canvasRef} startDrawing={startDrawing} draw={draw} stopDrawing={stopDrawing} clearSignature={clearSignature} handleSignatureUpload={handleSignatureUpload} shakeSection={shakeSection} />}
