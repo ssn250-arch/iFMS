@@ -62,6 +62,10 @@ function App() {
     const [isManualName, setIsManualName] = useState(false);
     const [isGantiDateLocked, setIsGantiDateLocked] = useState(true);
     
+    // ✅ STATE UNTUK MODAL PANDUAN & HUBUNGI KAMI
+    const [showPanduan, setShowPanduan] = useState(false);
+    const [showHubungi, setShowHubungi] = useState(false);
+
     const [expanded, setExpanded] = useState({ pegawai: true, tugas: false, pengganti: false, tiket: false, cuti: false, peranan: false, tandatangan: false, laporanInfo: false, laporanSoalan: false, kursus: false, penilaian: false });
     const [notification, setNotification] = useState({ show: false, message: '', type: '' });
     const [isGenerating, setIsGenerating] = useState(false);
@@ -189,15 +193,12 @@ function App() {
     const isFlightSingleComplete = () => formData.flightPergiDari.length === 3 && formData.flightPergiKe.length === 3 && formData.flightPergiMasa && formData.flightBalikDari.length === 3 && formData.flightBalikKe.length === 3 && formData.flightBalikMasa;
     const isFlightMultiComplete = () => formData.flightPergiDari.length === 3 && formData.flightPergiKe.length === 3 && formData.flightPergiMasa && formData.flightPergiLeg2Dari.length === 3 && formData.flightPergiLeg2Ke.length === 3 && formData.flightPergiLeg2Masa && formData.flightBalikDari.length === 3 && formData.flightBalikKe.length === 3 && formData.flightBalikMasa && formData.flightBalikLeg2Dari.length === 3 && formData.flightBalikLeg2Ke.length === 3 && formData.flightBalikLeg2Masa;
     const isTiketComplete = formData.caraPerjalanan.includes('Kapal Terbang (Waran Jabatan)') ? (formData.flightType === 'single' ? isFlightSingleComplete() : isFlightMultiComplete()) : true;
-    
     const isCutiComplete = formData.jenisCuti !== '' && formData.cutiDari !== '' && formData.cutiHingga !== '' && formData.ketuaSokongan !== '' && formData.pegawaiPelulus !== '';
     const isCutiGantiComplete = () => (formData.jenisCuti !== 'Cuti Ganti' && formData.jenisCuti !== 'Cuti Tanpa Rekod') ? true : formData.cutiPenggantiNama.trim() !== '' && formData.cutiPenggantiTugas.trim() !== '';
-    
     const isPerananComplete = formData.perananPeperiksaan.length > 0;
     const isTandatanganComplete = formData.tandatangan !== null;
     const isLaporanInfoComplete = formData.sesiPeperiksaan.trim() !== '' && formData.tarikhPeperiksaan !== '';
     const isLaporanSoalanComplete = formData.q1Status !== '' && formData.q2Status !== '' && formData.q3Status !== '';
-    
     const isKursusComplete = formData.kursusNama.trim() !== '' && formData.kursusDari !== '' && formData.kursusHingga !== '' && (activeForm === 'pascaKursus' ? (formData.penyediaLatihan.trim() !== '' && formData.tempatKursus.trim() !== '' && formData.namaPenyelia.trim() !== '' && formData.jawatanPenyelia.trim() !== '') : true);
     
     const isPenilaianLepasKursusComplete = [
@@ -207,6 +208,7 @@ function App() {
         formData.lkD1, formData.lkD2a, formData.lkD2b, formData.lkD2c, 
         formData.lkD3b, formData.lkD3c, formData.lkD3d
     ].every(v => v > 0);
+    
     const isPenilaianPascaKursusComplete = [formData.pk1a, formData.pk1b, formData.pk1c, formData.pk1d].every(v => v > 0);
 
     const isAllComplete = activeForm === 'cuti' ? (isPegawaiComplete && isCutiComplete && isCutiGantiComplete())
@@ -350,22 +352,28 @@ function App() {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-4 sm:gap-6">
                         <div className="hidden lg:flex items-center gap-6 text-[13px] font-bold text-slate-500">
                             <span className="text-blue-700 flex items-center gap-2 bg-blue-50/80 px-4 py-2 rounded-xl cursor-default">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                                 Laman Utama
                             </span>
-                            <span className="flex items-center gap-2 hover:text-slate-800 hover:bg-slate-100 px-3 py-2 rounded-xl cursor-pointer transition-colors">
+                            
+                            {/* Butang Panduan */}
+                            <button onClick={() => setShowPanduan(true)} className="flex items-center gap-2 hover:text-slate-800 hover:bg-slate-100 px-3 py-2 rounded-xl cursor-pointer transition-colors focus:outline-none">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
                                 Panduan
-                            </span>
-                            <span className="flex items-center gap-2 hover:text-slate-800 hover:bg-slate-100 px-3 py-2 rounded-xl cursor-pointer transition-colors">
+                            </button>
+                            
+                            {/* Butang Hubungi Kami */}
+                            <button onClick={() => setShowHubungi(true)} className="flex items-center gap-2 hover:text-slate-800 hover:bg-slate-100 px-3 py-2 rounded-xl cursor-pointer transition-colors focus:outline-none">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                                 Hubungi Kami
-                            </span>
+                            </button>
                         </div>
+                        
                         <div className="hidden sm:block h-8 w-px bg-slate-200"></div>
+                        
                         <div className="bg-slate-50 border border-slate-200/60 px-4 py-2 rounded-2xl flex items-center gap-3 shadow-sm">
                             <div className="text-slate-400">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -397,7 +405,6 @@ function App() {
                         
                         {/* Card 1: Tugas */}
                         <button onClick={() => { setActiveForm('tugas'); setExpanded({...expanded, pegawai: true}); }} className="group relative bg-white/70 backdrop-blur-xl border border-slate-100 hover:border-blue-200 p-6 sm:p-8 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(59,130,246,0.12)] transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden min-h-[220px] flex flex-col justify-between">
-                            {/* Watermark Icon */}
                             <div className="absolute top-4 right-4 text-blue-50 opacity-60 transform group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.2-1.1.7l-1.2 3.6 7.7 4.4-3.5 3.5-3.5-.9c-.5-.1-1 .2-1.3.7l-1 2.6 5.8 1.5 1.5 5.8 2.6-1c.5-.3.8-.8.7-1.3l-.9-3.5 3.5-3.5 4.4 7.7 3.6-1.2c.5-.2.8-.6.7-1.1z"/></svg>
                             </div>
@@ -490,7 +497,7 @@ function App() {
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                             </div>
                         </button>
-
+                        
                         {/* Card 6: Pasca Kursus */}
                         <button onClick={() => { setActiveForm('pascaKursus'); setExpanded({...expanded, pegawai: true}); }} className="group relative bg-white/70 backdrop-blur-xl border border-slate-100 hover:border-purple-200 p-6 sm:p-8 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(168,85,247,0.12)] transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden min-h-[220px] flex flex-col justify-between">
                             <div className="absolute top-4 right-4 text-purple-50 opacity-60 transform group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
@@ -516,10 +523,10 @@ function App() {
                 {/* Footer Modern */}
                 <footer className="w-full border-t border-slate-200/60 bg-white/50 backdrop-blur-md mt-auto z-10 relative">
                     <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-4">
-                        <div className="text-[12px] font-bold text-slate-400">
-                            © {todayDateObj.getFullYear()} ADTEC JTM Kampus Sandakan. <span className="mx-2 font-normal">|</span> iFMS v1.0
+                        <div className="text-[12px] font-bold text-slate-400 text-center md:text-left">
+                            © {todayDateObj.getFullYear()} ADTEC JTM Kampus Sandakan. <span className="mx-2 font-normal hidden sm:inline">|</span><br className="sm:hidden"/> iFMS v1.0
                         </div>
-                        <div className="flex items-center gap-3 text-[12px] font-extrabold tracking-widest text-slate-400 uppercase">
+                        <div className="flex flex-wrap justify-center items-center gap-3 text-[11px] sm:text-[12px] font-extrabold tracking-widest text-slate-400 uppercase">
                             <span className="hover:text-blue-500 transition-colors cursor-default">Profesional</span>
                             <span className="text-slate-300">•</span>
                             <span className="hover:text-emerald-500 transition-colors cursor-default">Integriti</span>
@@ -530,6 +537,87 @@ function App() {
                         </div>
                     </div>
                 </footer>
+                
+                {/* MODAL PANDUAN PENGGUNA */}
+                {showPanduan && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-slide-up">
+                        <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative">
+                            <button onClick={() => setShowPanduan(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 p-2 rounded-full transition-colors focus:outline-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            </button>
+                            <h2 className="text-2xl font-extrabold text-slate-800 mb-6 flex items-center gap-3">
+                                <div className="p-2 bg-blue-100 text-blue-600 rounded-xl">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                                </div>
+                                Panduan Penggunaan
+                            </h2>
+                            <div className="space-y-5 text-sm text-slate-600 font-medium">
+                                <div className="flex gap-4">
+                                    <span className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-extrabold flex-shrink-0 border border-blue-100">1</span> 
+                                    <p className="pt-1 leading-relaxed">Pilih <strong className="text-slate-800">Modul Borang</strong> yang bersesuaian dari menu utama di halaman ini.</p>
+                                </div>
+                                <div className="flex gap-4">
+                                    <span className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-extrabold flex-shrink-0 border border-blue-100">2</span> 
+                                    <p className="pt-1 leading-relaxed">Lengkapkan semua maklumat yang diwajibkan <strong className="text-red-500">(*)</strong> mengikut turutan seksyen.</p>
+                                </div>
+                                <div className="flex gap-4">
+                                    <span className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-extrabold flex-shrink-0 border border-blue-100">3</span> 
+                                    <p className="pt-1 leading-relaxed">Turunkan <strong className="text-slate-800">Tandatangan Digital</strong> anda menggunakan tetikus atau skrin sentuh di ruangan yang disediakan.</p>
+                                </div>
+                                <div className="flex gap-4">
+                                    <span className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-extrabold flex-shrink-0 border border-blue-100">4</span> 
+                                    <p className="pt-1 leading-relaxed">Klik butang <strong className="text-slate-800">Jana & Muat Turun</strong>. Fail PDF berformat rasmi akan disimpan terus ke peranti anda.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* MODAL HUBUNGI KAMI */}
+                {showHubungi && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-slide-up">
+                        <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative">
+                            <button onClick={() => setShowHubungi(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 p-2 rounded-full transition-colors focus:outline-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            </button>
+                            <h2 className="text-2xl font-extrabold text-slate-800 mb-6 flex items-center gap-3">
+                                <div className="p-2 bg-indigo-100 text-indigo-600 rounded-xl">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                                </div>
+                                Hubungi Kami
+                            </h2>
+                            <div className="space-y-6 text-[14px] text-slate-600 font-medium">
+                                <div className="flex gap-4 items-start">
+                                    <div className="p-2.5 bg-slate-50 border border-slate-100 rounded-xl text-slate-400 mt-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                                    </div>
+                                    <div className="leading-relaxed">
+                                        <strong className="text-slate-800 block mb-1">Kolej Teknologi Termaju (ADTEC)</strong>
+                                        Jabatan Tenaga Manusia,<br/>Kampus Sandakan,<br/>Batu 5 Jalan Sibuga,<br/>90000 Sandakan, Sabah.
+                                    </div>
+                                </div>
+                                <div className="flex gap-4 items-center">
+                                    <div className="p-2.5 bg-slate-50 border border-slate-100 rounded-xl text-slate-400">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+                                    </div>
+                                    <div><strong className="text-slate-800 mr-2">Tel:</strong> 089-240500</div>
+                                </div>
+                                <div className="flex gap-4 items-center">
+                                    <div className="p-2.5 bg-slate-50 border border-slate-100 rounded-xl text-slate-400">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                                    </div>
+                                    <div><strong className="text-slate-800 mr-2">E-mel:</strong> <a href="mailto:ilpsdk@jtm.gov.my" className="text-blue-600 hover:text-blue-700 hover:underline">ilpsdk@jtm.gov.my</a></div>
+                                </div>
+                                <div className="flex gap-4 items-center">
+                                    <div className="p-2.5 bg-slate-50 border border-slate-100 rounded-xl text-slate-400">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                                    </div>
+                                    <div><strong className="text-slate-800 mr-2">Website:</strong> <a href="https://adtecsandakan.gov.my" target="_blank" rel="noreferrer" className="text-blue-600 hover:text-blue-700 hover:underline">adtecsandakan.gov.my</a></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 
                 <FeedbackButton />
             </div>
