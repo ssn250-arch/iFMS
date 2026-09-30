@@ -87,6 +87,10 @@ function App() {
     const [isKnownStaff, setIsKnownStaff] = useState(false);
     const [isEditingAutoFields, setIsEditingAutoFields] = useState(false);
     const [isGantiDateLocked, setIsGantiDateLocked] = useState(true);
+    
+    // ✅ KEMAS KINI: State untuk kenal pasti mod input nama manual
+    const [isManualName, setIsManualName] = useState(false);
+    
     const [expanded, setExpanded] = useState({ 
         pegawai: true, tugas: false, pengganti: false, tiket: false, 
         cuti: false, peranan: false, tandatangan: false, laporanInfo: false, 
@@ -158,7 +162,7 @@ function App() {
     }, [formData.nama, formData.jawatan, formData.bahagian, formData.noKp, formData.noTel]);
 
     useEffect(() => {
-        if (!isEditingAutoFields) {
+        if (!isEditingAutoFields && !isManualName) {
             const selected = pegawaiDatabase.find(p => p.nama === formData.nama);
             if (selected) {
                 setFormData(prev => {
@@ -170,7 +174,7 @@ function App() {
                 });
             }
         }
-    }, [formData.nama, isEditingAutoFields]);
+    }, [formData.nama, isEditingAutoFields, isManualName]);
 
     useEffect(() => {
         if (formData.kodSyarikat || formData.enrichId) {
@@ -195,7 +199,119 @@ function App() {
         }
     }, [formData.tarikhPergi, formData.tarikhBalik, isGantiDateLocked]);
 
-    // ================== FUNGSI BANTUAN (HANDLERS) ==================
+    // ================== LOGIK PENGESAHAN (VALIDATION) ==================
+    const isPegawaiComplete = formData.nama.trim() !== '' && formData.jawatan.trim() !== '' && formData.bahagian.trim() !== '' && formData.noKp.trim() !== '' && (activeForm === 'akujanji' || activeForm === 'laporan' || formData.noTel.trim() !== '');
+    
+    const isTugasComplete = formData.tujuan.trim() !== '' && formData.tempat.trim() !== '' && formData.tarikhPergi !== '' && formData.tarikhBalik !== '' && formData.caraPerjalanan.length > 0;
+    const isPenggantiComplete = formData.namaPengganti.trim() !== '' && formData.subjek.trim() !== '';
+    const isFlightSingleComplete = () => formData.flightPergiDari.length === 3 && formData.flightPergiKe.length === 3 && formData.flightPergiMasa && formData.flightBalikDari.length === 3 && formData.flightBalikKe.length === 3 && formData.flightBalikMasa;
+    const isFlightMultiComplete = () => formData.flightPergiDari.length === 3 && formData.flightPergiKe.length === 3 && formData.flightPergiMasa && formData.flightPergiLeg2Dari.length === 3 && formData.flightPergiLeg2Ke.length === 3 && formData.flightPergiLeg2Masa && formData.flightBalikDari.length === 3 && formData.flightBalikKe.length === 3 && formData.flightBalikMasa && formData.flightBalikLeg2Dari.length === 3 && formData.flightBalikLeg2Ke.length === 3 && formData.flightBalikLeg2Masa;
+    const isTiketComplete = formData.caraPerjalanan.includes('Kapal Terbang (Waran Jabatan)') ? (formData.flightType === 'single' ? isFlightSingleComplete() : isFlightMultiComplete()) : true;
+    
+    const isCutiComplete = formData.jenisCuti !== '' && formData.cutiDari !== '' && formData.cutiHingga !== '' && formData.ketuaSokongan !== '' && formData.pegawaiPelulus !== '';
+    const isCutiGantiComplete = () => (formData.jenisCuti !== 'Cuti Ganti' && formData.jenisCuti !== 'Cuti Tanpa Rekod') ? true : formData.cutiPenggantiNama.trim() !== '' && formData.cutiPenggantiTugas.trim() !== '';
+    
+    const isPerananComplete = formData.perananPeperiksaan.length > 0;
+    const isTandatanganComplete = formData.tandatangan !== null;
+    const isLaporanInfoComplete = formData.sesiPeperiksaan.trim() !== '' && formData.tarikhPeperiksaan !== '';
+    const isLaporanSoalanComplete = formData.q1Status !== '' && formData.q2Status !== '' && formData.q3Status !== '';
+    
+    const isKursusComplete = formData.kursusNama.trim() !== '' && formData.kursusDari !== '' && formData.kursusHingga !== '' && (activeForm === 'pascaKursus' ? (formData.penyediaLatihan.trim() !== '' && formData.tempatKursus.trim() !== '' && formData.namaPenyelia.trim() !== '' && formData.jawatanPenyelia.trim() !== '') : true);
+    const isPenilaianLepasKursusComplete = [formData.lkA1, formData.lkA2, formData.lkA3, formData.lkA4, formData.lkB1, formData.lkB2, formData.lkB3, formData.lkB4, formData.lkB5, formData.lkC1, formData.lkC2, formData.lkC3, formData.lkD1, formData.lkD2a, formData.lkD2b, formData.lkD2c, formData.lkD3a, formData.lkD3b, formData.lkD3c, formData.lkD3d].every(v => v > 0);
+    const isPenilaianPascaKursusComplete = [formData.pk1a, formData.pk1b, formData.pk1c, formData.pk1d].every(v => v > 0);
+
+    const isAllComplete = activeForm === 'cuti' ? (isPegawaiComplete && isCutiComplete && isCutiGantiComplete())
+        : activeForm === 'akujanji' ? (isPegawaiComplete && isPerananComplete && isTandatanganComplete)
+        : activeForm === 'laporan' ? (isPegawaiComplete && isLaporanInfoComplete && isLaporanSoalanComplete && isTandatanganComplete)
+        : activeForm === 'lepasKursus' ? (isPegawaiComplete && isKursusComplete && isPenilaianLepasKursusComplete)
+        : activeForm === 'pascaKursus' ? (isPegawaiComplete && isKursusComplete && isPenilaianPascaKursusComplete)
+        : (isPegawaiComplete && isTugasComplete && isPenggantiComplete && isTiketComplete && isTandatanganComplete);
+
+    // ================== HANDLERS ==================
+    const showNotification = (message, type = 'success') => {
+        setNotification({ show: true, message, type });
+        setTimeout(() => setNotification({ show: false, message: '', type: '' }), 4000);
+    };
+
+    const toggleSection = (section) => {
+        if (section !== 'pegawai' && !isPegawaiComplete) {
+            showNotification("Sila lengkapkan Maklumat Pegawai terlebih dahulu.", "error");
+            document.getElementById('section-pegawai')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setShakeSection('pegawai'); setTimeout(() => setShakeSection(null), 500); return;
+        }
+        
+        // Logik Toggle Borang Tugas
+        if (activeForm === 'tugas' && (section === 'pengganti' || section === 'tiket') && !isTugasComplete) {
+            showNotification("Sila lengkapkan Maklumat Tugasan terlebih dahulu.", "error");
+            document.getElementById('section-tugas')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setShakeSection('tugas'); setTimeout(() => setShakeSection(null), 500); return;
+        }
+        if (activeForm === 'tugas' && section === 'tandatangan' && (!isTugasComplete || !isPenggantiComplete || !isTiketComplete)) {
+            showNotification("Sila lengkapkan maklumat Tugasan & Pengganti terlebih dahulu.", "error");
+            document.getElementById('section-pengganti')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setShakeSection('pengganti'); setTimeout(() => setShakeSection(null), 500); return;
+        }
+        
+        // Logik Toggle Akujanji
+        if (activeForm === 'akujanji' && section === 'tandatangan' && !isPerananComplete) {
+            showNotification("Sila pilih sekurang-kurangnya satu Peranan Peperiksaan.", "error");
+            document.getElementById('section-peranan')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setShakeSection('peranan'); setTimeout(() => setShakeSection(null), 500); return;
+        }
+        
+        // Logik Toggle Laporan
+        if (activeForm === 'laporan') {
+            if (section === 'laporanSoalan' && !isLaporanInfoComplete) {
+                showNotification("Sila lengkapkan Maklumat Peperiksaan terlebih dahulu.", "error");
+                document.getElementById('section-laporanInfo')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                setShakeSection('laporanInfo'); setTimeout(() => setShakeSection(null), 500); return;
+            }
+            if (section === 'tandatangan' && !isLaporanSoalanComplete) {
+                showNotification("Sila lengkapkan Status & Cadangan terlebih dahulu.", "error");
+                document.getElementById('section-laporanSoalan')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                setShakeSection('laporanSoalan'); setTimeout(() => setShakeSection(null), 500); return;
+            }
+        }
+        
+        // Logik Toggle Kursus
+        if ((activeForm === 'lepasKursus' || activeForm === 'pascaKursus') && section === 'penilaian' && !isKursusComplete) { 
+            showNotification("Sila lengkapkan Maklumat Kursus terlebih dahulu.", "error"); 
+            document.getElementById('section-kursus')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setShakeSection('kursus'); setTimeout(() => setShakeSection(null), 500); return; 
+        }
+        
+        setExpanded(prev => ({
+            pegawai: section === 'pegawai' ? !prev.pegawai : false, 
+            tugas: section === 'tugas' ? !prev.tugas : false,
+            pengganti: section === 'pengganti' ? !prev.pengganti : false, 
+            tiket: section === 'tiket' ? !prev.tiket : false,
+            cuti: section === 'cuti' ? !prev.cuti : false, 
+            peranan: section === 'peranan' ? !prev.peranan : false,
+            tandatangan: section === 'tandatangan' ? !prev.tandatangan : false, 
+            laporanInfo: section === 'laporanInfo' ? !prev.laporanInfo : false,
+            laporanSoalan: section === 'laporanSoalan' ? !prev.laporanSoalan : false,
+            kursus: section === 'kursus' ? !prev.kursus : false, 
+            penilaian: section === 'penilaian' ? !prev.penilaian : false
+        }));
+    };
+
+    const nextSection = (current, nextSectionName) => {
+        if (activeForm === 'tugas' && nextSectionName === 'tiket' && !formData.caraPerjalanan.includes('Kapal Terbang (Waran Jabatan)')) {
+            nextSectionName = 'tandatangan';
+        }
+
+        setExpanded({
+            pegawai: nextSectionName === 'pegawai', tugas: nextSectionName === 'tugas', pengganti: nextSectionName === 'pengganti',
+            tiket: nextSectionName === 'tiket', cuti: nextSectionName === 'cuti', peranan: nextSectionName === 'peranan',
+            tandatangan: nextSectionName === 'tandatangan', laporanInfo: nextSectionName === 'laporanInfo', laporanSoalan: nextSectionName === 'laporanSoalan',
+            kursus: nextSectionName === 'kursus', penilaian: nextSectionName === 'penilaian'
+        });
+        
+        if (nextSectionName === 'jana') {
+            setTimeout(() => document.getElementById('jana-button-container')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 200);
+        }
+    };
+
     const calculateDays = (start, end) => {
         if (!start || !end) return 0;
         const diffTime = new Date(end).getTime() - new Date(start).getTime();
@@ -269,115 +385,6 @@ function App() {
         if (!selectedName) { setFormData(prev => ({ ...prev, cutiPenggantiNama: '', cutiPenggantiBahagian: '', cutiPenggantiNoTel: '' })); return; }
         const p = pegawaiDatabase.find(x => x.nama === selectedName);
         if (p) setFormData(prev => ({ ...prev, cutiPenggantiNama: p.nama, cutiPenggantiBahagian: p.bahagian, cutiPenggantiNoTel: p.noTel || '' }));
-    };
-
-    // ================== LOGIK PENGESAHAN (VALIDATION) ==================
-    const isPegawaiComplete = formData.nama.trim() !== '' && formData.jawatan.trim() !== '' && formData.bahagian.trim() !== '' && formData.noKp.trim() !== '' && (activeForm === 'akujanji' || activeForm === 'laporan' || formData.noTel.trim() !== '');
-    
-    const isTugasComplete = formData.tujuan.trim() !== '' && formData.tempat.trim() !== '' && formData.tarikhPergi !== '' && formData.tarikhBalik !== '' && formData.caraPerjalanan.length > 0;
-    const isPenggantiComplete = formData.namaPengganti.trim() !== '' && formData.subjek.trim() !== '';
-    const isFlightSingleComplete = () => formData.flightPergiDari.length === 3 && formData.flightPergiKe.length === 3 && formData.flightPergiMasa && formData.flightBalikDari.length === 3 && formData.flightBalikKe.length === 3 && formData.flightBalikMasa;
-    const isFlightMultiComplete = () => formData.flightPergiDari.length === 3 && formData.flightPergiKe.length === 3 && formData.flightPergiMasa && formData.flightPergiLeg2Dari.length === 3 && formData.flightPergiLeg2Ke.length === 3 && formData.flightPergiLeg2Masa && formData.flightBalikDari.length === 3 && formData.flightBalikKe.length === 3 && formData.flightBalikMasa && formData.flightBalikLeg2Dari.length === 3 && formData.flightBalikLeg2Ke.length === 3 && formData.flightBalikLeg2Masa;
-    const isTiketComplete = formData.caraPerjalanan.includes('Kapal Terbang (Waran Jabatan)') ? (formData.flightType === 'single' ? isFlightSingleComplete() : isFlightMultiComplete()) : true;
-    
-    const isCutiComplete = formData.jenisCuti !== '' && formData.cutiDari !== '' && formData.cutiHingga !== '' && formData.ketuaSokongan !== '' && formData.pegawaiPelulus !== '';
-    const isCutiGantiComplete = () => (formData.jenisCuti !== 'Cuti Ganti' && formData.jenisCuti !== 'Cuti Tanpa Rekod') ? true : formData.cutiPenggantiNama.trim() !== '' && formData.cutiPenggantiTugas.trim() !== '';
-    
-    const isPerananComplete = formData.perananPeperiksaan.length > 0;
-    const isTandatanganComplete = formData.tandatangan !== null;
-    const isLaporanInfoComplete = formData.sesiPeperiksaan.trim() !== '' && formData.tarikhPeperiksaan !== '';
-    const isLaporanSoalanComplete = formData.q1Status !== '' && formData.q2Status !== '' && formData.q3Status !== '';
-    
-    const isKursusComplete = formData.kursusNama.trim() !== '' && formData.kursusDari !== '' && formData.kursusHingga !== '' && (activeForm === 'pascaKursus' ? (formData.penyediaLatihan.trim() !== '' && formData.tempatKursus.trim() !== '' && formData.namaPenyelia.trim() !== '' && formData.jawatanPenyelia.trim() !== '') : true);
-    const isPenilaianLepasKursusComplete = [formData.lkA1, formData.lkA2, formData.lkA3, formData.lkA4, formData.lkB1, formData.lkB2, formData.lkB3, formData.lkB4, formData.lkB5, formData.lkC1, formData.lkC2, formData.lkC3, formData.lkD1, formData.lkD2a, formData.lkD2b, formData.lkD2c, formData.lkD3a, formData.lkD3b, formData.lkD3c, formData.lkD3d].every(v => v > 0);
-    const isPenilaianPascaKursusComplete = [formData.pk1a, formData.pk1b, formData.pk1c, formData.pk1d].every(v => v > 0);
-
-    const isAllComplete = activeForm === 'cuti' ? (isPegawaiComplete && isCutiComplete && isCutiGantiComplete())
-        : activeForm === 'akujanji' ? (isPegawaiComplete && isPerananComplete && isTandatanganComplete)
-        : activeForm === 'laporan' ? (isPegawaiComplete && isLaporanInfoComplete && isLaporanSoalanComplete && isTandatanganComplete)
-        : activeForm === 'lepasKursus' ? (isPegawaiComplete && isKursusComplete && isPenilaianLepasKursusComplete)
-        : activeForm === 'pascaKursus' ? (isPegawaiComplete && isKursusComplete && isPenilaianPascaKursusComplete)
-        : (isPegawaiComplete && isTugasComplete && isPenggantiComplete && isTiketComplete && isTandatanganComplete);
-
-    // ================== NAVIGATION HANDLERS ==================
-    const showNotification = (message, type = 'success') => {
-        setNotification({ show: true, message, type });
-        setTimeout(() => setNotification({ show: false, message: '', type: '' }), 4000);
-    };
-
-    const toggleSection = (section) => {
-        if (section !== 'pegawai' && !isPegawaiComplete) {
-            showNotification("Sila lengkapkan Maklumat Pegawai terlebih dahulu.", "error");
-            document.getElementById('section-pegawai')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            setShakeSection('pegawai'); setTimeout(() => setShakeSection(null), 500); return;
-        }
-        
-        if (activeForm === 'tugas' && (section === 'pengganti' || section === 'tiket') && !isTugasComplete) {
-            showNotification("Sila lengkapkan Maklumat Tugasan terlebih dahulu.", "error");
-            document.getElementById('section-tugas')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            setShakeSection('tugas'); setTimeout(() => setShakeSection(null), 500); return;
-        }
-        if (activeForm === 'tugas' && section === 'tandatangan' && (!isTugasComplete || !isPenggantiComplete || !isTiketComplete)) {
-            showNotification("Sila lengkapkan maklumat Tugasan & Pengganti terlebih dahulu.", "error");
-            document.getElementById('section-pengganti')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            setShakeSection('pengganti'); setTimeout(() => setShakeSection(null), 500); return;
-        }
-        
-        if (activeForm === 'akujanji' && section === 'tandatangan' && !isPerananComplete) {
-            showNotification("Sila pilih sekurang-kurangnya satu Peranan Peperiksaan.", "error");
-            document.getElementById('section-peranan')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            setShakeSection('peranan'); setTimeout(() => setShakeSection(null), 500); return;
-        }
-        
-        if (activeForm === 'laporan') {
-            if (section === 'laporanSoalan' && !isLaporanInfoComplete) {
-                showNotification("Sila lengkapkan Maklumat Peperiksaan terlebih dahulu.", "error");
-                document.getElementById('section-laporanInfo')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                setShakeSection('laporanInfo'); setTimeout(() => setShakeSection(null), 500); return;
-            }
-            if (section === 'tandatangan' && !isLaporanSoalanComplete) {
-                showNotification("Sila lengkapkan Status & Cadangan terlebih dahulu.", "error");
-                document.getElementById('section-laporanSoalan')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                setShakeSection('laporanSoalan'); setTimeout(() => setShakeSection(null), 500); return;
-            }
-        }
-        
-        if ((activeForm === 'lepasKursus' || activeForm === 'pascaKursus') && section === 'penilaian' && !isKursusComplete) { 
-            showNotification("Sila lengkapkan Maklumat Kursus terlebih dahulu.", "error"); 
-            document.getElementById('section-kursus')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            setShakeSection('kursus'); setTimeout(() => setShakeSection(null), 500); return; 
-        }
-        
-        setExpanded(prev => ({
-            pegawai: section === 'pegawai' ? !prev.pegawai : false, 
-            tugas: section === 'tugas' ? !prev.tugas : false,
-            pengganti: section === 'pengganti' ? !prev.pengganti : false, 
-            tiket: section === 'tiket' ? !prev.tiket : false,
-            cuti: section === 'cuti' ? !prev.cuti : false, 
-            peranan: section === 'peranan' ? !prev.peranan : false,
-            tandatangan: section === 'tandatangan' ? !prev.tandatangan : false, 
-            laporanInfo: section === 'laporanInfo' ? !prev.laporanInfo : false,
-            laporanSoalan: section === 'laporanSoalan' ? !prev.laporanSoalan : false,
-            kursus: section === 'kursus' ? !prev.kursus : false, 
-            penilaian: section === 'penilaian' ? !prev.penilaian : false
-        }));
-    };
-
-    const nextSection = (current, nextSectionName) => {
-        if (activeForm === 'tugas' && nextSectionName === 'tiket' && !formData.caraPerjalanan.includes('Kapal Terbang (Waran Jabatan)')) {
-            nextSectionName = 'tandatangan';
-        }
-
-        setExpanded({
-            pegawai: nextSectionName === 'pegawai', tugas: nextSectionName === 'tugas', pengganti: nextSectionName === 'pengganti',
-            tiket: nextSectionName === 'tiket', cuti: nextSectionName === 'cuti', peranan: nextSectionName === 'peranan',
-            tandatangan: nextSectionName === 'tandatangan', laporanInfo: nextSectionName === 'laporanInfo', laporanSoalan: nextSectionName === 'laporanSoalan',
-            kursus: nextSectionName === 'kursus', penilaian: nextSectionName === 'penilaian'
-        });
-        
-        if (nextSectionName === 'jana') {
-            setTimeout(() => document.getElementById('jana-button-container')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 200);
-        }
     };
 
     // ================== LOGIK TANDATANGAN DIGITAL ==================
@@ -525,7 +532,6 @@ function App() {
 
                 setIsGenerating(false);
                 setTimeout(() => {
-                    // Reload window to fully reset everything seamlessly
                     window.location.reload(); 
                 }, 2000);
             } catch (error) { setIsGenerating(false); showNotification("Ralat berlaku semasa menjana fail.", "error"); }
@@ -575,7 +581,7 @@ function App() {
                             </button>
                             
                             <button onClick={() => { setActiveForm('laporan'); setExpanded({...expanded, tugas: false, pengganti: false, tiket: false, cuti: false, peranan: false, tandatangan: false, laporanInfo: false, laporanSoalan: false, kursus: false, penilaian: false, pegawai: true}); }} className="w-full px-6 py-5 bg-amber-500 hover:bg-amber-400 text-white text-[15px] font-bold rounded-[1.5rem] shadow-xl transition-all transform hover:-translate-y-1 active:scale-95 flex flex-col items-center justify-center gap-3 group">
-                                <div className="bg-amber-400 p-3 rounded-2xl group-hover:bg-amber-300 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="10 9 9 9 8 9"/></svg></div>
+                                <div className="bg-amber-400 p-3 rounded-2xl group-hover:bg-amber-300 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="10 9 9 9 8 9"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div>
                                 <span>Laporan Peperiksaan</span>
                             </button>
 
@@ -645,32 +651,49 @@ function App() {
                         <div className="p-6 md:p-8 pt-2 border-t border-slate-100 animate-slide-up">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-7">
                                 <div className="md:col-span-2">
-                                    <label className={formLabelClass}>Nama Penuh <span className="text-red-500">*</span></label>
+                                    <label className={formLabelClass}>
+                                        Nama Penuh <span className="text-red-500">*</span>
+                                        {/* ✅ BUTANG TOGGLE ISI MANUAL DITAMBAH DI SINI */}
+                                        <button type="button" onClick={() => {
+                                            setIsManualName(!isManualName);
+                                            setFormData(prev => ({ ...prev, nama: '', jawatan: '', bahagian: '', noKp: '', noTel: '' }));
+                                            if (!isManualName) setIsEditingAutoFields(true);
+                                        }} className={`ml-3 normal-case font-bold text-[10px] px-2 py-0.5 rounded-md border transition-all ${isManualName ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' : 'bg-blue-50 text-blue-500 border-blue-100 hover:bg-blue-100'}`}>
+                                            {isManualName ? <span className="flex items-center gap-1"><UnlockIcon /> Pilih dari senarai</span> : <span className="flex items-center gap-1"><EditIcon /> Isi manual</span>}
+                                        </button>
+                                    </label>
                                     <div className="relative">
-                                        <select id="wrap-nama" name="nama" value={formData.nama} onChange={handleChange} className={`${formInputClass} appearance-none cursor-pointer relative z-10 ${formData.nama ? 'text-slate-800' : 'text-slate-400 font-medium'}`}>
-                                            <option value="" disabled>-- Sila Pilih Nama --</option>
-                                            {[...pegawaiDatabase].sort((a,b) => a.nama.localeCompare(b.nama)).map((p, idx) => (
-                                                <option key={idx} value={p.nama}>{p.nama} ({p.bahagian})</option>
-                                            ))}
-                                        </select>
-                                        <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400 z-20">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                                        </div>
+                                        {/* Tunjuk Select jika normal, Input jika manual */}
+                                        {!isManualName ? (
+                                            <>
+                                                <select id="wrap-nama" name="nama" value={formData.nama} onChange={handleChange} className={`${formInputClass} appearance-none cursor-pointer relative z-10 ${formData.nama ? 'text-slate-800' : 'text-slate-400 font-medium'}`}>
+                                                    <option value="" disabled>-- Sila Pilih Nama --</option>
+                                                    {[...pegawaiDatabase].sort((a,b) => a.nama.localeCompare(b.nama)).map((p, idx) => (
+                                                        <option key={idx} value={p.nama}>{p.nama} ({p.bahagian})</option>
+                                                    ))}
+                                                </select>
+                                                <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400 z-20">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <input id="wrap-nama" type="text" name="nama" value={formData.nama} onChange={handleChange} className={formInputClass} placeholder="Sila taip nama penuh anda..." />
+                                        )}
                                     </div>
                                 </div>
                                 <div>
                                     <label className={formLabelClass}>
                                         Jawatan <span className="text-red-500">*</span> 
-                                        {isKnownStaff && (
+                                        {(isKnownStaff || !isManualName) && (
                                             <button type="button" onClick={toggleAutoFieldsEdit} className={`ml-2 normal-case font-bold text-[10px] px-2 py-0.5 rounded-md border transition-all ${isEditingAutoFields ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' : 'bg-blue-50 text-blue-500 border-blue-100 hover:bg-blue-100'}`}>
                                                 {isEditingAutoFields ? <span className="flex items-center gap-1"><UnlockIcon /> Tutup Edit</span> : <span className="flex items-center gap-1"><EditIcon /> Edit</span>}
                                             </button>
                                         )}
                                     </label>
-                                    <input id="wrap-jawatan" type="text" name="jawatan" value={formData.jawatan} onChange={handleChange} className={`${formInputClass} ${isKnownStaff && !isEditingAutoFields ? 'bg-slate-50/70 text-slate-500 border-slate-200 cursor-not-allowed opacity-80' : ''}`} placeholder="Contoh: Pengajar" readOnly={isKnownStaff && !isEditingAutoFields} />
+                                    <input id="wrap-jawatan" type="text" name="jawatan" value={formData.jawatan} onChange={handleChange} className={`${formInputClass} ${!isManualName && isKnownStaff && !isEditingAutoFields ? 'bg-slate-50/70 text-slate-500 border-slate-200 cursor-not-allowed opacity-80' : ''}`} placeholder="Contoh: Pengajar" readOnly={!isManualName && isKnownStaff && !isEditingAutoFields} />
                                 </div>
                                 <div>
-                                    <UniversalSelect wrapperId="wrap-bahagian" name="bahagian" value={formData.bahagian} label={<>Bahagian / Unit <span className="text-red-500">*</span> {isKnownStaff && !isEditingAutoFields && <span className="text-blue-500 ml-2 normal-case font-bold text-[10px] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">Auto-isi</span>}</>} options={unitOptions} onChange={handleChange} placeholder="Pilih Unit" disabled={isKnownStaff && !isEditingAutoFields} />
+                                    <UniversalSelect wrapperId="wrap-bahagian" name="bahagian" value={formData.bahagian} label={<>Bahagian / Unit <span className="text-red-500">*</span> {!isManualName && isKnownStaff && !isEditingAutoFields && <span className="text-blue-500 ml-2 normal-case font-bold text-[10px] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">Auto-isi</span>}</>} options={unitOptions} onChange={handleChange} placeholder="Pilih Unit" disabled={!isManualName && isKnownStaff && !isEditingAutoFields} />
                                 </div>
                                 <div>
                                     <label className={formLabelClass}>No. Kad Pengenalan <span className="text-red-500">*</span></label>
