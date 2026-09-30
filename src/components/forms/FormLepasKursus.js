@@ -15,13 +15,15 @@ const FormLepasKursus = ({
     // ================= LOGIK ACCORDION & AUTO-ADVANCE =================
     const [activePart, setActivePart] = useState('A');
     
-    // ✅ KEMAS KINI: Gunakan useRef supaya sistem tak auto-close jika dah pernah lompat
+    // Gunakan useRef supaya sistem tidak auto-close secara berulang kali
     const advancedRef = useRef({ A: false, B: false, C: false, D: false });
 
     const isAComplete = formData.lkA1 > 0 && formData.lkA2 > 0 && formData.lkA3 > 0 && formData.lkA4 > 0;
     const isBComplete = formData.lkB1 > 0 && formData.lkB2 > 0 && formData.lkB3 > 0 && formData.lkB4 > 0 && formData.lkB5 > 0;
     const isCComplete = formData.lkC1 > 0 && formData.lkC2 > 0 && formData.lkC3 > 0;
-    const isDComplete = formData.lkD1 > 0 && formData.lkD2a > 0 && formData.lkD2b > 0 && formData.lkD2c > 0 && formData.lkD3a > 0 && formData.lkD3b > 0 && formData.lkD3c > 0 && formData.lkD3d > 0;
+    
+    // lkD3a (Penginapan) dijadikan pilihan (tidak wajib)
+    const isDComplete = formData.lkD1 > 0 && formData.lkD2a > 0 && formData.lkD2b > 0 && formData.lkD2c > 0 && formData.lkD3b > 0 && formData.lkD3c > 0 && formData.lkD3d > 0;
     const isEComplete = formData.lkRumusan.trim() !== '';
 
     useEffect(() => {
@@ -48,7 +50,6 @@ const FormLepasKursus = ({
         <div onClick={() => togglePart(id)} className={`flex items-center justify-between p-4 cursor-pointer transition-colors ${activePart === id ? 'bg-blue-100 text-blue-800 border-b border-blue-200' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'}`}>
             <h3 className="font-extrabold">{title}</h3>
             <div className="flex items-center gap-3">
-                {/* ✅ KEMAS KINI: Teks "Tekan untuk semak" dipaparkan bila dah siap tutup */}
                 {isComplete && activePart !== id && <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider hidden sm:block">Tekan untuk semak / ubah</span>}
                 {isComplete && <div className="bg-emerald-100 text-emerald-600 p-1 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>}
                 <svg className={`w-5 h-5 transition-transform duration-300 ${activePart === id ? 'rotate-180 text-blue-600' : 'text-slate-400'}`} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
@@ -56,9 +57,11 @@ const FormLepasKursus = ({
         </div>
     );
 
-    const RatingRow = ({ label, name, max = 5 }) => (
+    const RatingRow = ({ label, name, max = 5, optional = false }) => (
         <div className="flex flex-col md:flex-row md:items-center justify-between py-4 border-b border-slate-100/50 gap-4 hover:bg-slate-50/50 transition-colors px-2 rounded-xl">
-            <span className="text-[14px] font-semibold text-slate-700 md:w-1/2 leading-relaxed">{label}</span>
+            <span className="text-[14px] font-semibold text-slate-700 md:w-1/2 leading-relaxed">
+                {label} {optional && <span className="text-xs font-normal text-slate-400">(Pilihan)</span>}
+            </span>
             <div className="flex gap-2 md:w-1/2 justify-end">
                 {[...Array(max)].map((_, i) => {
                     const val = i + 1;
@@ -186,7 +189,9 @@ const FormLepasKursus = ({
                                     <RatingRow label="b. Peserta" name="lkD2b" />
                                     <RatingRow label="c. Penganjur / Pengurusan Institut Latihan" name="lkD2c" />
                                     <div className="font-bold text-[13px] text-blue-600 bg-blue-50 px-3 py-2 rounded-lg mt-4 mb-2">3. Kemudahan yang diberikan:</div>
-                                    <RatingRow label="a. Penginapan (sekiranya berkaitan)" name="lkD3a" />
+                                    
+                                    {/* Penginapan tidak diwajibkan */}
+                                    <RatingRow label="a. Penginapan (sekiranya berkaitan)" name="lkD3a" optional={true} />
                                     <RatingRow label="b. Kemudahan Asas" name="lkD3b" />
                                     <RatingRow label="c. Nota dan alat bantuan mengajar" name="lkD3c" />
                                     <RatingRow label="d. Makan dan minum" name="lkD3d" />

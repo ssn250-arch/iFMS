@@ -175,10 +175,8 @@ export const generateForm1 = (doc, logoImgBase64, formData) => {
     drawBigCheckbox(28, currentY, formData.tuntutanGantian, "Gantian Tambang Kapal Terbang/Keretapi", "(Mengikut kelayakan bagi perjalanan melebihi 240 kilometer)"); 
     currentY += 12;
     
-    // Tarikh dikembalikan ke bentuk garisan putus-putus
     doc.text("Tarikh : ................................................................", 28, currentY); 
     
-    // TANDATANGAN DIGITAL
     if (formData.tandatangan) {
         try {
             doc.addImage(formData.tandatangan, 'PNG', 145, currentY - 14, 40, 18);
@@ -286,7 +284,6 @@ export const generateForm2 = (doc, logoImgBase64, formData, customData = null) =
             [ { content: 'NAMA,\nTANDATANGAN &\nTARIKH' }, { content: '' }, { content: 'CATATAN:\n\n\n\n\n', colSpan: 3, styles: { valign: 'top' } } ]
         ],
         didDrawCell: (hookData) => {
-            // Cell untuk Tandatangan Bahagian B
             if (hookData.section === 'body' && hookData.row.index === 8 && hookData.column.index === 3) {
                 if (data.tandatangan) {
                     try {
@@ -952,8 +949,10 @@ export const generateFormLepasKursus = (doc, logoImgBase64, formData) => {
     
     doc.setFontSize(12); 
     doc.text("BORANG PENILAIAN KURSUS", 105, 25, { align: 'center' });
+    
     doc.setFontSize(11); 
     doc.text("JABATAN TENAGA MANUSIA", 105, 31, { align: 'center' });
+    
     doc.setFontSize(9); 
     doc.setFont("helvetica", "normal"); 
     doc.text("(Diisi oleh pegawai sebaik sahaja kembali daripada berkursus)", 105, 37, { align: 'center' });
@@ -1047,14 +1046,8 @@ export const generateFormLepasKursus = (doc, logoImgBase64, formData) => {
         });
         
         currentY = doc.lastAutoTable.finalY + 8;
-        
-        if (currentY > 260) { 
-            doc.addPage(); 
-            currentY = 20; 
-        }
     };
     
-    // Teks diubah supaya wrap secara automatik tanpa perlu baris baru manual
     renderTable("A. Meningkatkan pengetahuan", [
         "Nyatakan tahap pemahaman anda terhadap kursus yang diikuti", 
         "Pengetahuan yang diperolehi setelah mengikuti kursus ini", 
@@ -1069,6 +1062,10 @@ export const generateFormLepasKursus = (doc, logoImgBase64, formData) => {
         "Objektif sebenar kursus tercapai", 
         "Adakah kaedah penyampaian dan latihan sesuai"
     ], ['lkB1', 'lkB2', 'lkB3', 'lkB4', 'lkB5']);
+    
+    // ✅ KEMAS KINI: Paksa Bahagian C bermula di muka surat baru
+    doc.addPage();
+    currentY = 20;
     
     renderTable("C. Faedah kepada Jabatan", [
         "Sejauh manakah kursus ini berfaedah kepada Jabatan", 
@@ -1116,11 +1113,6 @@ export const generateFormLepasKursus = (doc, logoImgBase64, formData) => {
     });
     
     currentY = doc.lastAutoTable.finalY + 8;
-    
-    if (currentY > 250) { 
-        doc.addPage(); 
-        currentY = 20; 
-    }
     
     doc.setFont("helvetica", "bold"); 
     doc.text("E. Rumusan dan cadangan", 15, currentY); 
@@ -1209,7 +1201,6 @@ export const generateFormPascaKursus = (doc, logoImgBase64, formData) => {
     doc.text(val(formData.jawatanPenyelia).toUpperCase(), 75, currentY); 
     currentY += 12;
     
-    // Guna splitTextToSize supaya rata dan justifikasi
     doc.setFont("helvetica", "bold");
     const faedahText = "2. Faedah diperolehi oleh pegawai dari kursus yang dihadiri. Sila gunakan skala berikut:";
     const splitFaedah = doc.splitTextToSize(faedahText, 180);
