@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ModernDatePicker from '../ui/ModernDatePicker';
 
 const LockIcon = () => (
@@ -14,15 +14,21 @@ const FormPascaKursus = ({
 
     // ================= LOGIK ACCORDION & AUTO-ADVANCE =================
     const [activePart, setActivePart] = useState('2');
+    
+    // ✅ KEMAS KINI: Gunakan useRef supaya sistem tak auto-close berulang kali
+    const advancedRef = useRef({ '2': false });
 
     const isP2Complete = formData.pk1a > 0 && formData.pk1b > 0 && formData.pk1c > 0 && formData.pk1d > 0;
     const isP3Complete = formData.pkCadangan.trim() !== '';
 
     useEffect(() => {
         if (expanded.penilaian) {
-            if (activePart === '2' && isP2Complete) setTimeout(() => setActivePart('3'), 400);
+            if (activePart === '2' && isP2Complete && !advancedRef.current['2']) {
+                advancedRef.current['2'] = true;
+                setTimeout(() => setActivePart('3'), 400);
+            }
         }
-    }, [formData.pk1a, formData.pk1b, formData.pk1c, formData.pk1d, expanded.penilaian, activePart, isP2Complete]);
+    }, [formData, expanded.penilaian, activePart, isP2Complete]);
 
     const togglePart = (part) => setActivePart(activePart === part ? null : part);
 
@@ -30,6 +36,8 @@ const FormPascaKursus = ({
         <div onClick={() => togglePart(id)} className={`flex items-center justify-between p-4 cursor-pointer transition-colors ${activePart === id ? 'bg-purple-100 text-purple-800 border-b border-purple-200' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'}`}>
             <h3 className="font-extrabold">{title}</h3>
             <div className="flex items-center gap-3">
+                {/* ✅ KEMAS KINI: Teks "Tekan untuk semak" dipaparkan bila dah siap tutup */}
+                {isComplete && activePart !== id && <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider hidden sm:block">Tekan untuk semak / ubah</span>}
                 {isComplete && <div className="bg-emerald-100 text-emerald-600 p-1 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>}
                 <svg className={`w-5 h-5 transition-transform duration-300 ${activePart === id ? 'rotate-180 text-purple-600' : 'text-slate-400'}`} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </div>
