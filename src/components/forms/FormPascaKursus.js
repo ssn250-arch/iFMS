@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import ModernDatePicker from '../ui/ModernDatePicker';
 
 const LockIcon = () => (
@@ -12,14 +12,38 @@ const FormPascaKursus = ({
 
     const jumlahHariKursus = calculateDays(formData.kursusDari, formData.kursusHingga);
 
+    // ================= LOGIK ACCORDION & AUTO-ADVANCE =================
+    const [activePart, setActivePart] = useState('2');
+
+    const isP2Complete = formData.pk1a > 0 && formData.pk1b > 0 && formData.pk1c > 0 && formData.pk1d > 0;
+    const isP3Complete = formData.pkCadangan.trim() !== '';
+
+    useEffect(() => {
+        if (expanded.penilaian) {
+            if (activePart === '2' && isP2Complete) setTimeout(() => setActivePart('3'), 400);
+        }
+    }, [formData.pk1a, formData.pk1b, formData.pk1c, formData.pk1d, expanded.penilaian, activePart, isP2Complete]);
+
+    const togglePart = (part) => setActivePart(activePart === part ? null : part);
+
+    const renderHeader = (id, title, isComplete) => (
+        <div onClick={() => togglePart(id)} className={`flex items-center justify-between p-4 cursor-pointer transition-colors ${activePart === id ? 'bg-purple-100 text-purple-800 border-b border-purple-200' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'}`}>
+            <h3 className="font-extrabold">{title}</h3>
+            <div className="flex items-center gap-3">
+                {isComplete && <div className="bg-emerald-100 text-emerald-600 p-1 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>}
+                <svg className={`w-5 h-5 transition-transform duration-300 ${activePart === id ? 'rotate-180 text-purple-600' : 'text-slate-400'}`} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+        </div>
+    );
+
     const RatingRow = ({ label, name }) => (
-        <div className="flex flex-col md:flex-row md:items-center justify-between py-4 border-b border-slate-100 gap-4">
-            <span className="text-[14px] font-semibold text-slate-700 md:w-3/5">{label}</span>
+        <div className="flex flex-col md:flex-row md:items-center justify-between py-4 border-b border-slate-100/50 gap-4 hover:bg-slate-50/50 transition-colors px-2 rounded-xl">
+            <span className="text-[14px] font-semibold text-slate-700 md:w-3/5 leading-relaxed">{label}</span>
             <div className="flex gap-2 md:w-2/5 justify-end">
                 {[1, 2, 3].map((val) => {
                     const isSelected = formData[name] === val;
                     return (
-                        <label key={val} className={`w-12 h-10 flex items-center justify-center rounded-xl border-2 cursor-pointer transition-all ${isSelected ? 'bg-purple-50 border-purple-500 text-purple-700 font-bold' : 'bg-white border-slate-200 text-slate-500 hover:border-purple-300'}`}>
+                        <label key={val} className={`w-12 h-10 flex items-center justify-center rounded-xl border-2 cursor-pointer transition-all duration-300 transform active:scale-90 ${isSelected ? 'bg-purple-500 border-purple-600 text-white font-bold shadow-md shadow-purple-500/30' : 'bg-white border-slate-200 text-slate-500 hover:border-purple-300 hover:text-purple-500'}`}>
                             <input type="radio" name={name} value={val} checked={isSelected} onChange={(e) => handleChange({ target: { name, value: parseInt(e.target.value) } })} className="hidden" />
                             {val}
                         </label>
@@ -94,7 +118,7 @@ const FormPascaKursus = ({
                 )}
             </div>
 
-            {/* PENILAIAN 3 BULAN */}
+            {/* PENILAIAN 3 BULAN DENGAN ACCORDION */}
             <div id="section-penilaian" className={`bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border overflow-hidden transition-all duration-500 ${!isKursusComplete ? 'border-slate-200/50 opacity-60 grayscale-[20%]' : (expanded.penilaian ? 'border-slate-100 ring-[3px] ring-purple-500/20' : 'border-slate-100 hover:shadow-md')} ${shakeSection === 'penilaian' ? 'animate-shake border-red-400' : ''} mt-5`}>
                 <div onClick={() => isKursusComplete && toggleSection('penilaian')} className={`px-6 py-5 flex items-center justify-between transition-colors ${!isKursusComplete ? 'bg-slate-50/50 cursor-not-allowed' : 'bg-white hover:bg-slate-50 cursor-pointer'}`}>
                     <div className="flex items-center gap-4">
@@ -110,29 +134,39 @@ const FormPascaKursus = ({
 
                 {expanded.penilaian && isKursusComplete && (
                     <div className="p-6 md:p-8 pt-2 border-t border-slate-100 animate-slide-up">
-                        <div className="bg-purple-50/50 p-4 rounded-2xl border border-purple-100 mb-6">
-                            <p className="text-[12px] font-bold text-purple-800 uppercase tracking-wide mb-2">Petunjuk Skala:</p>
-                            <p className="text-[13px] text-slate-600"><strong>1:</strong> Tidak Setuju &nbsp;&nbsp;|&nbsp;&nbsp; <strong>2:</strong> Setuju &nbsp;&nbsp;|&nbsp;&nbsp; <strong>3:</strong> Amat Setuju</p>
+                        <div className="bg-purple-50/50 p-4 rounded-2xl border border-purple-100 mb-6 flex items-center justify-between">
+                            <div className="text-[12px] font-bold text-purple-800 uppercase tracking-wide">Petunjuk Skala:</div>
+                            <div className="text-[12px] font-semibold text-slate-600 flex gap-4">
+                                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400"></span> 1: Tidak Setuju</span>
+                                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-400"></span> 2: Setuju</span>
+                                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-400"></span> 3: Amat Setuju</span>
+                            </div>
                         </div>
 
-                        <div className="space-y-8">
-                            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
-                                <h3 className="font-extrabold text-slate-800 mb-2">2. Faedah diperolehi oleh pegawai dari kursus yang dihadiri</h3>
-                                <RatingRow label="a. Dapat membantu pegawai menjalankan tugas dengan lebih berkesan" name="pk1a" />
-                                <RatingRow label="b. Dapat meningkatkan pengetahuan pegawai dalam menjalankan tugas" name="pk1b" />
-                                <RatingRow label="c. Dapat meningkatkan kemahiran pegawai dalam menjalankan tugas" name="pk1c" />
-                                <RatingRow label="d. Dapat meningkatkan keyakinan kemahiran pegawai menyebarkan pengetahuan/kemahiran kepada orang lain" name="pk1d" />
+                        <div className="space-y-4">
+                            {/* Seksyen 2 */}
+                            <div className={`border rounded-2xl overflow-hidden transition-all duration-300 ${activePart === '2' ? 'border-purple-300 shadow-md shadow-purple-100' : 'border-slate-200'}`}>
+                                {renderHeader('2', '2. Faedah diperolehi oleh pegawai', isP2Complete)}
+                                <div className={`transition-all duration-500 bg-white ${activePart === '2' ? 'max-h-[1000px] opacity-100 p-5' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+                                    <RatingRow label="a. Dapat membantu pegawai menjalankan tugas dengan lebih berkesan" name="pk1a" />
+                                    <RatingRow label="b. Dapat meningkatkan pengetahuan pegawai dalam menjalankan tugas" name="pk1b" />
+                                    <RatingRow label="c. Dapat meningkatkan kemahiran pegawai dalam menjalankan tugas" name="pk1c" />
+                                    <RatingRow label="d. Dapat meningkatkan keyakinan kemahiran pegawai menyebarkan pengetahuan/kemahiran kepada orang lain" name="pk1d" />
+                                </div>
                             </div>
 
-                            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
-                                <h3 className="font-extrabold text-slate-800 mb-2">3. Cadangan untuk kursus lanjutan (sekiranya ada)</h3>
-                                <textarea name="pkCadangan" value={formData.pkCadangan} onChange={handleChange} className={`${formInputClass} min-h-[100px] resize-none`} placeholder="Nyatakan sebarang cadangan..." />
+                            {/* Seksyen 3 */}
+                            <div className={`border rounded-2xl overflow-hidden transition-all duration-300 ${activePart === '3' ? 'border-purple-300 shadow-md shadow-purple-100' : 'border-slate-200'}`}>
+                                {renderHeader('3', '3. Cadangan Lanjutan', isP3Complete)}
+                                <div className={`transition-all duration-500 bg-white ${activePart === '3' ? 'max-h-[500px] opacity-100 p-5' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+                                    <textarea name="pkCadangan" value={formData.pkCadangan} onChange={handleChange} className={`${formInputClass} min-h-[100px] resize-none`} placeholder="Nyatakan sebarang cadangan untuk kursus lanjutan (sekiranya ada)..." />
+                                </div>
                             </div>
                         </div>
                         
                         <div className="mt-8 flex justify-end">
-                            <button onClick={() => nextSection('penilaian', 'jana')} className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-2">
-                                Selesai <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <button onClick={() => nextSection('penilaian', 'jana')} disabled={!isPenilaianComplete} className={`font-bold py-3 px-6 rounded-xl shadow-md transition-all flex items-center gap-2 ${isPenilaianComplete ? 'bg-slate-900 hover:bg-slate-800 text-white active:scale-95' : 'bg-slate-300 text-slate-500 cursor-not-allowed'}`}>
+                                {isPenilaianComplete ? 'Selesai' : 'Lengkapkan Borang'} <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                             </button>
                         </div>
                     </div>

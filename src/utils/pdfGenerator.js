@@ -74,7 +74,10 @@ export const generateForm1 = (doc, logoImgBase64, formData) => {
 
     doc.text("6.", 18, currentY); doc.text("Cara Perjalanan:", 28, currentY); currentY += 7;
     drawBigCheckbox(28, currentY, formData.caraPerjalanan.includes('Kereta Rasmi Jawatan'), "Kereta Rasmi Jawatan"); 
+    
+    // Tiket Sendiri atau Waran Jabatan dua-dua akan tick Kapal Terbang
     drawBigCheckbox(85, currentY, formData.caraPerjalanan.some(c => c.includes('Kapal Terbang')), "Kapal Terbang");
+    
     drawBigCheckbox(135, currentY, formData.caraPerjalanan.includes('Lain-lain'), "Lain-lain (Sila nyatakan)"); currentY += 7;
     drawBigCheckbox(28, currentY, formData.caraPerjalanan.includes('Kereta Sendiri'), "Kereta Sendiri");
     drawBigCheckbox(85, currentY, formData.caraPerjalanan.includes('Kereta Jabatan'), "Kereta Jabatan"); doc.setLineWidth(0.4); doc.line(135, currentY + 1.5, 185, currentY + 1.5); currentY += 10;
@@ -94,11 +97,16 @@ export const generateForm1 = (doc, logoImgBase64, formData) => {
     drawBigCheckbox(28, currentY, formData.tuntutanBatu, "Elaun hitungan batu/ tuntutan bekalan bahan api"); currentY += 8;
     drawBigCheckbox(28, currentY, formData.tuntutanGantian, "Gantian Tambang Kapal Terbang/Keretapi", "(Mengikut kelayakan bagi perjalanan melebihi 240 kilometer)"); currentY += 12;
     
+    // Tarikh dikembalikan ke bentuk garisan putus-putus
     doc.text("Tarikh : ................................................................", 28, currentY); 
+    
+    // TANDATANGAN DIGITAL
     if (formData.tandatangan) {
         try {
             doc.addImage(formData.tandatangan, 'PNG', 145, currentY - 14, 40, 18);
-        } catch(e) {}
+        } catch(e) {
+            console.warn("Gagal render tandatangan pada Lampiran A");
+        }
     }
     doc.text("(Tandatangan Pemohon)", 165, currentY + 4, { align: 'center' }); 
     currentY += 9;
@@ -677,9 +685,9 @@ export const generateFormLepasKursus = (doc, logoImgBase64, formData) => {
         startY: currentY, margin: { left: 15, right: 15 }, theme: 'grid',
         head: [['1', '2', '3', '4', '5']],
         body: [['Tidak memuaskan/\nTidak boleh', 'Kurang memuaskan/\nKurang boleh', 'Memuaskan/\nSederhana', 'Memuaskan/\nBoleh', 'Sangat memuaskan/\nBoleh']],
-        // ✅ KEMAS KINI: Warna table header ditukar putih (255, 255, 255)
-        headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center' },
-        bodyStyles: { textColor: [0, 0, 0], halign: 'center', valign: 'middle', minCellHeight: 12 }, styles: { font: 'helvetica', fontSize: 8.5 }
+        // ✅ KEMAS KINI: Garisan border ditetapkan dengan jelas untuk header putih
+        headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center', lineWidth: 0.2, lineColor: [0,0,0] },
+        bodyStyles: { textColor: [0, 0, 0], halign: 'center', valign: 'middle', minCellHeight: 12, lineWidth: 0.2, lineColor: [0,0,0] }, styles: { font: 'helvetica', fontSize: 8.5 }
     });
     currentY = doc.lastAutoTable.finalY + 8;
     
@@ -709,9 +717,9 @@ export const generateFormLepasKursus = (doc, logoImgBase64, formData) => {
             startY: currentY + 3, margin: { left: 15, right: 15 }, theme: 'grid',
             head: [['Bil', 'Perkara', '1', '2', '3', '4', '5']],
             body: rows,
-            // ✅ KEMAS KINI: Warna table header ditukar putih (255, 255, 255)
-            headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center' },
-            bodyStyles: { textColor: [0, 0, 0], valign: 'middle' },
+            // ✅ KEMAS KINI: Warna table header ditukar putih (255, 255, 255) dengan border hitam yang jelas
+            headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center', lineWidth: 0.2, lineColor: [0,0,0] },
+            bodyStyles: { textColor: [0, 0, 0], valign: 'middle', lineWidth: 0.2, lineColor: [0,0,0] },
             columnStyles: { 0: { cellWidth: 10, halign: 'center' }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 12, halign: 'center' }, 3: { cellWidth: 12, halign: 'center' }, 4: { cellWidth: 12, halign: 'center' }, 5: { cellWidth: 12, halign: 'center' }, 6: { cellWidth: 12, halign: 'center' } },
             styles: { font: 'helvetica', fontSize: 8.5 }
         });
@@ -754,9 +762,9 @@ export const generateFormLepasKursus = (doc, logoImgBase64, formData) => {
             [{ content: 'Jumlah Kecil', colSpan: 2, styles: { halign: 'right', fontStyle: 'bold' } }, sum1D||'', sum2D||'', sum3D||'', sum4D||'', sum5D||''],
             [{ content: 'Jumlah Besar', colSpan: 2, styles: { halign: 'right', fontStyle: 'bold' } }, { content: (sum1D+sum2D+sum3D+sum4D+sum5D).toString(), colSpan: 5, styles: { halign: 'center', fontStyle: 'bold' } }]
         ],
-        // ✅ KEMAS KINI: Warna table header ditukar putih (255, 255, 255)
-        headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center' },
-        bodyStyles: { textColor: [0, 0, 0], valign: 'middle' },
+        // ✅ KEMAS KINI: Header putih bersama border hitam untuk jadual seksyen D
+        headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center', lineWidth: 0.2, lineColor: [0,0,0] },
+        bodyStyles: { textColor: [0, 0, 0], valign: 'middle', lineWidth: 0.2, lineColor: [0,0,0] },
         columnStyles: { 0: { cellWidth: 10, halign: 'center' }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 12, halign: 'center' }, 3: { cellWidth: 12, halign: 'center' }, 4: { cellWidth: 12, halign: 'center' }, 5: { cellWidth: 12, halign: 'center' }, 6: { cellWidth: 12, halign: 'center' } },
         styles: { font: 'helvetica', fontSize: 8.5 }
     });
@@ -800,9 +808,9 @@ export const generateFormPascaKursus = (doc, logoImgBase64, formData) => {
         startY: currentY, margin: { left: 15, right: 15 }, theme: 'grid',
         head: [['1', '2', '3']],
         body: [['Tidak Setuju', 'Setuju', 'Amat Setuju']],
-        // ✅ KEMAS KINI: Warna table header ditukar putih (255, 255, 255)
-        headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center' },
-        bodyStyles: { textColor: [0, 0, 0], halign: 'center', valign: 'middle', minCellHeight: 10 }, styles: { font: 'helvetica', fontSize: 8.5 }
+        // ✅ KEMAS KINI: Header putih bersama border hitam
+        headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center', lineWidth: 0.2, lineColor: [0,0,0] },
+        bodyStyles: { textColor: [0, 0, 0], halign: 'center', valign: 'middle', minCellHeight: 10, lineWidth: 0.2, lineColor: [0,0,0] }, styles: { font: 'helvetica', fontSize: 8.5 }
     });
     currentY = doc.lastAutoTable.finalY + 8;
     
@@ -825,9 +833,9 @@ export const generateFormPascaKursus = (doc, logoImgBase64, formData) => {
             [{ content: 'Jumlah Kecil', colSpan: 2, styles: { halign: 'right', fontStyle: 'bold' } }, sum1||'', sum2||'', sum3||''],
             [{ content: 'Jumlah Besar', colSpan: 2, styles: { halign: 'right', fontStyle: 'bold' } }, { content: (sum1+sum2+sum3).toString(), colSpan: 3, styles: { halign: 'center', fontStyle: 'bold' } }]
         ],
-        // ✅ KEMAS KINI: Warna table header ditukar putih (255, 255, 255)
-        headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center' }, 
-        bodyStyles: { textColor: [0, 0, 0], valign: 'middle' }, columnStyles: { 0: { cellWidth: 10, halign: 'center' }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 15, halign: 'center' }, 3: { cellWidth: 15, halign: 'center' }, 4: { cellWidth: 15, halign: 'center' } }, styles: { font: 'helvetica', fontSize: 8.5 }
+        // ✅ KEMAS KINI: Header putih bersama border hitam
+        headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center', lineWidth: 0.2, lineColor: [0,0,0] }, 
+        bodyStyles: { textColor: [0, 0, 0], valign: 'middle', lineWidth: 0.2, lineColor: [0,0,0] }, columnStyles: { 0: { cellWidth: 10, halign: 'center' }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 15, halign: 'center' }, 3: { cellWidth: 15, halign: 'center' }, 4: { cellWidth: 15, halign: 'center' } }, styles: { font: 'helvetica', fontSize: 8.5 }
     });
     
     currentY = doc.lastAutoTable.finalY + 12;

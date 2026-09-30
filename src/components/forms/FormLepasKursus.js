@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import ModernDatePicker from '../ui/ModernDatePicker';
 
 const LockIcon = () => (
@@ -12,15 +12,51 @@ const FormLepasKursus = ({
 
     const jumlahHariKursus = calculateDays(formData.kursusDari, formData.kursusHingga);
 
+    // ================= LOGIK ACCORDION & AUTO-ADVANCE =================
+    const [activePart, setActivePart] = useState('A');
+
+    const isAComplete = formData.lkA1 > 0 && formData.lkA2 > 0 && formData.lkA3 > 0 && formData.lkA4 > 0;
+    const isBComplete = formData.lkB1 > 0 && formData.lkB2 > 0 && formData.lkB3 > 0 && formData.lkB4 > 0 && formData.lkB5 > 0;
+    const isCComplete = formData.lkC1 > 0 && formData.lkC2 > 0 && formData.lkC3 > 0;
+    const isDComplete = formData.lkD1 > 0 && formData.lkD2a > 0 && formData.lkD2b > 0 && formData.lkD2c > 0 && formData.lkD3a > 0 && formData.lkD3b > 0 && formData.lkD3c > 0 && formData.lkD3d > 0;
+    const isEComplete = formData.lkRumusan.trim() !== '';
+
+    useEffect(() => {
+        if (expanded.penilaian) {
+            if (activePart === 'A' && isAComplete) setTimeout(() => setActivePart('B'), 400);
+            else if (activePart === 'B' && isBComplete) setTimeout(() => setActivePart('C'), 400);
+            else if (activePart === 'C' && isCComplete) setTimeout(() => setActivePart('D'), 400);
+            else if (activePart === 'D' && isDComplete) setTimeout(() => setActivePart('E'), 400);
+        }
+    }, [
+        formData.lkA1, formData.lkA2, formData.lkA3, formData.lkA4,
+        formData.lkB1, formData.lkB2, formData.lkB3, formData.lkB4, formData.lkB5,
+        formData.lkC1, formData.lkC2, formData.lkC3,
+        formData.lkD1, formData.lkD2a, formData.lkD2b, formData.lkD2c, formData.lkD3a, formData.lkD3b, formData.lkD3c, formData.lkD3d,
+        expanded.penilaian, activePart, isAComplete, isBComplete, isCComplete, isDComplete
+    ]);
+
+    const togglePart = (part) => setActivePart(activePart === part ? null : part);
+
+    const renderHeader = (id, title, isComplete) => (
+        <div onClick={() => togglePart(id)} className={`flex items-center justify-between p-4 cursor-pointer transition-colors ${activePart === id ? 'bg-blue-100 text-blue-800 border-b border-blue-200' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'}`}>
+            <h3 className="font-extrabold">{title}</h3>
+            <div className="flex items-center gap-3">
+                {isComplete && <div className="bg-emerald-100 text-emerald-600 p-1 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>}
+                <svg className={`w-5 h-5 transition-transform duration-300 ${activePart === id ? 'rotate-180 text-blue-600' : 'text-slate-400'}`} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+        </div>
+    );
+
     const RatingRow = ({ label, name, max = 5 }) => (
-        <div className="flex flex-col md:flex-row md:items-center justify-between py-4 border-b border-slate-100 gap-4">
-            <span className="text-[14px] font-semibold text-slate-700 md:w-1/2">{label}</span>
+        <div className="flex flex-col md:flex-row md:items-center justify-between py-4 border-b border-slate-100/50 gap-4 hover:bg-slate-50/50 transition-colors px-2 rounded-xl">
+            <span className="text-[14px] font-semibold text-slate-700 md:w-1/2 leading-relaxed">{label}</span>
             <div className="flex gap-2 md:w-1/2 justify-end">
                 {[...Array(max)].map((_, i) => {
                     const val = i + 1;
                     const isSelected = formData[name] === val;
                     return (
-                        <label key={val} className={`w-10 h-10 flex items-center justify-center rounded-xl border-2 cursor-pointer transition-all ${isSelected ? 'bg-blue-50 border-blue-500 text-blue-700 font-bold' : 'bg-white border-slate-200 text-slate-500 hover:border-blue-300'}`}>
+                        <label key={val} className={`w-10 h-10 flex items-center justify-center rounded-xl border-2 cursor-pointer transition-all duration-300 transform active:scale-90 ${isSelected ? 'bg-blue-500 border-blue-600 text-white font-bold shadow-md shadow-blue-500/30' : 'bg-white border-slate-200 text-slate-500 hover:border-blue-300 hover:text-blue-500'}`}>
                             <input type="radio" name={name} value={val} checked={isSelected} onChange={(e) => handleChange({ target: { name, value: parseInt(e.target.value) } })} className="hidden" />
                             {val}
                         </label>
@@ -73,7 +109,7 @@ const FormLepasKursus = ({
                 )}
             </div>
 
-            {/* PENILAIAN */}
+            {/* PENILAIAN DENGAN ACCORDION */}
             <div id="section-penilaian" className={`bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border overflow-hidden transition-all duration-500 ${!isKursusComplete ? 'border-slate-200/50 opacity-60 grayscale-[20%]' : (expanded.penilaian ? 'border-slate-100 ring-[3px] ring-amber-500/20' : 'border-slate-100 hover:shadow-md')} ${shakeSection === 'penilaian' ? 'animate-shake border-red-400' : ''} mt-5`}>
                 <div onClick={() => isKursusComplete && toggleSection('penilaian')} className={`px-6 py-5 flex items-center justify-between transition-colors ${!isKursusComplete ? 'bg-slate-50/50 cursor-not-allowed' : 'bg-white hover:bg-slate-50 cursor-pointer'}`}>
                     <div className="flex items-center gap-4">
@@ -89,59 +125,78 @@ const FormLepasKursus = ({
 
                 {expanded.penilaian && isKursusComplete && (
                     <div className="p-6 md:p-8 pt-2 border-t border-slate-100 animate-slide-up">
-                        <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 mb-6">
-                            <p className="text-[12px] font-bold text-blue-800 uppercase tracking-wide mb-2">Petunjuk Skala:</p>
-                            <p className="text-[13px] text-slate-600"><strong>1-2:</strong> Tidak memuaskan / Tidak boleh &nbsp;&nbsp;|&nbsp;&nbsp; <strong>3:</strong> Memuaskan / Sederhana &nbsp;&nbsp;|&nbsp;&nbsp; <strong>4-5:</strong> Sangat memuaskan / Boleh</p>
+                        <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 mb-6 flex items-center justify-between">
+                            <div className="text-[12px] font-bold text-blue-800 uppercase tracking-wide">Petunjuk Skala:</div>
+                            <div className="text-[12px] font-semibold text-slate-600 flex gap-4">
+                                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400"></span> 1-2: Tidak Memuaskan</span>
+                                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-400"></span> 3: Sederhana</span>
+                                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-400"></span> 4-5: Memuaskan</span>
+                            </div>
                         </div>
 
-                        <div className="space-y-8">
-                            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
-                                <h3 className="font-extrabold text-slate-800 mb-2">A. Meningkatkan Pengetahuan</h3>
-                                <RatingRow label="1. Tahap pemahaman anda terhadap kursus" name="lkA1" />
-                                <RatingRow label="2. Pengetahuan yang diperolehi setelah mengikuti kursus ini" name="lkA2" />
-                                <RatingRow label="3. Bolehkah anda mempraktikkan kemahiran yang diperolehi" name="lkA3" />
-                                <RatingRow label="4. Kemahiran menyelesaikan masalah berkaitan kursus" name="lkA4" />
+                        <div className="space-y-4">
+                            {/* Seksyen A */}
+                            <div className={`border rounded-2xl overflow-hidden transition-all duration-300 ${activePart === 'A' ? 'border-blue-300 shadow-md shadow-blue-100' : 'border-slate-200'}`}>
+                                {renderHeader('A', 'A. Meningkatkan Pengetahuan', isAComplete)}
+                                <div className={`transition-all duration-500 bg-white ${activePart === 'A' ? 'max-h-[1000px] opacity-100 p-5' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+                                    <RatingRow label="1. Tahap pemahaman anda terhadap kursus" name="lkA1" />
+                                    <RatingRow label="2. Pengetahuan yang diperolehi setelah mengikuti kursus ini" name="lkA2" />
+                                    <RatingRow label="3. Bolehkah anda mempraktikkan kemahiran yang diperolehi" name="lkA3" />
+                                    <RatingRow label="4. Kemahiran menyelesaikan masalah berkaitan kursus" name="lkA4" />
+                                </div>
                             </div>
 
-                            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
-                                <h3 className="font-extrabold text-slate-800 mb-2">B. Keberkesanan Kursus</h3>
-                                <RatingRow label="1. Keberkesanan kursus yang diikuti secara keseluruhan" name="lkB1" />
-                                <RatingRow label="2. Tahap pemahaman selepas mengikuti kursus" name="lkB2" />
-                                <RatingRow label="3. Adakah jangkamasa kursus sesuai" name="lkB3" />
-                                <RatingRow label="4. Objektif sebenar kursus tercapai" name="lkB4" />
-                                <RatingRow label="5. Adakah kaedah penyampaian dan latihan sesuai" name="lkB5" />
+                            {/* Seksyen B */}
+                            <div className={`border rounded-2xl overflow-hidden transition-all duration-300 ${activePart === 'B' ? 'border-blue-300 shadow-md shadow-blue-100' : 'border-slate-200'}`}>
+                                {renderHeader('B', 'B. Keberkesanan Kursus', isBComplete)}
+                                <div className={`transition-all duration-500 bg-white ${activePart === 'B' ? 'max-h-[1000px] opacity-100 p-5' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+                                    <RatingRow label="1. Keberkesanan kursus yang diikuti secara keseluruhan" name="lkB1" />
+                                    <RatingRow label="2. Tahap pemahaman selepas mengikuti kursus" name="lkB2" />
+                                    <RatingRow label="3. Adakah jangkamasa kursus sesuai" name="lkB3" />
+                                    <RatingRow label="4. Objektif sebenar kursus tercapai" name="lkB4" />
+                                    <RatingRow label="5. Adakah kaedah penyampaian dan latihan sesuai" name="lkB5" />
+                                </div>
                             </div>
 
-                            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
-                                <h3 className="font-extrabold text-slate-800 mb-2">C. Faedah kepada Jabatan</h3>
-                                <RatingRow label="1. Sejauh manakah kursus ini berfaedah kepada Jabatan" name="lkC1" />
-                                <RatingRow label="2. Adakah tugas sekarang sesuai dengan kursus yang diikuti" name="lkC2" />
-                                <RatingRow label="3. Adakah kursus ini dapat meningkatkan kemahiran kepada tugas semasa" name="lkC3" />
+                            {/* Seksyen C */}
+                            <div className={`border rounded-2xl overflow-hidden transition-all duration-300 ${activePart === 'C' ? 'border-blue-300 shadow-md shadow-blue-100' : 'border-slate-200'}`}>
+                                {renderHeader('C', 'C. Faedah kepada Jabatan', isCComplete)}
+                                <div className={`transition-all duration-500 bg-white ${activePart === 'C' ? 'max-h-[1000px] opacity-100 p-5' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+                                    <RatingRow label="1. Sejauh manakah kursus ini berfaedah kepada Jabatan" name="lkC1" />
+                                    <RatingRow label="2. Adakah tugas sekarang sesuai dengan kursus yang diikuti" name="lkC2" />
+                                    <RatingRow label="3. Adakah kursus ini dapat meningkatkan kemahiran kepada tugas semasa" name="lkC3" />
+                                </div>
                             </div>
 
-                            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
-                                <h3 className="font-extrabold text-slate-800 mb-2">D. Keberkesanan Penyedia Latihan</h3>
-                                <RatingRow label="1. Pensyarah yang berpengalaman (Penyampaian Latihan)" name="lkD1" />
-                                <p className="font-bold text-[13px] text-slate-500 mt-4 mb-2">2. Perhubungan semasa berkursus di antara peserta:</p>
-                                <RatingRow label="a. Pensyarah" name="lkD2a" />
-                                <RatingRow label="b. Peserta" name="lkD2b" />
-                                <RatingRow label="c. Penganjur / Pengurusan Institut Latihan" name="lkD2c" />
-                                <p className="font-bold text-[13px] text-slate-500 mt-4 mb-2">3. Kemudahan yang diberikan:</p>
-                                <RatingRow label="a. Penginapan (sekiranya berkaitan)" name="lkD3a" />
-                                <RatingRow label="b. Kemudahan Asas" name="lkD3b" />
-                                <RatingRow label="c. Nota dan alat bantuan mengajar" name="lkD3c" />
-                                <RatingRow label="d. Makan dan minum" name="lkD3d" />
+                            {/* Seksyen D */}
+                            <div className={`border rounded-2xl overflow-hidden transition-all duration-300 ${activePart === 'D' ? 'border-blue-300 shadow-md shadow-blue-100' : 'border-slate-200'}`}>
+                                {renderHeader('D', 'D. Keberkesanan Penyedia Latihan', isDComplete)}
+                                <div className={`transition-all duration-500 bg-white ${activePart === 'D' ? 'max-h-[1500px] opacity-100 p-5' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+                                    <RatingRow label="1. Pensyarah yang berpengalaman (Penyampaian Latihan)" name="lkD1" />
+                                    <div className="font-bold text-[13px] text-blue-600 bg-blue-50 px-3 py-2 rounded-lg mt-4 mb-2">2. Perhubungan semasa berkursus di antara peserta:</div>
+                                    <RatingRow label="a. Pensyarah" name="lkD2a" />
+                                    <RatingRow label="b. Peserta" name="lkD2b" />
+                                    <RatingRow label="c. Penganjur / Pengurusan Institut Latihan" name="lkD2c" />
+                                    <div className="font-bold text-[13px] text-blue-600 bg-blue-50 px-3 py-2 rounded-lg mt-4 mb-2">3. Kemudahan yang diberikan:</div>
+                                    <RatingRow label="a. Penginapan (sekiranya berkaitan)" name="lkD3a" />
+                                    <RatingRow label="b. Kemudahan Asas" name="lkD3b" />
+                                    <RatingRow label="c. Nota dan alat bantuan mengajar" name="lkD3c" />
+                                    <RatingRow label="d. Makan dan minum" name="lkD3d" />
+                                </div>
                             </div>
 
-                            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
-                                <h3 className="font-extrabold text-slate-800 mb-2">E. Rumusan dan cadangan</h3>
-                                <textarea name="lkRumusan" value={formData.lkRumusan} onChange={handleChange} className={`${formInputClass} min-h-[100px] resize-none`} placeholder="Nyatakan rumusan atau cadangan anda..." />
+                            {/* Seksyen E */}
+                            <div className={`border rounded-2xl overflow-hidden transition-all duration-300 ${activePart === 'E' ? 'border-blue-300 shadow-md shadow-blue-100' : 'border-slate-200'}`}>
+                                {renderHeader('E', 'E. Rumusan dan Cadangan', isEComplete)}
+                                <div className={`transition-all duration-500 bg-white ${activePart === 'E' ? 'max-h-[500px] opacity-100 p-5' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+                                    <textarea name="lkRumusan" value={formData.lkRumusan} onChange={handleChange} className={`${formInputClass} min-h-[100px] resize-none`} placeholder="Nyatakan rumusan atau cadangan anda berkenaan kursus ini..." />
+                                </div>
                             </div>
                         </div>
                         
                         <div className="mt-8 flex justify-end">
-                            <button onClick={() => nextSection('penilaian', 'jana')} className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-2">
-                                Selesai <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <button onClick={() => nextSection('penilaian', 'jana')} disabled={!isPenilaianComplete} className={`font-bold py-3 px-6 rounded-xl shadow-md transition-all flex items-center gap-2 ${isPenilaianComplete ? 'bg-slate-900 hover:bg-slate-800 text-white active:scale-95' : 'bg-slate-300 text-slate-500 cursor-not-allowed'}`}>
+                                {isPenilaianComplete ? 'Selesai' : 'Lengkapkan Borang'} <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                             </button>
                         </div>
                     </div>
