@@ -654,12 +654,18 @@ export const generateFormLepasKursus = (doc, logoImgBase64, formData) => {
     doc.setFontSize(11); doc.text("JABATAN TENAGA MANUSIA", 105, 31, { align: 'center' });
     doc.setFontSize(9); doc.setFont("helvetica", "normal"); doc.text("(Diisi oleh pegawai sebaik sahaja kembali daripada berkursus)", 105, 37, { align: 'center' });
     
+    // Kira & format tarikh kursus automatik
+    const kDariFormat = formData.kursusDari ? formData.kursusDari.split('-').reverse().join('/') : '';
+    const kHinggaFormat = formData.kursusHingga ? formData.kursusHingga.split('-').reverse().join('/') : '';
+    const jumlahHariKursus = calculateDays(formData.kursusDari, formData.kursusHingga);
+    const tempohStr = jumlahHariKursus > 0 ? `${jumlahHariKursus} HARI (${kDariFormat} HINGGA ${kHinggaFormat})` : '-';
+    
     let currentY = 50;
     doc.text("1. Nama", 15, currentY); doc.text(":", 55, currentY); doc.text(val(formData.nama).toUpperCase(), 60, currentY); currentY += 6;
     doc.text("2. No. Kad Pengenalan", 15, currentY); doc.text(":", 55, currentY); doc.text(val(formData.noKp), 60, currentY); currentY += 6;
     doc.text("3. Jawatan", 15, currentY); doc.text(":", 55, currentY); doc.text(val(formData.jawatan).toUpperCase(), 60, currentY); currentY += 6;
     doc.text("4. Nama Kursus", 15, currentY); doc.text(":", 55, currentY); doc.text(val(formData.kursusNama).toUpperCase(), 60, currentY); currentY += 6;
-    doc.text("5. Tempoh Kursus", 15, currentY); doc.text(":", 55, currentY); doc.text(val(formData.kursusTempoh).toUpperCase(), 60, currentY); currentY += 10;
+    doc.text("5. Tempoh Kursus", 15, currentY); doc.text(":", 55, currentY); doc.text(tempohStr, 60, currentY); currentY += 10;
     
     doc.setFont("helvetica", "normal");
     doc.text("Tandakan tahap kepuasan anda mengenai kursus ini dengan menandakan petak", 15, currentY); currentY += 5;
@@ -746,6 +752,10 @@ export const generateFormPascaKursus = (doc, logoImgBase64, formData) => {
     doc.setFontSize(11); doc.text("JABATAN TENAGA MANUSIA", 105, 31, { align: 'center' });
     doc.setFontSize(9); doc.setFont("helvetica", "normal"); doc.text("(Diisi oleh penyelia selepas tiga bulan pegawai di bawah seliaan menghadiri kursus)", 105, 37, { align: 'center' });
     
+    // Kira & format tarikh kursus automatik
+    const kDariFormat = formData.kursusDari ? formData.kursusDari.split('-').reverse().join('/') : '';
+    const kHinggaFormat = formData.kursusHingga ? formData.kursusHingga.split('-').reverse().join('/') : '';
+    
     let currentY = 48;
     doc.text("Sila lengkapkan soal selidik ini dengan menggunakan skala yang berkaitan", 15, currentY); currentY += 8;
     doc.setFont("helvetica", "bold"); doc.text("1. Maklumat Kursus", 15, currentY); doc.setFont("helvetica", "normal"); currentY += 8;
@@ -756,7 +766,7 @@ export const generateFormPascaKursus = (doc, logoImgBase64, formData) => {
     doc.text("Alamat tempat bertugas", 15, currentY); doc.text(":", 70, currentY); doc.text("ADTEC JTM KAMPUS SANDAKAN", 75, currentY); currentY += 6;
     doc.text("Nama kursus yang dihadiri", 15, currentY); doc.text(":", 70, currentY); doc.text(val(formData.kursusNama).toUpperCase(), 75, currentY); currentY += 6;
     doc.text("Penyedia latihan", 15, currentY); doc.text(":", 70, currentY); doc.text(val(formData.penyediaLatihan).toUpperCase(), 75, currentY); currentY += 6;
-    doc.text("Tarikh kursus", 15, currentY); doc.text(":", 70, currentY); doc.text(val(formData.tarikhKursus).toUpperCase(), 75, currentY); currentY += 6;
+    doc.text("Tarikh kursus", 15, currentY); doc.text(":", 70, currentY); doc.text(`${kDariFormat} HINGGA ${kHinggaFormat}`, 75, currentY); currentY += 6;
     doc.text("Tempat kursus", 15, currentY); doc.text(":", 70, currentY); doc.text(val(formData.tempatKursus).toUpperCase(), 75, currentY); currentY += 6;
     doc.text("Nama Penyelia", 15, currentY); doc.text(":", 70, currentY); doc.text(val(formData.namaPenyelia).toUpperCase(), 75, currentY); currentY += 6;
     doc.text("Jawatan / Gred", 15, currentY); doc.text(":", 70, currentY); doc.text(val(formData.jawatanPenyelia).toUpperCase(), 75, currentY); currentY += 12;

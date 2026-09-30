@@ -1,4 +1,5 @@
 import React from 'react';
+import ModernDatePicker from '../ui/ModernDatePicker';
 
 const LockIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
@@ -6,8 +7,10 @@ const LockIcon = () => (
 
 const FormLepasKursus = ({
     formData, handleChange, expanded, toggleSection, nextSection, formInputClass, formLabelClass,
-    isPegawaiComplete, isKursusComplete, isPenilaianComplete, shakeSection
+    isPegawaiComplete, isKursusComplete, isPenilaianComplete, shakeSection, calculateDays
 }) => {
+
+    const jumlahHariKursus = calculateDays(formData.kursusDari, formData.kursusHingga);
 
     const RatingRow = ({ label, name, max = 5 }) => (
         <div className="flex flex-col md:flex-row md:items-center justify-between py-4 border-b border-slate-100 gap-4">
@@ -50,9 +53,15 @@ const FormLepasKursus = ({
                                 <label className={formLabelClass}>Nama Kursus <span className="text-red-500">*</span></label>
                                 <input type="text" name="kursusNama" value={formData.kursusNama} onChange={handleChange} className={formInputClass} placeholder="Contoh: Kursus Kepimpinan Berkesan" />
                             </div>
-                            <div className="md:col-span-2">
-                                <label className={formLabelClass}>Tempoh Kursus <span className="text-red-500">*</span></label>
-                                <input type="text" name="kursusTempoh" value={formData.kursusTempoh} onChange={handleChange} className={formInputClass} placeholder="Contoh: 3 Hari (12 - 14 Okt 2026)" />
+                            
+                            <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <ModernDatePicker name="kursusDari" value={formData.kursusDari} label={<>Mula Kursus (Dari) <span className="text-red-500">*</span></>} onChange={handleChange} />
+                                </div>
+                                <div>
+                                    <ModernDatePicker name="kursusHingga" value={formData.kursusHingga} label={<>Tamat Kursus (Hingga) <span className="text-red-500">*</span></>} min={formData.kursusDari} onChange={handleChange} />
+                                    {jumlahHariKursus > 0 && <p className="text-xs font-bold text-blue-500 mt-2 ml-2">Tempoh: {jumlahHariKursus} hari</p>}
+                                </div>
                             </div>
                         </div>
                         <div className="mt-8 flex justify-end">
