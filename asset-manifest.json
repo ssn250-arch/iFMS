@@ -1,14 +1,14 @@
 {
   "files": {
     "main.css": "/iFMS/static/css/main.caba9066.css",
-    "main.js": "/iFMS/static/js/main.31d2622e.js",
+    "main.js": "/iFMS/static/js/main.ff48a11b.js",
     "static/js/239.da249b5b.chunk.js": "/iFMS/static/js/239.da249b5b.chunk.js",
     "static/js/977.51a2c0e9.chunk.js": "/iFMS/static/js/977.51a2c0e9.chunk.js",
     "static/js/455.ae40dade.chunk.js": "/iFMS/static/js/455.ae40dade.chunk.js",
     "static/js/453.7397a848.chunk.js": "/iFMS/static/js/453.7397a848.chunk.js",
     "index.html": "/iFMS/index.html",
     "main.caba9066.css.map": "/iFMS/static/css/main.caba9066.css.map",
-    "main.31d2622e.js.map": "/iFMS/static/js/main.31d2622e.js.map",
+    "main.ff48a11b.js.map": "/iFMS/static/js/main.ff48a11b.js.map",
     "239.da249b5b.chunk.js.map": "/iFMS/static/js/239.da249b5b.chunk.js.map",
     "977.51a2c0e9.chunk.js.map": "/iFMS/static/js/977.51a2c0e9.chunk.js.map",
     "455.ae40dade.chunk.js.map": "/iFMS/static/js/455.ae40dade.chunk.js.map",
@@ -16,6 +16,6 @@
   },
   "entrypoints": [
     "static/css/main.caba9066.css",
-    "static/js/main.31d2622e.js"
+    "static/js/main.ff48a11b.js"
   ]
 }
