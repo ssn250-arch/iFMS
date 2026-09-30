@@ -28,6 +28,7 @@ export const generateForm1 = (doc, logoImgBase64, formData) => {
     doc.text("LAMPIRAN A", 190, 15, { align: 'right' });
     
     let currentY = 18;
+    
     if(logoImgBase64) { 
         doc.addImage(logoImgBase64, 'JPEG', 92.5, currentY, 25, 20);
         currentY += 25; 
@@ -38,8 +39,10 @@ export const generateForm1 = (doc, logoImgBase64, formData) => {
     doc.setFontSize(10); 
     doc.text("JABATAN TENAGA MANUSIA", 105, currentY, { align: 'center' });
     currentY += 6;
+    
     doc.text("BORANG KEBENARAN MENJALANKAN TUGASAN RASMI DILUAR IBU PEJABAT", 105, currentY, { align: 'center' }); 
     currentY += 4.5;
+    
     doc.setFont("helvetica", "normal"); 
     doc.setFontSize(8.5); 
     doc.text("( Borang ini hendaklah diisi sebelum memulakan perjalanan )", 105, currentY, { align: 'center' });
@@ -73,19 +76,35 @@ export const generateForm1 = (doc, logoImgBase64, formData) => {
     doc.text("5.", 18, currentY); 
     doc.text("Butiran Tugasan :", 28, currentY); 
     currentY += 4.5;
+    
     doc.text("(Gunakan Lampiran sekiranya ruangan tidak mencukupi)", 28, currentY);
 
     const tPergiFormat = formData.tarikhPergi ? formData.tarikhPergi.split('-').reverse().join('/') : '';
     const tBalikFormat = formData.tarikhBalik ? formData.tarikhBalik.split('-').reverse().join('/') : '';
 
-    autoTable(doc,{
+    autoTable(doc, {
         startY: currentY + 3, 
         margin: { left: 18, right: 18 },
         head: [['Tempat', 'Perihal Tugas', 'Tarikh Pergi', 'Tarikh Balik', 'Kilometer\nSehala (km)']],
         body: [ [val(formData.tempat), val(formData.tujuan), val(tPergiFormat), val(tBalikFormat), val(formData.km)] ],
         theme: 'grid', 
-        headStyles: { fillColor: [230, 230, 230], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center', valign: 'middle', lineColor: [0,0,0], lineWidth: 0.3 },
-        bodyStyles: { textColor: [0, 0, 0], halign: 'center', valign: 'middle', lineColor: [0,0,0], lineWidth: 0.3, minCellHeight: 12 }, 
+        headStyles: { 
+            fillColor: [230, 230, 230], 
+            textColor: [0, 0, 0], 
+            fontStyle: 'bold', 
+            halign: 'center', 
+            valign: 'middle', 
+            lineColor: [0,0,0], 
+            lineWidth: 0.3 
+        },
+        bodyStyles: { 
+            textColor: [0, 0, 0], 
+            halign: 'center', 
+            valign: 'middle', 
+            lineColor: [0,0,0], 
+            lineWidth: 0.3, 
+            minCellHeight: 12 
+        }, 
         styles: { font: 'helvetica', fontSize: 8.5 }
     });
     
@@ -114,6 +133,7 @@ export const generateForm1 = (doc, logoImgBase64, formData) => {
     drawBigCheckbox(85, currentY, formData.caraPerjalanan.some(c => c.includes('Kapal Terbang')), "Kapal Terbang");
     drawBigCheckbox(135, currentY, formData.caraPerjalanan.includes('Lain-lain'), "Lain-lain (Sila nyatakan)"); 
     currentY += 7;
+    
     drawBigCheckbox(28, currentY, formData.caraPerjalanan.includes('Kereta Sendiri'), "Kereta Sendiri");
     drawBigCheckbox(85, currentY, formData.caraPerjalanan.includes('Kereta Jabatan'), "Kereta Jabatan"); 
     
@@ -125,16 +145,21 @@ export const generateForm1 = (doc, logoImgBase64, formData) => {
     doc.text("Jika ", 28, currentY); 
     doc.setFont("helvetica", "bold"); 
     doc.text("perjalanan melebihi 240 kilometer", 35, currentY);
+    
     let txtW = doc.getTextWidth("perjalanan melebihi 240 kilometer"); 
     doc.setFont("helvetica", "normal");
     doc.text(", Kelulusan menggunakan kenderaan sendiri bagi perjalanan melebihi 240", 35 + txtW, currentY);
     currentY += 4.5;
+    
     doc.text("kilometer (Pekeliling Perbendaharaan WP 1.4, Para 5.7.4). Sebab-sebab menggunakan kenderaan sendiri:", 28, currentY); 
     currentY += 7;
+    
     drawBigCheckbox(28, currentY, formData.sebab1, "Dikehendaki menjalankan tugas dibeberapa tempat di sepanjang perjalanan;"); 
     currentY += 7;
+    
     drawBigCheckbox(28, currentY, formData.sebab2, "Adalah mustahak dan terpaksa bagi seseorang pegawai berkenderaan sendiri; dan"); 
     currentY += 7;
+    
     drawBigCheckbox(28, currentY, formData.sebab3, "Adalah mustahak dan terpaksa membawa pegawai lain sebagai penumpang yang juga menjalankan tugas"); 
     currentY += 4.5;
     doc.text("rasmi.", 38, currentY); 
@@ -143,13 +168,17 @@ export const generateForm1 = (doc, logoImgBase64, formData) => {
     doc.text("8.", 18, currentY); 
     doc.text("Jika menggunakan kenderaan sendiri, tuntutan yang akan dibuat adalah:", 28, currentY);
     currentY += 7;
+    
     drawBigCheckbox(28, currentY, formData.tuntutanBatu, "Elaun hitungan batu/ tuntutan bekalan bahan api"); 
     currentY += 8;
+    
     drawBigCheckbox(28, currentY, formData.tuntutanGantian, "Gantian Tambang Kapal Terbang/Keretapi", "(Mengikut kelayakan bagi perjalanan melebihi 240 kilometer)"); 
     currentY += 12;
     
+    // Tarikh dikembalikan ke bentuk garisan putus-putus
     doc.text("Tarikh : ................................................................", 28, currentY); 
     
+    // TANDATANGAN DIGITAL
     if (formData.tandatangan) {
         try {
             doc.addImage(formData.tandatangan, 'PNG', 145, currentY - 14, 40, 18);
@@ -167,6 +196,7 @@ export const generateForm1 = (doc, logoImgBase64, formData) => {
     currentY += 5; 
     doc.text("Permohonan ini disokong / tidak disokong.", 28, currentY); 
     currentY += 9;
+    
     doc.text("Tarikh : ................................................................", 28, currentY); 
     doc.text("(Tandatangan & Cop Penyokong)", 165, currentY + 4, { align: 'center' }); 
     currentY += 9;
@@ -177,6 +207,7 @@ export const generateForm1 = (doc, logoImgBase64, formData) => {
     currentY += 5; 
     doc.text("Permohonan ini diluluskan / tidak diluluskan.", 28, currentY);
     currentY += 9;
+    
     doc.text("Tarikh : ................................................................", 28, currentY); 
     doc.text("(Tandatangan & Cop Pelulus)", 165, currentY + 4, { align: 'center' });
     currentY += 10;
@@ -255,6 +286,7 @@ export const generateForm2 = (doc, logoImgBase64, formData, customData = null) =
             [ { content: 'NAMA,\nTANDATANGAN &\nTARIKH' }, { content: '' }, { content: 'CATATAN:\n\n\n\n\n', colSpan: 3, styles: { valign: 'top' } } ]
         ],
         didDrawCell: (hookData) => {
+            // Cell untuk Tandatangan Bahagian B
             if (hookData.section === 'body' && hookData.row.index === 8 && hookData.column.index === 3) {
                 if (data.tandatangan) {
                     try {
@@ -372,7 +404,9 @@ export const generateForm3 = (doc, formData) => {
     }
 
     autoTable(doc,{
-        startY: 145, margin: { left: 15, right: 15 }, theme: 'grid',
+        startY: 145, 
+        margin: { left: 15, right: 15 }, 
+        theme: 'grid',
         headStyles: { fillColor: [210, 210, 210], textColor: [0, 0, 0], halign: 'center', valign: 'middle', lineColor: [0,0,0], lineWidth: 0.3 },
         bodyStyles: { textColor: [0, 0, 0], halign: 'center', valign: 'middle', lineColor: [0,0,0], lineWidth: 0.3 },
         columnStyles: { 0: { fillColor: [210, 210, 210], fontStyle: 'bold', cellWidth: 18 }, 1: { cellWidth: 28 }, 2: { cellWidth: 28 }, 3: { cellWidth: 28 }, 4: { cellWidth: 28 }, 5: { cellWidth: 'auto' } },
@@ -381,6 +415,7 @@ export const generateForm3 = (doc, formData) => {
     });
     
     let currentY = doc.lastAutoTable.finalY + 8;
+    
     doc.setFontSize(9); 
     doc.text("KELAYAKAN TAMBANG:", 15, currentY); 
     doc.text("** B/H/Y", 60, currentY); 
@@ -910,12 +945,17 @@ export const generateFormLaporan = (doc, logoImgBase64, formData) => {
 
 // ================== MODUL BAHARU: LAMPIRAN A (PENILAIAN KURSUS) ==================
 export const generateFormLepasKursus = (doc, logoImgBase64, formData) => {
-    doc.setFont("helvetica"); doc.setFontSize(10); doc.setFont("helvetica", "bold"); 
+    doc.setFont("helvetica"); 
+    doc.setFontSize(10); 
+    doc.setFont("helvetica", "bold"); 
     doc.text("LAMPIRAN A", 190, 15, { align: 'right' });
     
-    doc.setFontSize(12); doc.text("BORANG PENILAIAN KURSUS", 105, 25, { align: 'center' });
-    doc.setFontSize(11); doc.text("JABATAN TENAGA MANUSIA", 105, 31, { align: 'center' });
-    doc.setFontSize(9); doc.setFont("helvetica", "normal"); 
+    doc.setFontSize(12); 
+    doc.text("BORANG PENILAIAN KURSUS", 105, 25, { align: 'center' });
+    doc.setFontSize(11); 
+    doc.text("JABATAN TENAGA MANUSIA", 105, 31, { align: 'center' });
+    doc.setFontSize(9); 
+    doc.setFont("helvetica", "normal"); 
     doc.text("(Diisi oleh pegawai sebaik sahaja kembali daripada berkursus)", 105, 37, { align: 'center' });
     
     const kDariFormat = formData.kursusDari ? formData.kursusDari.split('-').reverse().join('/') : '';
@@ -924,11 +964,30 @@ export const generateFormLepasKursus = (doc, logoImgBase64, formData) => {
     const tempohStr = jumlahHariKursus > 0 ? `${jumlahHariKursus} HARI (${kDariFormat} HINGGA ${kHinggaFormat})` : '-';
     
     let currentY = 50;
-    doc.text("1. Nama", 15, currentY); doc.text(":", 55, currentY); doc.text(val(formData.nama).toUpperCase(), 60, currentY); currentY += 6;
-    doc.text("2. No. Kad Pengenalan", 15, currentY); doc.text(":", 55, currentY); doc.text(val(formData.noKp), 60, currentY); currentY += 6;
-    doc.text("3. Jawatan", 15, currentY); doc.text(":", 55, currentY); doc.text(val(formData.jawatan).toUpperCase(), 60, currentY); currentY += 6;
-    doc.text("4. Nama Kursus", 15, currentY); doc.text(":", 55, currentY); doc.text(val(formData.kursusNama).toUpperCase(), 60, currentY); currentY += 6;
-    doc.text("5. Tempoh Kursus", 15, currentY); doc.text(":", 55, currentY); doc.text(tempohStr, 60, currentY); currentY += 10;
+    doc.text("1. Nama", 15, currentY); 
+    doc.text(":", 55, currentY); 
+    doc.text(val(formData.nama).toUpperCase(), 60, currentY); 
+    currentY += 6;
+    
+    doc.text("2. No. Kad Pengenalan", 15, currentY); 
+    doc.text(":", 55, currentY); 
+    doc.text(val(formData.noKp), 60, currentY); 
+    currentY += 6;
+    
+    doc.text("3. Jawatan", 15, currentY); 
+    doc.text(":", 55, currentY); 
+    doc.text(val(formData.jawatan).toUpperCase(), 60, currentY); 
+    currentY += 6;
+    
+    doc.text("4. Nama Kursus", 15, currentY); 
+    doc.text(":", 55, currentY); 
+    doc.text(val(formData.kursusNama).toUpperCase(), 60, currentY); 
+    currentY += 6;
+    
+    doc.text("5. Tempoh Kursus", 15, currentY); 
+    doc.text(":", 55, currentY); 
+    doc.text(tempohStr, 60, currentY); 
+    currentY += 10;
     
     doc.setFont("helvetica", "normal");
     const arahanText = "Tandakan tahap kepuasan anda mengenai kursus ini dengan menandakan petak yang berkaitan mengikut skala yang ditetapkan di bawah.";
@@ -937,13 +996,16 @@ export const generateFormLepasKursus = (doc, logoImgBase64, formData) => {
     currentY += (splitArahan.length * 5) + 3;
     
     autoTable(doc, {
-        startY: currentY, margin: { left: 15, right: 15 }, theme: 'grid',
+        startY: currentY, 
+        margin: { left: 15, right: 15 }, 
+        theme: 'grid',
         head: [['1', '2', '3', '4', '5']],
         body: [['Tidak memuaskan/\nTidak boleh', 'Kurang memuaskan/\nKurang boleh', 'Memuaskan/\nSederhana', 'Memuaskan/\nBoleh', 'Sangat memuaskan/\nBoleh']],
         headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center', lineWidth: 0.2, lineColor: [0,0,0] },
         bodyStyles: { textColor: [0, 0, 0], halign: 'center', valign: 'middle', minCellHeight: 12, lineWidth: 0.2, lineColor: [0,0,0] }, 
         styles: { font: 'helvetica', fontSize: 8.5 }
     });
+    
     currentY = doc.lastAutoTable.finalY + 8;
     
     const getCheck = (val, target) => val === target ? '/' : '';
@@ -965,11 +1027,17 @@ export const generateFormLepasKursus = (doc, logoImgBase64, formData) => {
         
         let subtotalRow = [{ content: 'Jumlah Kecil', colSpan: 2, styles: { halign: 'right', fontStyle: 'bold' } }, sum1||'', sum2||'', sum3||'', sum4||'', sum5||''];
         let grandTotalRow = [{ content: 'Jumlah Besar', colSpan: 2, styles: { halign: 'right', fontStyle: 'bold' } }, { content: (sum1+sum2+sum3+sum4+sum5).toString(), colSpan: 5, styles: { halign: 'center', fontStyle: 'bold' } }];
-        rows.push(subtotalRow); rows.push(grandTotalRow);
         
-        doc.setFont("helvetica", "bold"); doc.text(title, 15, currentY);
+        rows.push(subtotalRow); 
+        rows.push(grandTotalRow);
+        
+        doc.setFont("helvetica", "bold"); 
+        doc.text(title, 15, currentY);
+        
         autoTable(doc, {
-            startY: currentY + 3, margin: { left: 15, right: 15 }, theme: 'grid',
+            startY: currentY + 3, 
+            margin: { left: 15, right: 15 }, 
+            theme: 'grid',
             head: [['Bil', 'Perkara', '1', '2', '3', '4', '5']],
             body: rows,
             headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center', lineWidth: 0.2, lineColor: [0,0,0] },
@@ -977,16 +1045,39 @@ export const generateFormLepasKursus = (doc, logoImgBase64, formData) => {
             columnStyles: { 0: { cellWidth: 10, halign: 'center' }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 12, halign: 'center' }, 3: { cellWidth: 12, halign: 'center' }, 4: { cellWidth: 12, halign: 'center' }, 5: { cellWidth: 12, halign: 'center' }, 6: { cellWidth: 12, halign: 'center' } },
             styles: { font: 'helvetica', fontSize: 8.5 }
         });
+        
         currentY = doc.lastAutoTable.finalY + 8;
         
-        if (currentY > 260) { doc.addPage(); currentY = 20; }
+        if (currentY > 260) { 
+            doc.addPage(); 
+            currentY = 20; 
+        }
     };
     
-    renderTable("A. Meningkatkan pengetahuan", ["Nyatakan tahap pemahaman anda terhadap kursus\nyang diikuti", "Pengetahuan yang diperolehi setelah mengikuti\nkursus ini", "Bolehkah anda mempraktikkan kemahiran yang\ndiperolehi", "Kemahiran menyelesaikan masalah berkaitan\ndengan kursus yang diikuti"], ['lkA1', 'lkA2', 'lkA3', 'lkA4']);
-    renderTable("B. Keberkesanan kursus", ["Keberkesanan kursus yang diikuti secara keseluruhan", "Tahap pemahaman selepas mengikuti kursus", "Adakah jangkamasa kursus sesuai", "Objektif sebenar kursus tercapai", "Adakah kaedah penyampaian dan latihan sesuai"], ['lkB1', 'lkB2', 'lkB3', 'lkB4', 'lkB5']);
-    renderTable("C. Faedah kepada Jabatan", ["Sejauh manakah kursus ini berfaedah kepada Jabatan", "Adakah tugas sekarang sesuai dengan kursus yang\ndiikuti", "Adakah kursus ini dapat meningkatkan kemahiran\nkepada tugas semasa"], ['lkC1', 'lkC2', 'lkC3']);
+    // Teks diubah supaya wrap secara automatik tanpa perlu baris baru manual
+    renderTable("A. Meningkatkan pengetahuan", [
+        "Nyatakan tahap pemahaman anda terhadap kursus yang diikuti", 
+        "Pengetahuan yang diperolehi setelah mengikuti kursus ini", 
+        "Bolehkah anda mempraktikkan kemahiran yang diperolehi", 
+        "Kemahiran menyelesaikan masalah berkaitan dengan kursus yang diikuti"
+    ], ['lkA1', 'lkA2', 'lkA3', 'lkA4']);
     
-    doc.setFont("helvetica", "bold"); doc.text("D. Keberkesanan Penyedia Latihan (Training Provider)", 15, currentY);
+    renderTable("B. Keberkesanan kursus", [
+        "Keberkesanan kursus yang diikuti secara keseluruhan", 
+        "Tahap pemahaman selepas mengikuti kursus", 
+        "Adakah jangkamasa kursus sesuai", 
+        "Objektif sebenar kursus tercapai", 
+        "Adakah kaedah penyampaian dan latihan sesuai"
+    ], ['lkB1', 'lkB2', 'lkB3', 'lkB4', 'lkB5']);
+    
+    renderTable("C. Faedah kepada Jabatan", [
+        "Sejauh manakah kursus ini berfaedah kepada Jabatan", 
+        "Adakah tugas sekarang sesuai dengan kursus yang diikuti", 
+        "Adakah kursus ini dapat meningkatkan kemahiran kepada tugas semasa"
+    ], ['lkC1', 'lkC2', 'lkC3']);
+    
+    doc.setFont("helvetica", "bold"); 
+    doc.text("D. Keberkesanan Penyedia Latihan (Training Provider)", 15, currentY);
     
     let sum1D = 0, sum2D = 0, sum3D = 0, sum4D = 0, sum5D = 0;
     ['lkD1', 'lkD2a', 'lkD2b', 'lkD2c', 'lkD3a', 'lkD3b', 'lkD3c', 'lkD3d'].forEach(v => {
@@ -1000,11 +1091,13 @@ export const generateFormLepasKursus = (doc, logoImgBase64, formData) => {
     const header1to5 = (num) => ({ content: num.toString(), styles: { fontStyle: 'bold', halign: 'center' } });
 
     autoTable(doc, {
-        startY: currentY + 3, margin: { left: 15, right: 15 }, theme: 'grid',
+        startY: currentY + 3, 
+        margin: { left: 15, right: 15 }, 
+        theme: 'grid',
         head: [['Bil', 'Perkara', '1', '2', '3', '4', '5']],
         body: [
-            ['1', 'Pensyarah yang berpengalaman (Penyampaian\nLatihan)', getCheck(formData.lkD1,1), getCheck(formData.lkD1,2), getCheck(formData.lkD1,3), getCheck(formData.lkD1,4), getCheck(formData.lkD1,5)],
-            [{ content: '2', rowSpan: 4, styles: { valign: 'top' } }, 'Sejauh manakah perhubungan semasa berkursus di\nantara peserta', header1to5(1), header1to5(2), header1to5(3), header1to5(4), header1to5(5)],
+            ['1', 'Pensyarah yang berpengalaman (Penyampaian Latihan)', getCheck(formData.lkD1,1), getCheck(formData.lkD1,2), getCheck(formData.lkD1,3), getCheck(formData.lkD1,4), getCheck(formData.lkD1,5)],
+            [{ content: '2', rowSpan: 4, styles: { valign: 'top' } }, 'Sejauh manakah perhubungan semasa berkursus di antara peserta', header1to5(1), header1to5(2), header1to5(3), header1to5(4), header1to5(5)],
             ['a. Pensyarah', getCheck(formData.lkD2a,1), getCheck(formData.lkD2a,2), getCheck(formData.lkD2a,3), getCheck(formData.lkD2a,4), getCheck(formData.lkD2a,5)],
             ['b. Peserta', getCheck(formData.lkD2b,1), getCheck(formData.lkD2b,2), getCheck(formData.lkD2b,3), getCheck(formData.lkD2b,4), getCheck(formData.lkD2b,5)],
             ['c. Penganjur / Pengurusan Institut Latihan', getCheck(formData.lkD2c,1), getCheck(formData.lkD2c,2), getCheck(formData.lkD2c,3), getCheck(formData.lkD2c,4), getCheck(formData.lkD2c,5)],
@@ -1023,41 +1116,98 @@ export const generateFormLepasKursus = (doc, logoImgBase64, formData) => {
     });
     
     currentY = doc.lastAutoTable.finalY + 8;
-    if (currentY > 250) { doc.addPage(); currentY = 20; }
     
-    doc.setFont("helvetica", "bold"); doc.text("E. Rumusan dan cadangan", 15, currentY); doc.setFont("helvetica", "normal"); currentY += 8;
+    if (currentY > 250) { 
+        doc.addPage(); 
+        currentY = 20; 
+    }
     
-    // Guna split supaya teks cadangan boleh wrap secara automatik
+    doc.setFont("helvetica", "bold"); 
+    doc.text("E. Rumusan dan cadangan", 15, currentY); 
+    doc.setFont("helvetica", "normal"); 
+    currentY += 8;
+    
     const splitCadangan = doc.splitTextToSize(val(formData.lkRumusan).toUpperCase(), 180);
     doc.text(splitCadangan, 15, currentY, { align: 'justify', maxWidth: 180 });
 };
 
 export const generateFormPascaKursus = (doc, logoImgBase64, formData) => {
-    doc.setFont("helvetica"); doc.setFontSize(10); doc.setFont("helvetica", "bold"); 
+    doc.setFont("helvetica"); 
+    doc.setFontSize(10); 
+    doc.setFont("helvetica", "bold"); 
     doc.text("LAMPIRAN B", 190, 15, { align: 'right' });
     
-    doc.setFontSize(12); doc.text("BORANG PENILAIAN PASCA KURSUS", 105, 25, { align: 'center' });
-    doc.setFontSize(11); doc.text("JABATAN TENAGA MANUSIA", 105, 31, { align: 'center' });
-    doc.setFontSize(9); doc.setFont("helvetica", "normal"); 
+    doc.setFontSize(12); 
+    doc.text("BORANG PENILAIAN PASCA KURSUS", 105, 25, { align: 'center' });
+    
+    doc.setFontSize(11); 
+    doc.text("JABATAN TENAGA MANUSIA", 105, 31, { align: 'center' });
+    
+    doc.setFontSize(9); 
+    doc.setFont("helvetica", "normal"); 
     doc.text("(Diisi oleh penyelia selepas tiga bulan pegawai di bawah seliaan menghadiri kursus)", 105, 37, { align: 'center' });
     
     const kDariFormat = formData.kursusDari ? formData.kursusDari.split('-').reverse().join('/') : '';
     const kHinggaFormat = formData.kursusHingga ? formData.kursusHingga.split('-').reverse().join('/') : '';
     
     let currentY = 48;
-    doc.text("Sila lengkapkan soal selidik ini dengan menggunakan skala yang berkaitan", 15, currentY); currentY += 8;
-    doc.setFont("helvetica", "bold"); doc.text("1. Maklumat Kursus", 15, currentY); doc.setFont("helvetica", "normal"); currentY += 8;
+    doc.text("Sila lengkapkan soal selidik ini dengan menggunakan skala yang berkaitan", 15, currentY); 
+    currentY += 8;
     
-    doc.text("Nama pegawai yang dinilai", 15, currentY); doc.text(":", 70, currentY); doc.text(val(formData.nama).toUpperCase(), 75, currentY); currentY += 6;
-    doc.text("Jawatan / Gred", 15, currentY); doc.text(":", 70, currentY); doc.text(val(formData.jawatan).toUpperCase(), 75, currentY); currentY += 6;
-    doc.text("Jabatan / Bahagian", 15, currentY); doc.text(":", 70, currentY); doc.text(val(formData.bahagian).toUpperCase(), 75, currentY); currentY += 6;
-    doc.text("Alamat tempat bertugas", 15, currentY); doc.text(":", 70, currentY); doc.text("ADTEC JTM KAMPUS SANDAKAN", 75, currentY); currentY += 6;
-    doc.text("Nama kursus yang dihadiri", 15, currentY); doc.text(":", 70, currentY); doc.text(val(formData.kursusNama).toUpperCase(), 75, currentY); currentY += 6;
-    doc.text("Penyedia latihan", 15, currentY); doc.text(":", 70, currentY); doc.text(val(formData.penyediaLatihan).toUpperCase(), 75, currentY); currentY += 6;
-    doc.text("Tarikh kursus", 15, currentY); doc.text(":", 70, currentY); doc.text(`${kDariFormat} HINGGA ${kHinggaFormat}`, 75, currentY); currentY += 6;
-    doc.text("Tempat kursus", 15, currentY); doc.text(":", 70, currentY); doc.text(val(formData.tempatKursus).toUpperCase(), 75, currentY); currentY += 6;
-    doc.text("Nama Penyelia", 15, currentY); doc.text(":", 70, currentY); doc.text(val(formData.namaPenyelia).toUpperCase(), 75, currentY); currentY += 6;
-    doc.text("Jawatan / Gred", 15, currentY); doc.text(":", 70, currentY); doc.text(val(formData.jawatanPenyelia).toUpperCase(), 75, currentY); currentY += 12;
+    doc.setFont("helvetica", "bold"); 
+    doc.text("1. Maklumat Kursus", 15, currentY); 
+    doc.setFont("helvetica", "normal"); 
+    currentY += 8;
+    
+    doc.text("Nama pegawai yang dinilai", 15, currentY); 
+    doc.text(":", 70, currentY); 
+    doc.text(val(formData.nama).toUpperCase(), 75, currentY); 
+    currentY += 6;
+    
+    doc.text("Jawatan / Gred", 15, currentY); 
+    doc.text(":", 70, currentY); 
+    doc.text(val(formData.jawatan).toUpperCase(), 75, currentY); 
+    currentY += 6;
+    
+    doc.text("Jabatan / Bahagian", 15, currentY); 
+    doc.text(":", 70, currentY); 
+    doc.text(val(formData.bahagian).toUpperCase(), 75, currentY); 
+    currentY += 6;
+    
+    doc.text("Alamat tempat bertugas", 15, currentY); 
+    doc.text(":", 70, currentY); 
+    doc.text("ADTEC JTM KAMPUS SANDAKAN", 75, currentY); 
+    currentY += 6;
+    
+    doc.text("Nama kursus yang dihadiri", 15, currentY); 
+    doc.text(":", 70, currentY); 
+    doc.text(val(formData.kursusNama).toUpperCase(), 75, currentY); 
+    currentY += 6;
+    
+    doc.text("Penyedia latihan", 15, currentY); 
+    doc.text(":", 70, currentY); 
+    doc.text(val(formData.penyediaLatihan).toUpperCase(), 75, currentY); 
+    currentY += 6;
+    
+    doc.text("Tarikh kursus", 15, currentY); 
+    doc.text(":", 70, currentY); 
+    doc.text(`${kDariFormat} HINGGA ${kHinggaFormat}`, 75, currentY); 
+    currentY += 6;
+    
+    doc.text("Tempat kursus", 15, currentY); 
+    doc.text(":", 70, currentY); 
+    doc.text(val(formData.tempatKursus).toUpperCase(), 75, currentY); 
+    currentY += 6;
+    
+    doc.text("Nama Penyelia", 15, currentY); 
+    doc.text(":", 70, currentY); 
+    doc.text(val(formData.namaPenyelia).toUpperCase(), 75, currentY); 
+    currentY += 6;
+    
+    doc.text("Jawatan / Gred", 15, currentY); 
+    doc.text(":", 70, currentY); 
+    doc.text(val(formData.jawatanPenyelia).toUpperCase(), 75, currentY); 
+    currentY += 12;
     
     // Guna splitTextToSize supaya rata dan justifikasi
     doc.setFont("helvetica", "bold");
@@ -1065,16 +1215,20 @@ export const generateFormPascaKursus = (doc, logoImgBase64, formData) => {
     const splitFaedah = doc.splitTextToSize(faedahText, 180);
     doc.text(splitFaedah, 15, currentY, { align: 'justify', maxWidth: 180 });
     doc.setFont("helvetica", "normal");
+    
     currentY += (splitFaedah.length * 5) + 3;
     
     autoTable(doc, {
-        startY: currentY, margin: { left: 15, right: 15 }, theme: 'grid',
+        startY: currentY, 
+        margin: { left: 15, right: 15 }, 
+        theme: 'grid',
         head: [['1', '2', '3']],
         body: [['Tidak Setuju', 'Setuju', 'Amat Setuju']],
         headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center', lineWidth: 0.2, lineColor: [0,0,0] },
         bodyStyles: { textColor: [0, 0, 0], halign: 'center', valign: 'middle', minCellHeight: 10, lineWidth: 0.2, lineColor: [0,0,0] }, 
         styles: { font: 'helvetica', fontSize: 8.5 }
     });
+    
     currentY = doc.lastAutoTable.finalY + 8;
     
     const getCheck = (val, target) => val === target ? '/' : '';
@@ -1086,7 +1240,9 @@ export const generateFormPascaKursus = (doc, logoImgBase64, formData) => {
     });
 
     autoTable(doc, {
-        startY: currentY, margin: { left: 15, right: 15 }, theme: 'grid',
+        startY: currentY, 
+        margin: { left: 15, right: 15 }, 
+        theme: 'grid',
         head: [['Bil', 'Perkara', '1', '2', '3']],
         body: [
             ['a.', 'Dapat membantu pegawai menjalankan tugas dengan lebih berkesan', getCheck(formData.pk1a,1), getCheck(formData.pk1a,2), getCheck(formData.pk1a,3)],
@@ -1103,7 +1259,10 @@ export const generateFormPascaKursus = (doc, logoImgBase64, formData) => {
     });
     
     currentY = doc.lastAutoTable.finalY + 12;
-    doc.setFont("helvetica", "bold"); doc.text("3. Cadangan untuk kursus lanjutan (sekiranya ada)", 15, currentY); doc.setFont("helvetica", "normal"); currentY += 8;
+    doc.setFont("helvetica", "bold"); 
+    doc.text("3. Cadangan untuk kursus lanjutan (sekiranya ada)", 15, currentY); 
+    doc.setFont("helvetica", "normal"); 
+    currentY += 8;
     
     const splitCadangan = doc.splitTextToSize(val(formData.pkCadangan).toUpperCase(), 180);
     doc.text(splitCadangan, 15, currentY, { align: 'justify', maxWidth: 180 });
