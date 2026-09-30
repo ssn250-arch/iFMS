@@ -1063,7 +1063,6 @@ export const generateFormLepasKursus = (doc, logoImgBase64, formData) => {
         "Adakah kaedah penyampaian dan latihan sesuai"
     ], ['lkB1', 'lkB2', 'lkB3', 'lkB4', 'lkB5']);
     
-    // ✅ KEMAS KINI: Paksa Bahagian C bermula di muka surat baru
     doc.addPage();
     currentY = 20;
     
@@ -1117,10 +1116,31 @@ export const generateFormLepasKursus = (doc, logoImgBase64, formData) => {
     doc.setFont("helvetica", "bold"); 
     doc.text("E. Rumusan dan cadangan", 15, currentY); 
     doc.setFont("helvetica", "normal"); 
-    currentY += 8;
+    currentY += 12; // Anjak ruang sikit sebelum garisan pertama
     
-    const splitCadangan = doc.splitTextToSize(val(formData.lkRumusan).toUpperCase(), 180);
-    doc.text(splitCadangan, 15, currentY, { align: 'justify', maxWidth: 180 });
+    let textRumusan = val(formData.lkRumusan).toUpperCase();
+    if (textRumusan === '-') textRumusan = ''; // Kosongkan kalau sekadar letak sengkang
+    
+    let splitCadangan = [];
+    if (textRumusan !== '') {
+        splitCadangan = doc.splitTextToSize(textRumusan, 180);
+    }
+    
+    // Lukis garisan cadangan (minima 4 baris)
+    doc.setDrawColor(0);
+    doc.setLineWidth(0.2);
+    const totalLines = Math.max(4, splitCadangan.length);
+    
+    for (let i = 0; i < totalLines; i++) {
+        // Lukis garisan memanjang
+        doc.line(15, currentY, 195, currentY);
+        
+        // Cetak tulisan (jika ada) di atas garisan tersebut
+        if (i < splitCadangan.length) {
+            doc.text(splitCadangan[i], 15, currentY - 2);
+        }
+        currentY += 10;
+    }
 };
 
 export const generateFormPascaKursus = (doc, logoImgBase64, formData) => {
@@ -1253,8 +1273,29 @@ export const generateFormPascaKursus = (doc, logoImgBase64, formData) => {
     doc.setFont("helvetica", "bold"); 
     doc.text("3. Cadangan untuk kursus lanjutan (sekiranya ada)", 15, currentY); 
     doc.setFont("helvetica", "normal"); 
-    currentY += 8;
+    currentY += 12; // Anjak ruang sikit sebelum garisan pertama
     
-    const splitCadangan = doc.splitTextToSize(val(formData.pkCadangan).toUpperCase(), 180);
-    doc.text(splitCadangan, 15, currentY, { align: 'justify', maxWidth: 180 });
+    let textCadangan = val(formData.pkCadangan).toUpperCase();
+    if (textCadangan === '-') textCadangan = ''; // Kosongkan kalau sekadar letak sengkang
+    
+    let splitCadangan = [];
+    if (textCadangan !== '') {
+        splitCadangan = doc.splitTextToSize(textCadangan, 180);
+    }
+    
+    // Lukis garisan cadangan (minima 4 baris)
+    doc.setDrawColor(0);
+    doc.setLineWidth(0.2);
+    const totalLines = Math.max(4, splitCadangan.length);
+    
+    for (let i = 0; i < totalLines; i++) {
+        // Lukis garisan memanjang
+        doc.line(15, currentY, 195, currentY);
+        
+        // Cetak tulisan (jika ada) di atas garisan tersebut
+        if (i < splitCadangan.length) {
+            doc.text(splitCadangan[i], 15, currentY - 2);
+        }
+        currentY += 10;
+    }
 };

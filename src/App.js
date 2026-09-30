@@ -45,13 +45,11 @@ function App() {
         nama: '', jawatan: '', bahagian: '', noKp: '', noTel: '', noKenderaan: '',
         tujuan: '', tempat: '', tarikhPergi: today, tarikhBalik: today, km: '', 
         
-        // Tugas Rasmi
         caraPerjalanan: ['Kereta Sendiri'], 
         sebab1: false, sebab2: false, sebab3: false, tuntutanBatu: false, tuntutanGantian: false,
         subjek: '', semester: '', tarikhGantiDari: today, tarikhGantiHingga: today, catatanTugas: '', 
         namaPengganti: '', bahagianPengganti: '', noTelPengganti: '', jenisAmbilAlih: 'Ambil alih subjek / tugas sepenuhnya',
         
-        // Tiket Penerbangan
         flightType: 'single',
         flightPergiTarikh: today, flightPergiMasa: '', flightPergiDari: '', flightPergiKe: '',
         flightPergiLeg2Tarikh: today, flightPergiLeg2Masa: '', flightPergiLeg2Dari: '', flightPergiLeg2Ke: '',
@@ -59,16 +57,13 @@ function App() {
         flightBalikLeg2Tarikh: today, flightBalikLeg2Masa: '', flightBalikLeg2Dari: '', flightBalikLeg2Ke: '',
         kodSyarikat: '', enrichId: '',
         
-        // Cuti
         jenisCuti: 'Cuti Rehat', cutiDari: today, cutiHingga: today, catatanCuti: '', ketuaSokongan: '', pegawaiPelulus: '',
         cutiPenggantiNama: '', cutiPenggantiBahagian: '', cutiPenggantiNoTel: '', cutiPenggantiTugas: '',
         
-        // Akujanji & Laporan Peperiksaan
         perananPeperiksaan: [], tandatangan: null,
         sesiPeperiksaan: '', tarikhPeperiksaan: today, namaPengawasLain: '',
         q1Status: 'YA', q1Catatan: '', q2Status: 'TIDAK', q2Catatan: '', q3Status: 'YA', q3Catatan: '', cadanganPeperiksaan: '',
         
-        // Modul Lepas Kursus (Lampiran A)
         kursusNama: '', kursusDari: today, kursusHingga: today, 
         lkA1: 0, lkA2: 0, lkA3: 0, lkA4: 0, 
         lkB1: 0, lkB2: 0, lkB3: 0, lkB4: 0, lkB5: 0, 
@@ -76,7 +71,6 @@ function App() {
         lkD1: 0, lkD2a: 0, lkD2b: 0, lkD2c: 0, lkD3a: 0, lkD3b: 0, lkD3c: 0, lkD3d: 0, 
         lkRumusan: '',
         
-        // Modul Pasca Kursus (Lampiran B)
         penyediaLatihan: '', tempatKursus: '', tarikhKursus: '', 
         namaPenyelia: '', jawatanPenyelia: '', 
         pk1a: 0, pk1b: 0, pk1c: 0, pk1d: 0, pkCadangan: ''
@@ -292,7 +286,6 @@ function App() {
     
     const isKursusComplete = formData.kursusNama.trim() !== '' && formData.kursusDari !== '' && formData.kursusHingga !== '' && (activeForm === 'pascaKursus' ? (formData.penyediaLatihan.trim() !== '' && formData.tempatKursus.trim() !== '' && formData.namaPenyelia.trim() !== '' && formData.jawatanPenyelia.trim() !== '') : true);
     
-    // ✅ KEMAS KINI: lkD3a (Penginapan) tiada di dalam list semakan mandatori ini
     const isPenilaianLepasKursusComplete = [
         formData.lkA1, formData.lkA2, formData.lkA3, formData.lkA4, 
         formData.lkB1, formData.lkB2, formData.lkB3, formData.lkB4, formData.lkB5, 
@@ -545,13 +538,13 @@ function App() {
     // ================== PAPARAN UTAMA ==================
     if (activeForm === null) {
         return (
-            <div className="min-h-screen relative flex flex-col justify-center overflow-hidden px-4 sm:px-6 animate-slide-up">
+            <div className="min-h-screen relative flex flex-col justify-center overflow-hidden px-4 sm:px-6 animate-slide-up bg-slate-50/50">
                 <div className="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-400/20 rounded-full blur-[100px] pointer-events-none"></div>
                 <div className="fixed bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-emerald-400/20 rounded-full blur-[100px] pointer-events-none"></div>
                 
                 <div className="max-w-6xl mx-auto w-full relative z-10 pt-10 pb-16">
-                    <div className="text-center mb-12">
-                        <div className="inline-flex items-center justify-center p-4 bg-white rounded-[2rem] mb-8 shadow-xl shadow-slate-200/50 border border-slate-100 transform -rotate-3 hover:rotate-0 transition-transform duration-500">
+                    <div className="text-center mb-16">
+                        <div className="inline-flex items-center justify-center p-4 bg-white rounded-[2rem] mb-8 shadow-xl shadow-slate-200/50 border border-slate-100 transform hover:scale-105 transition-transform duration-500">
                             {isLogoLoading ? (
                                <div className="w-16 h-16 rounded-full border-[4px] border-slate-100 border-t-blue-600 animate-spin"></div>
                             ) : preloadedLogo ? (
@@ -564,41 +557,86 @@ function App() {
                             i-Form Management System (iFMS) <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500">ADTEC JTM Kampus Sandakan</span>
                         </h1>
-                        <p className="text-[17px] md:text-xl text-slate-500 font-semibold max-w-2xl mx-auto mb-12 leading-relaxed">
+                        <p className="text-[17px] md:text-xl text-slate-500 font-semibold max-w-2xl mx-auto leading-relaxed">
                             Sistem pengurusan dan penjanaan dokumen rasmi secara digital, pantas dan sistematik.
                         </p>
+                    </div>
                         
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
-                            <button onClick={() => { setActiveForm('tugas'); setExpanded({...expanded, tugas: false, pengganti: false, tiket: false, cuti: false, peranan: false, tandatangan: false, laporanInfo: false, laporanSoalan: false, kursus: false, penilaian: false, pegawai: true}); }} className="w-full px-6 py-5 bg-slate-900 hover:bg-slate-800 text-white text-[15px] font-bold rounded-[1.5rem] shadow-xl transition-all transform hover:-translate-y-1 active:scale-95 flex flex-col items-center justify-center gap-3 group">
-                                <div className="bg-slate-700 p-3 rounded-2xl group-hover:bg-slate-600 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></div>
-                                <span>Borang Tugas Rasmi</span>
-                            </button>
-                            
-                            <button onClick={() => { setActiveForm('cuti'); setExpanded({...expanded, tugas: false, pengganti: false, tiket: false, cuti: false, peranan: false, tandatangan: false, laporanInfo: false, laporanSoalan: false, kursus: false, penilaian: false, pegawai: true}); }} className="w-full px-6 py-5 bg-emerald-600 hover:bg-emerald-500 text-white text-[15px] font-bold rounded-[1.5rem] shadow-xl transition-all transform hover:-translate-y-1 active:scale-95 flex flex-col items-center justify-center gap-3 group">
-                                <div className="bg-emerald-500 p-3 rounded-2xl group-hover:bg-emerald-400 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="m9 16 2 2 4-4"></path></svg></div>
-                                <span>Borang Cuti (Manual)</span>
-                            </button>
-                            
-                            <button onClick={() => { setActiveForm('akujanji'); setExpanded({...expanded, tugas: false, pengganti: false, tiket: false, cuti: false, peranan: false, tandatangan: false, laporanInfo: false, laporanSoalan: false, kursus: false, penilaian: false, pegawai: true}); }} className="w-full px-6 py-5 bg-indigo-600 hover:bg-indigo-500 text-white text-[15px] font-bold rounded-[1.5rem] shadow-xl transition-all transform hover:-translate-y-1 active:scale-95 flex flex-col items-center justify-center gap-3 group">
-                                <div className="bg-indigo-500 p-3 rounded-2xl group-hover:bg-indigo-400 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="m9 15 2 2 4-4"/></svg></div>
-                                <span>Surat Akujanji Peperiksaan</span>
-                            </button>
-                            
-                            <button onClick={() => { setActiveForm('laporan'); setExpanded({...expanded, tugas: false, pengganti: false, tiket: false, cuti: false, peranan: false, tandatangan: false, laporanInfo: false, laporanSoalan: false, kursus: false, penilaian: false, pegawai: true}); }} className="w-full px-6 py-5 bg-amber-500 hover:bg-amber-400 text-white text-[15px] font-bold rounded-[1.5rem] shadow-xl transition-all transform hover:-translate-y-1 active:scale-95 flex flex-col items-center justify-center gap-3 group">
-                                <div className="bg-amber-400 p-3 rounded-2xl group-hover:bg-amber-300 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div>
-                                <span>Laporan Peperiksaan</span>
-                            </button>
+                    {/* ✅ KEMAS KINI: UI Modern Glassmorphism Bento Grid Design */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                        
+                        {/* 1. Borang Tugas Rasmi */}
+                        <button onClick={() => { setActiveForm('tugas'); setExpanded({...expanded, pegawai: true}); }} className="group relative bg-white/70 backdrop-blur-xl border border-slate-100 hover:border-blue-200 p-6 sm:p-8 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(59,130,246,0.12)] transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden flex flex-col justify-between min-h-[180px]">
+                            <div className="absolute -right-6 -top-6 w-32 h-32 bg-blue-50 rounded-full blur-2xl group-hover:bg-blue-100 transition-all duration-500 z-0"></div>
+                            <div className="relative z-10">
+                                <div className="w-14 h-14 bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white rounded-2xl flex items-center justify-center transition-colors duration-300 mb-5 shadow-sm">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                                </div>
+                                <h3 className="text-lg font-extrabold text-slate-800 mb-1.5 group-hover:text-blue-700 transition-colors">Borang Tugas Rasmi</h3>
+                                <p className="text-[13px] font-semibold text-slate-500 leading-relaxed">Permohonan kebenaran keluar bertugas di luar kawasan & waran tiket.</p>
+                            </div>
+                        </button>
+                        
+                        {/* 2. Borang Cuti */}
+                        <button onClick={() => { setActiveForm('cuti'); setExpanded({...expanded, pegawai: true}); }} className="group relative bg-white/70 backdrop-blur-xl border border-slate-100 hover:border-emerald-200 p-6 sm:p-8 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(16,185,129,0.12)] transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden flex flex-col justify-between min-h-[180px]">
+                            <div className="absolute -right-6 -top-6 w-32 h-32 bg-emerald-50 rounded-full blur-2xl group-hover:bg-emerald-100 transition-all duration-500 z-0"></div>
+                            <div className="relative z-10">
+                                <div className="w-14 h-14 bg-emerald-50 text-emerald-600 group-hover:bg-emerald-500 group-hover:text-white rounded-2xl flex items-center justify-center transition-colors duration-300 mb-5 shadow-sm">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="m9 16 2 2 4-4"></path></svg>
+                                </div>
+                                <h3 className="text-lg font-extrabold text-slate-800 mb-1.5 group-hover:text-emerald-700 transition-colors">Borang Cuti Manual</h3>
+                                <p className="text-[13px] font-semibold text-slate-500 leading-relaxed">Borang permohonan Cuti Rehat, Cuti Ganti, dan Cuti Kecemasan.</p>
+                            </div>
+                        </button>
+                        
+                        {/* 3. Surat Akujanji Peperiksaan */}
+                        <button onClick={() => { setActiveForm('akujanji'); setExpanded({...expanded, pegawai: true}); }} className="group relative bg-white/70 backdrop-blur-xl border border-slate-100 hover:border-indigo-200 p-6 sm:p-8 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(99,102,241,0.12)] transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden flex flex-col justify-between min-h-[180px]">
+                            <div className="absolute -right-6 -top-6 w-32 h-32 bg-indigo-50 rounded-full blur-2xl group-hover:bg-indigo-100 transition-all duration-500 z-0"></div>
+                            <div className="relative z-10">
+                                <div className="w-14 h-14 bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white rounded-2xl flex items-center justify-center transition-colors duration-300 mb-5 shadow-sm">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="m9 15 2 2 4-4"/></svg>
+                                </div>
+                                <h3 className="text-lg font-extrabold text-slate-800 mb-1.5 group-hover:text-indigo-700 transition-colors">Surat Akujanji</h3>
+                                <p className="text-[13px] font-semibold text-slate-500 leading-relaxed">Pengisytiharan integriti untuk petugas bagi Peperiksaan Akhir JTM.</p>
+                            </div>
+                        </button>
+                        
+                        {/* 4. Laporan Peperiksaan */}
+                        <button onClick={() => { setActiveForm('laporan'); setExpanded({...expanded, pegawai: true}); }} className="group relative bg-white/70 backdrop-blur-xl border border-slate-100 hover:border-amber-200 p-6 sm:p-8 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(245,158,11,0.12)] transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden flex flex-col justify-between min-h-[180px]">
+                            <div className="absolute -right-6 -top-6 w-32 h-32 bg-amber-50 rounded-full blur-2xl group-hover:bg-amber-100 transition-all duration-500 z-0"></div>
+                            <div className="relative z-10">
+                                <div className="w-14 h-14 bg-amber-50 text-amber-500 group-hover:bg-amber-400 group-hover:text-white rounded-2xl flex items-center justify-center transition-colors duration-300 mb-5 shadow-sm">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="10 9 9 9 8 9"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                                </div>
+                                <h3 className="text-lg font-extrabold text-slate-800 mb-1.5 group-hover:text-amber-600 transition-colors">Laporan Peperiksaan</h3>
+                                <p className="text-[13px] font-semibold text-slate-500 leading-relaxed">Laporan pelaksanaan Peperiksaan Akhir oleh Ketua Pengawas.</p>
+                            </div>
+                        </button>
 
-                            <button onClick={() => { setActiveForm('lepasKursus'); setExpanded({...expanded, tugas: false, pengganti: false, tiket: false, cuti: false, peranan: false, tandatangan: false, laporanInfo: false, laporanSoalan: false, kursus: false, penilaian: false, pegawai: true}); }} className="w-full px-6 py-5 bg-blue-600 hover:bg-blue-500 text-white text-[15px] font-bold rounded-[1.5rem] shadow-xl transition-all transform hover:-translate-y-1 active:scale-95 flex flex-col items-center justify-center gap-3 group">
-                                <div className="bg-blue-500 p-3 rounded-2xl group-hover:bg-blue-400 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15l2 2 4-4"/></svg></div>
-                                <span>Penilaian Lepas Kursus</span>
-                            </button>
-                            
-                            <button onClick={() => { setActiveForm('pascaKursus'); setExpanded({...expanded, tugas: false, pengganti: false, tiket: false, cuti: false, peranan: false, tandatangan: false, laporanInfo: false, laporanSoalan: false, kursus: false, penilaian: false, pegawai: true}); }} className="w-full px-6 py-5 bg-purple-600 hover:bg-purple-500 text-white text-[15px] font-bold rounded-[1.5rem] shadow-xl transition-all transform hover:-translate-y-1 active:scale-95 flex flex-col items-center justify-center gap-3 group">
-                                <div className="bg-purple-500 p-3 rounded-2xl group-hover:bg-purple-400 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg></div>
-                                <span>Penilaian Pasca Kursus</span>
-                            </button>
-                        </div>
+                        {/* 5. Penilaian Lepas Kursus */}
+                        <button onClick={() => { setActiveForm('lepasKursus'); setExpanded({...expanded, pegawai: true}); }} className="group relative bg-white/70 backdrop-blur-xl border border-slate-100 hover:border-sky-200 p-6 sm:p-8 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(14,165,233,0.12)] transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden flex flex-col justify-between min-h-[180px]">
+                            <div className="absolute -right-6 -top-6 w-32 h-32 bg-sky-50 rounded-full blur-2xl group-hover:bg-sky-100 transition-all duration-500 z-0"></div>
+                            <div className="relative z-10">
+                                <div className="w-14 h-14 bg-sky-50 text-sky-500 group-hover:bg-sky-500 group-hover:text-white rounded-2xl flex items-center justify-center transition-colors duration-300 mb-5 shadow-sm">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15l2 2 4-4"/></svg>
+                                </div>
+                                <h3 className="text-lg font-extrabold text-slate-800 mb-1.5 group-hover:text-sky-600 transition-colors">Penilaian Lepas Kursus</h3>
+                                <p className="text-[13px] font-semibold text-slate-500 leading-relaxed">Borang Lampiran A untuk diisi sebaik sahaja kembali berkursus.</p>
+                            </div>
+                        </button>
+                        
+                        {/* 6. Penilaian Pasca Kursus */}
+                        <button onClick={() => { setActiveForm('pascaKursus'); setExpanded({...expanded, pegawai: true}); }} className="group relative bg-white/70 backdrop-blur-xl border border-slate-100 hover:border-purple-200 p-6 sm:p-8 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(168,85,247,0.12)] transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden flex flex-col justify-between min-h-[180px]">
+                            <div className="absolute -right-6 -top-6 w-32 h-32 bg-purple-50 rounded-full blur-2xl group-hover:bg-purple-100 transition-all duration-500 z-0"></div>
+                            <div className="relative z-10">
+                                <div className="w-14 h-14 bg-purple-50 text-purple-600 group-hover:bg-purple-500 group-hover:text-white rounded-2xl flex items-center justify-center transition-colors duration-300 mb-5 shadow-sm">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+                                </div>
+                                <h3 className="text-lg font-extrabold text-slate-800 mb-1.5 group-hover:text-purple-700 transition-colors">Penilaian Pasca Kursus</h3>
+                                <p className="text-[13px] font-semibold text-slate-500 leading-relaxed">Borang Lampiran B untuk dinilai oleh penyelia selepas 3 bulan.</p>
+                            </div>
+                        </button>
+
                     </div>
                 </div>
                 <FeedbackButton />
@@ -607,7 +645,7 @@ function App() {
     }
 
     return (
-        <div className="pb-12 relative min-h-screen">
+        <div className="pb-12 relative min-h-screen bg-slate-50/30">
             <div className="absolute top-6 left-4 md:left-6 z-50 animate-slide-up">
                 <button onClick={() => setActiveForm(null)} className="flex items-center gap-2 px-4 py-2.5 bg-white/80 backdrop-blur-md border border-slate-200 rounded-full text-[13px] font-extrabold text-slate-500 hover:text-slate-800 hover:border-slate-300 hover:shadow-md shadow-sm transition-all group">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="group-hover:-translate-x-1 transition-transform"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
@@ -616,7 +654,7 @@ function App() {
             </div>
 
             <header className="relative pt-16 pb-10 px-6 max-w-3xl mx-auto text-center">
-                <div className={`inline-flex items-center justify-center p-3 rounded-2xl mb-6 text-white shadow-xl transform -rotate-3 hover:rotate-0 transition-transform duration-300 ${activeForm === 'cuti' ? 'bg-emerald-600 shadow-emerald-500/30' : activeForm === 'akujanji' ? 'bg-indigo-600 shadow-indigo-500/30' : activeForm === 'laporan' ? 'bg-amber-500 shadow-amber-500/30' : activeForm === 'lepasKursus' ? 'bg-blue-600 shadow-blue-500/30' : activeForm === 'pascaKursus' ? 'bg-purple-600 shadow-purple-500/30' : 'bg-blue-600 shadow-blue-500/30'}`}>
+                <div className={`inline-flex items-center justify-center p-3 rounded-2xl mb-6 text-white shadow-xl transform -rotate-3 hover:rotate-0 transition-transform duration-300 ${activeForm === 'cuti' ? 'bg-emerald-600 shadow-emerald-500/30' : activeForm === 'akujanji' ? 'bg-indigo-600 shadow-indigo-500/30' : activeForm === 'laporan' ? 'bg-amber-500 shadow-amber-500/30' : activeForm === 'lepasKursus' ? 'bg-sky-500 shadow-sky-500/30' : activeForm === 'pascaKursus' ? 'bg-purple-600 shadow-purple-500/30' : 'bg-blue-600 shadow-blue-500/30'}`}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                 </div>
                 <h1 className="text-2xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
@@ -635,8 +673,7 @@ function App() {
 
             <div className="max-w-[800px] mx-auto px-4 space-y-5 relative z-10">
                 
-                {/* 1. MAKLUMAT PEGAWAI */}
-                <div id="section-pegawai" className={`bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden transition-all duration-500 ${expanded.pegawai ? 'ring-[3px] ring-blue-500/20' : 'hover:shadow-md'} ${shakeSection === 'pegawai' ? 'animate-shake border-red-400' : ''}`}>
+                <div id="section-pegawai" className={`bg-white/90 backdrop-blur-xl rounded-[2rem] shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-100 overflow-hidden transition-all duration-500 ${expanded.pegawai ? 'ring-[3px] ring-blue-500/20' : 'hover:shadow-md'} ${shakeSection === 'pegawai' ? 'animate-shake border-red-400' : ''}`}>
                     <div onClick={() => toggleSection('pegawai')} className="cursor-pointer px-6 py-5 flex items-center justify-between bg-white hover:bg-slate-50 transition-colors">
                         <div className="flex items-center gap-4">
                             <div className={`p-2.5 rounded-xl transition-colors ${expanded.pegawai ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30' : (isPegawaiComplete ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600')}`}>
@@ -652,7 +689,7 @@ function App() {
                         </div>
                     </div>
                     {expanded.pegawai && (
-                        <div className="p-6 md:p-8 pt-2 border-t border-slate-100 animate-slide-up">
+                        <div className="p-6 md:p-8 pt-2 border-t border-slate-50 bg-white animate-slide-up">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-7">
                                 <div className="md:col-span-2">
                                     <label className={formLabelClass}>
@@ -727,7 +764,7 @@ function App() {
 
                 {/* BUTANG JANA PDF */}
                 <div id="jana-button-container" className="mt-12 mb-16 animate-slide-up" style={{animationDelay: '0.5s'}}>
-                    <button onClick={handleGenerateAll} disabled={isGenerating || isLogoLoading} className={`group relative w-full flex items-center justify-center gap-4 py-5 px-8 rounded-3xl overflow-hidden transition-all duration-300 ${isGenerating || isLogoLoading ? 'bg-slate-300 cursor-not-allowed opacity-80' : (!isAllComplete ? 'bg-amber-500 hover:bg-amber-400' : 'bg-emerald-600 hover:bg-emerald-500')} transform hover:-translate-y-1 active:scale-[0.98]`}>
+                    <button onClick={handleGenerateAll} disabled={isGenerating || isLogoLoading} className={`group relative w-full flex items-center justify-center gap-4 py-5 px-8 rounded-3xl overflow-hidden transition-all duration-300 ${isGenerating || isLogoLoading ? 'bg-slate-300 cursor-not-allowed opacity-80' : (!isAllComplete ? 'bg-slate-800 hover:bg-slate-700' : 'bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-500/30')} transform hover:-translate-y-1 active:scale-[0.98]`}>
                         <span className="text-[14px] sm:text-[16px] font-extrabold tracking-wide uppercase text-white">
                             {isLogoLoading ? 'MEMUATKAN ASET BORANG...' : isGenerating ? 'MENJANA BORANG...' : (!isAllComplete ? 'SILA LENGKAPKAN SEMUA RUANGAN' : 'JANA & MUAT TURUN (FAIL PDF)')}
                         </span>
