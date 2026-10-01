@@ -62,7 +62,7 @@ function App() {
     const [isManualName, setIsManualName] = useState(false);
     const [isGantiDateLocked, setIsGantiDateLocked] = useState(true);
     
-    // ✅ STATE UNTUK MODAL PANDUAN & HUBUNGI KAMI
+    // ================== STATE MODAL ==================
     const [showPanduan, setShowPanduan] = useState(false);
     const [showHubungi, setShowHubungi] = useState(false);
 
@@ -208,7 +208,6 @@ function App() {
         formData.lkD1, formData.lkD2a, formData.lkD2b, formData.lkD2c, 
         formData.lkD3b, formData.lkD3c, formData.lkD3d
     ].every(v => v > 0);
-    
     const isPenilaianPascaKursusComplete = [formData.pk1a, formData.pk1b, formData.pk1c, formData.pk1d].every(v => v > 0);
 
     const isAllComplete = activeForm === 'cuti' ? (isPegawaiComplete && isCutiComplete && isCutiGantiComplete())
@@ -344,7 +343,8 @@ function App() {
                         {isLogoLoading ? (
                             <div className="w-12 h-12 rounded-full border-2 border-slate-100 border-t-blue-600 animate-spin"></div>
                         ) : preloadedLogo ? (
-                            <img src={preloadedLogo} alt="Logo" className="h-12 w-auto drop-shadow-sm" />
+                            {/* ✅ KEMAS KINI: Logo menggunakan mix-blend-multiply untuk hide background putih */}
+                            <img src={preloadedLogo} alt="Logo" className="h-14 w-auto mix-blend-multiply" />
                         ) : null}
                         <div className="hidden sm:block leading-tight">
                             <div className="font-extrabold text-slate-800 text-[15px] tracking-tight">i-Form Management System (iFMS)</div>
@@ -359,13 +359,11 @@ function App() {
                                 Laman Utama
                             </span>
                             
-                            {/* Butang Panduan */}
                             <button onClick={() => setShowPanduan(true)} className="flex items-center gap-2 hover:text-slate-800 hover:bg-slate-100 px-3 py-2 rounded-xl cursor-pointer transition-colors focus:outline-none">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
                                 Panduan
                             </button>
                             
-                            {/* Butang Hubungi Kami */}
                             <button onClick={() => setShowHubungi(true)} className="flex items-center gap-2 hover:text-slate-800 hover:bg-slate-100 px-3 py-2 rounded-xl cursor-pointer transition-colors focus:outline-none">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                                 Hubungi Kami
@@ -391,6 +389,14 @@ function App() {
                     
                     {/* Hero Section */}
                     <div className="mb-12 animate-slide-up">
+                        <div className="sm:hidden mb-6">
+                            {isLogoLoading ? (
+                               <div className="w-16 h-16 rounded-full border-[4px] border-slate-100 border-t-blue-600 animate-spin mx-auto"></div>
+                            ) : preloadedLogo ? (
+                                {/* ✅ KEMAS KINI: Logo menggunakan mix-blend-multiply */}
+                                <img src={preloadedLogo} alt="Logo" className="h-24 w-auto object-contain mx-auto mix-blend-multiply" />
+                            ) : null}
+                        </div>
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] mb-4 text-slate-900">
                             i-Form Management System (iFMS)<br/>
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-teal-500">ADTEC JTM Kampus Sandakan</span>
