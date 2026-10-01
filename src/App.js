@@ -37,6 +37,7 @@ const formInputClass = "block w-full rounded-2xl border border-slate-200 bg-whit
 const formLabelClass = "block text-[13px] font-bold uppercase tracking-wider text-slate-500 mb-2 ml-1";
 
 // ================== IKON BANTUAN ==================
+const LockIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>);
 const EditIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>);
 const UnlockIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>);
 
@@ -130,10 +131,16 @@ function App() {
 
     useEffect(() => { if (formData.kodSyarikat || formData.enrichId) { localStorage.setItem("flightInfo", JSON.stringify({ kodSyarikat: formData.kodSyarikat, enrichId: formData.enrichId })); } }, [formData.kodSyarikat, formData.enrichId]);
 
+    // ✅ FIX: Kunci tarikh HANYA berfungsi jika buka Borang Tugas Rasmi sahaja
     useEffect(() => {
-        if (isGantiDateLocked) { setFormData(prev => ({ ...prev, tarikhGantiDari: prev.tarikhPergi, tarikhGantiHingga: prev.tarikhBalik, flightPergiTarikh: prev.tarikhPergi, flightBalikTarikh: prev.tarikhBalik })); } 
-        else { setFormData(prev => ({ ...prev, flightPergiTarikh: prev.tarikhPergi, flightBalikTarikh: prev.tarikhBalik })); }
-    }, [formData.tarikhPergi, formData.tarikhBalik, isGantiDateLocked]);
+        if (activeForm === 'tugas') {
+            if (isGantiDateLocked) { 
+                setFormData(prev => ({ ...prev, tarikhGantiDari: prev.tarikhPergi, tarikhGantiHingga: prev.tarikhBalik, flightPergiTarikh: prev.tarikhPergi, flightBalikTarikh: prev.tarikhBalik })); 
+            } else { 
+                setFormData(prev => ({ ...prev, flightPergiTarikh: prev.tarikhPergi, flightBalikTarikh: prev.tarikhBalik })); 
+            }
+        }
+    }, [formData.tarikhPergi, formData.tarikhBalik, isGantiDateLocked, activeForm]);
 
     const calculateDays = (start, end) => {
         if (!start || !end) return 0;
@@ -357,8 +364,9 @@ function App() {
         return (
             <div className="min-h-screen relative flex flex-col font-sans overflow-x-hidden bg-slate-50">
                 
+                {/* Latar Belakang Gambar Bangunan */}
                 <div 
-                    className="absolute inset-0 z-0 pointer-events-none opacity-40 md:opacity-100"
+                    className="absolute inset-0 z-0 pointer-events-none"
                     style={{
                         backgroundImage: `url(${adtecBg})`, 
                         backgroundPosition: 'right center',
@@ -367,11 +375,10 @@ function App() {
                     }}
                 ></div>
 
-                <div className="absolute inset-0 bg-white/70 sm:bg-white/40 backdrop-blur-[2px] sm:backdrop-blur-sm z-0 pointer-events-none"></div>
-                <div className="absolute inset-0 bg-gradient-to-b from-white/90 via-white/80 to-slate-50/90 md:bg-gradient-to-r md:from-slate-50 md:via-slate-50/90 md:to-slate-50/10 z-0 pointer-events-none"></div>
-                
-                <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-blue-300/30 rounded-full blur-[120px] z-0 pointer-events-none hidden md:block"></div>
+                {/* ✅ KEMAS KINI: Efek Gradient tanpa efek 'blur' supaya background nampak lebih jelas */}
+                <div className="absolute inset-0 bg-gradient-to-b from-white/95 via-white/80 to-slate-50/90 md:bg-gradient-to-r md:from-white md:via-white/80 md:to-transparent z-0 pointer-events-none"></div>
 
+                {/* Navbar */}
                 <nav className="fixed top-4 w-[95%] max-w-7xl mx-auto bg-white/90 backdrop-blur-md border border-slate-200/60 z-50 px-4 md:px-6 py-2.5 flex justify-between items-center shadow-sm rounded-2xl left-0 right-0">
                     <div className="flex items-center gap-3">
                         {isLogoLoading ? (
@@ -427,6 +434,7 @@ function App() {
                         <p className="text-[14px] sm:text-[16px] md:text-lg text-slate-600 font-medium max-w-3xl leading-relaxed mt-3">
                             Sistem pengurusan dan penjanaan dokumen rasmi secara digital, pantas dan sistematik.
                         </p>
+                        {/* Butang Navigasi (Hanya di Mobile) */}
                         <div className="flex md:hidden items-center gap-3 mt-6">
                             <button onClick={() => setShowPanduan(true)} className="flex items-center gap-1.5 bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-xl text-[13px] font-bold shadow-sm">
                                 Panduan
@@ -687,7 +695,7 @@ function App() {
 
     return (
         <div className="pb-12 relative min-h-screen bg-slate-50/50">
-            {/* Header & Butang Utama... */}
+            {/* Header & Button forms... kekal sama... */}
             <div className="absolute top-6 left-4 md:left-6 z-50 animate-slide-up">
                 <button onClick={() => setActiveForm(null)} className="flex items-center gap-2 px-4 py-2.5 bg-white/80 backdrop-blur-md border border-slate-200 rounded-full text-[13px] font-extrabold text-slate-500 hover:text-slate-800 hover:border-slate-300 hover:shadow-md shadow-sm transition-all group">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="group-hover:-translate-x-1 transition-transform"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
