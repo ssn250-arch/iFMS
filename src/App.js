@@ -383,18 +383,11 @@ function App() {
                 <div className="relative z-10 w-full max-w-7xl mx-auto pt-32 pb-16 px-4 md:px-8 flex-1 flex flex-col">
                     
                     <div className="mb-12 animate-slide-up">
-                        <div className="sm:hidden mb-6">
-                            {isLogoLoading ? (
-                               <div className="w-16 h-16 rounded-full border-[4px] border-slate-100 border-t-blue-600 animate-spin mx-auto"></div>
-                            ) : preloadedLogo ? (
-                                <img src={preloadedLogo} alt="Logo" className="h-24 w-auto object-contain mx-auto mix-blend-multiply" />
-                            ) : null}
-                        </div>
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] mb-4 text-slate-900">
                             i-Form Management System (iFMS)<br/>
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-teal-500">ADTEC JTM Kampus Sandakan</span>
                         </h1>
-                        <p className="text-[16px] md:text-lg text-slate-500 font-semibold max-w-2xl leading-relaxed">
+                        <p className="text-[16px] md:text-lg text-slate-500 font-semibold max-w-4xl leading-relaxed">
                             Sistem pengurusan dan penjanaan dokumen rasmi secara digital, pantas dan sistematik.
                         </p>
                     </div>
