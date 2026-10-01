@@ -327,12 +327,25 @@ function App() {
         const formattedDay = todayDateObj.toLocaleDateString('ms-MY', { weekday: 'long' });
 
         return (
-            <div className="min-h-screen relative flex flex-col font-sans overflow-x-hidden bg-cover bg-center bg-fixed" 
-                 style={{ backgroundImage: "url('https://images.unsplash.com/photo-1541888046425-d81bb19240f5?q=80&w=2070&auto=format&fit=crop')" }}>
+            <div className="min-h-screen relative flex flex-col font-sans overflow-x-hidden bg-slate-50">
                 
-                {/* Overlay Putih/Biru pudar di atas background */}
-                <div className="absolute inset-0 bg-white/85 backdrop-blur-[2px] z-0"></div>
-                <div className="absolute inset-0 bg-gradient-to-b from-blue-50/50 to-white/90 z-0"></div>
+                {/* Latar Belakang Gambar Bangunan */}
+                <div 
+                    className="absolute inset-0 z-0 pointer-events-none opacity-50 md:opacity-100"
+                    style={{
+                        // SILA TUKAR LINK GAMBAR DI BAWAH KEPADA GAMBAR BANGUNAN ADTEC YANG SEBENAR
+                        backgroundImage: "url('https://drive.google.com/file/d/1P1EwGO6jvuQfNNzI7Is6ChNCR9pr4uNa/view?usp=sharing')", 
+                        backgroundPosition: 'right center',
+                        backgroundSize: 'cover',
+                        backgroundRepeat: 'no-repeat'
+                    }}
+                ></div>
+
+                {/* Overlay Gradient (Supaya teks jelas dibaca) */}
+                <div className="absolute inset-0 bg-gradient-to-r from-slate-50 via-slate-50/90 to-slate-50/10 z-0 pointer-events-none"></div>
+                
+                {/* Efek Bulatan Biru */}
+                <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-blue-300/30 rounded-full blur-[120px] z-0 pointer-events-none"></div>
 
                 {/* Navbar */}
                 <nav className="fixed top-4 w-[95%] max-w-7xl mx-auto bg-white/90 backdrop-blur-md border border-slate-200/60 z-50 px-4 md:px-6 py-2.5 flex justify-between items-center shadow-sm rounded-2xl left-0 right-0">
