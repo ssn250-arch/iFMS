@@ -2,6 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import jsPDF from 'jspdf';
 import './index.css';
 
+// Import Gambar Background Tempatan (Local)
+import adtecBg from './adtec.png';
+
 // Import Data
 import { unitOptions, peperiksaanRoles, pegawaiDatabase, malaysiaAirports } from './data/database';
 
@@ -329,11 +332,11 @@ function App() {
         return (
             <div className="min-h-screen relative flex flex-col font-sans overflow-x-hidden bg-slate-50">
                 
-                {/* Latar Belakang Gambar Bangunan menggunakan URL Google Drive yang betul */}
+                {/* ✅ KEMAS KINI: Background dipanggil menggunakan imej local 'adtec.png' */}
                 <div 
                     className="absolute inset-0 z-0 pointer-events-none opacity-50 md:opacity-100"
                     style={{
-                        backgroundImage: "url('https://drive.google.com/uc?id=1P1EwGO6jvuQfNNzI7Is6ChNCR9pr4uNa')", 
+                        backgroundImage: `url(${adtecBg})`, 
                         backgroundPosition: 'right center',
                         backgroundSize: 'cover',
                         backgroundRepeat: 'no-repeat'
@@ -399,7 +402,7 @@ function App() {
                             i-Form Management System (iFMS)<br/>
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-teal-500">ADTEC JTM Kampus Sandakan</span>
                         </h1>
-                        <p className="text-[15px] sm:text-[16px] md:text-lg text-slate-600 font-semibold max-w-3xl leading-relaxed mx-auto md:mx-0">
+                        <p className="text-[15px] sm:text-[16px] md:text-lg text-slate-600 font-semibold max-w-4xl leading-relaxed mx-auto md:mx-0">
                             Sistem pengurusan dan penjanaan dokumen rasmi secara digital, pantas dan sistematik.
                         </p>
                         {/* Butang Navigasi (Hanya di Mobile) */}
