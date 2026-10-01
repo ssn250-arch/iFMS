@@ -37,7 +37,6 @@ const formInputClass = "block w-full rounded-2xl border border-slate-200 bg-whit
 const formLabelClass = "block text-[13px] font-bold uppercase tracking-wider text-slate-500 mb-2 ml-1";
 
 // ================== IKON BANTUAN ==================
-const LockIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>);
 const EditIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>);
 const UnlockIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>);
 
@@ -131,7 +130,7 @@ function App() {
 
     useEffect(() => { if (formData.kodSyarikat || formData.enrichId) { localStorage.setItem("flightInfo", JSON.stringify({ kodSyarikat: formData.kodSyarikat, enrichId: formData.enrichId })); } }, [formData.kodSyarikat, formData.enrichId]);
 
-    // ✅ FIX: Kunci tarikh HANYA berfungsi jika buka Borang Tugas Rasmi sahaja
+    // Kunci tarikh automatik HANYA untuk Borang Tugas Rasmi
     useEffect(() => {
         if (activeForm === 'tugas') {
             if (isGantiDateLocked) { 
@@ -168,12 +167,26 @@ function App() {
         return match ? (!match[2] ? match[1] : `${match[1]}-${match[2]}`) : val;
     };
 
+    // ✅ KEMAS KINI PENTING: Fix tarikh terkunci / gagal ditekan pada peranti Mobile
     const handleChange = (e) => {
         let { name, value, type, checked } = e.target;
         if (name === 'noKp') value = formatIC(value);
         if (name === 'noTel' || name === 'noTelPengganti' || name === 'cutiPenggantiNoTel') value = formatPhone(value);
         if (['flightPergiDari', 'flightPergiKe', 'flightBalikDari', 'flightBalikKe', 'flightPergiLeg2Dari', 'flightPergiLeg2Ke', 'flightBalikLeg2Dari', 'flightBalikLeg2Ke'].includes(name)) { value = value.toUpperCase().replace(/[^A-Z]/g, '').substring(0, 3); }
-        setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+        
+        setFormData(prev => {
+            let updated = { ...prev, [name]: type === 'checkbox' ? checked : value };
+            
+            // Logik Anjakan Auto: Jika "Tarikh Pergi" yang baru diisi adalah MELEBIHI "Tarikh Balik",
+            // sistem automatik anjak "Tarikh Balik" ke hadapan untuk elak konflik minimum date (min) pada Mobile.
+            if (name === 'tarikhPergi' && new Date(value) > new Date(updated.tarikhBalik)) updated.tarikhBalik = value;
+            if (name === 'tarikhGantiDari' && new Date(value) > new Date(updated.tarikhGantiHingga)) updated.tarikhGantiHingga = value;
+            if (name === 'flightPergiTarikh' && new Date(value) > new Date(updated.flightBalikTarikh)) updated.flightBalikTarikh = value;
+            if (name === 'cutiDari' && new Date(value) > new Date(updated.cutiHingga)) updated.cutiHingga = value;
+            if (name === 'kursusDari' && new Date(value) > new Date(updated.kursusHingga)) updated.kursusHingga = value;
+            
+            return updated;
+        });
     };
 
     const toggleAutoFieldsEdit = () => {
@@ -364,9 +377,8 @@ function App() {
         return (
             <div className="min-h-screen relative flex flex-col font-sans overflow-x-hidden bg-slate-50">
                 
-                {/* Latar Belakang Gambar Bangunan */}
                 <div 
-                    className="absolute inset-0 z-0 pointer-events-none"
+                    className="absolute inset-0 z-0 pointer-events-none opacity-40 md:opacity-100"
                     style={{
                         backgroundImage: `url(${adtecBg})`, 
                         backgroundPosition: 'right center',
@@ -375,10 +387,11 @@ function App() {
                     }}
                 ></div>
 
-                {/* ✅ KEMAS KINI: Efek Gradient tanpa efek 'blur' supaya background nampak lebih jelas */}
-                <div className="absolute inset-0 bg-gradient-to-b from-white/95 via-white/80 to-slate-50/90 md:bg-gradient-to-r md:from-white md:via-white/80 md:to-transparent z-0 pointer-events-none"></div>
+                <div className="absolute inset-0 bg-white/70 sm:bg-white/40 backdrop-blur-[2px] sm:backdrop-blur-sm z-0 pointer-events-none"></div>
+                <div className="absolute inset-0 bg-gradient-to-b from-white/90 via-white/80 to-slate-50/90 md:bg-gradient-to-r md:from-slate-50 md:via-slate-50/90 md:to-slate-50/10 z-0 pointer-events-none"></div>
+                
+                <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-blue-300/30 rounded-full blur-[120px] z-0 pointer-events-none hidden md:block"></div>
 
-                {/* Navbar */}
                 <nav className="fixed top-4 w-[95%] max-w-7xl mx-auto bg-white/90 backdrop-blur-md border border-slate-200/60 z-50 px-4 md:px-6 py-2.5 flex justify-between items-center shadow-sm rounded-2xl left-0 right-0">
                     <div className="flex items-center gap-3">
                         {isLogoLoading ? (
@@ -434,7 +447,6 @@ function App() {
                         <p className="text-[14px] sm:text-[16px] md:text-lg text-slate-600 font-medium max-w-3xl leading-relaxed mt-3">
                             Sistem pengurusan dan penjanaan dokumen rasmi secara digital, pantas dan sistematik.
                         </p>
-                        {/* Butang Navigasi (Hanya di Mobile) */}
                         <div className="flex md:hidden items-center gap-3 mt-6">
                             <button onClick={() => setShowPanduan(true)} className="flex items-center gap-1.5 bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-xl text-[13px] font-bold shadow-sm">
                                 Panduan
@@ -493,7 +505,7 @@ function App() {
                                 </div>
                                 <div>
                                     <h3 className="text-[18px] font-extrabold text-slate-800 mb-1">Tempahan Tiket</h3>
-                                    <p className="text-[13px] font-medium text-slate-500 leading-relaxed max-w-[90%]">Tempahan tiket penerbangan.</p>
+                                    <p className="text-[13px] font-medium text-slate-500 leading-relaxed max-w-[90%]">Tempahan tiket penerbangan berasingan.</p>
                                 </div>
                             </div>
                             <div className="absolute bottom-6 right-6 w-8 h-8 rounded-full flex items-center justify-center bg-cyan-50 text-cyan-600 group-hover:bg-cyan-600 group-hover:text-white transition-colors duration-300">
@@ -510,8 +522,8 @@ function App() {
                                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="m9 16 2 2 4-4"></path></svg>
                                 </div>
                                 <div>
-                                    <h3 className="text-[18px] font-extrabold text-slate-800 mb-1">Borang Cuti Manual</h3>
-                                    <p className="text-[13px] font-medium text-slate-500 leading-relaxed max-w-[90%]">Borang permohonan Cuti Rehat, Cuti Ganti, dan Cuti Kecemasan.</p>
+                                    <h3 className="text-[18px] font-extrabold text-slate-800 mb-1">Borang Cuti</h3>
+                                    <p className="text-[13px] font-medium text-slate-500 leading-relaxed max-w-[90%]">Cuti Rehat, Cuti Ganti, dan Cuti Kecemasan.</p>
                                 </div>
                             </div>
                             <div className="absolute bottom-6 right-6 w-8 h-8 rounded-full flex items-center justify-center bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300">
@@ -529,7 +541,7 @@ function App() {
                                 </div>
                                 <div>
                                     <h3 className="text-[18px] font-extrabold text-slate-800 mb-1">Surat Akujanji</h3>
-                                    <p className="text-[13px] font-medium text-slate-500 leading-relaxed max-w-[90%]">Pengisytiharan integriti untuk petugas bagi Peperiksaan Akhir JTM.</p>
+                                    <p className="text-[13px] font-medium text-slate-500 leading-relaxed max-w-[90%]">Pengisytiharan integriti petugas Peperiksaan.</p>
                                 </div>
                             </div>
                             <div className="absolute bottom-6 right-6 w-8 h-8 rounded-full flex items-center justify-center bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300">
@@ -547,7 +559,7 @@ function App() {
                                 </div>
                                 <div>
                                     <h3 className="text-[18px] font-extrabold text-slate-800 mb-1">Laporan Peperiksaan</h3>
-                                    <p className="text-[13px] font-medium text-slate-500 leading-relaxed max-w-[90%]">Laporan pelaksanaan Peperiksaan Akhir oleh Ketua Pengawas.</p>
+                                    <p className="text-[13px] font-medium text-slate-500 leading-relaxed max-w-[90%]">Laporan pelaksanaan oleh Ketua Pengawas.</p>
                                 </div>
                             </div>
                             <div className="absolute bottom-6 right-6 w-8 h-8 rounded-full flex items-center justify-center bg-amber-50 text-amber-500 group-hover:bg-amber-500 group-hover:text-white transition-colors duration-300">
@@ -565,7 +577,7 @@ function App() {
                                 </div>
                                 <div>
                                     <h3 className="text-[18px] font-extrabold text-slate-800 mb-1">Penilaian Lepas Kursus</h3>
-                                    <p className="text-[13px] font-medium text-slate-500 leading-relaxed max-w-[90%]">Borang Lampiran A untuk diisi sebaik sahaja kembali berkursus.</p>
+                                    <p className="text-[13px] font-medium text-slate-500 leading-relaxed max-w-[90%]">Borang Lampiran A untuk diisi selepas kursus.</p>
                                 </div>
                             </div>
                             <div className="absolute bottom-6 right-6 w-8 h-8 rounded-full flex items-center justify-center bg-sky-50 text-sky-500 group-hover:bg-sky-500 group-hover:text-white transition-colors duration-300">
@@ -583,7 +595,7 @@ function App() {
                                 </div>
                                 <div>
                                     <h3 className="text-[18px] font-extrabold text-slate-800 mb-1">Penilaian Pasca Kursus</h3>
-                                    <p className="text-[13px] font-medium text-slate-500 leading-relaxed max-w-[90%]">Borang Lampiran B untuk dinilai oleh penyelia selepas 3 bulan.</p>
+                                    <p className="text-[13px] font-medium text-slate-500 leading-relaxed max-w-[90%]">Borang Lampiran B untuk dinilai oleh penyelia.</p>
                                 </div>
                             </div>
                             <div className="absolute bottom-6 right-6 w-8 h-8 rounded-full flex items-center justify-center bg-purple-50 text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-colors duration-300">
