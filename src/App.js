@@ -322,7 +322,6 @@ function App() {
     // ================== PAPARAN UTAMA (MODERN DASHBOARD) ==================
     if (activeForm === null) {
         
-        // Setup Date
         const todayDateObj = new Date();
         const formattedDate = todayDateObj.toLocaleDateString('ms-MY', { day: 'numeric', month: 'long', year: 'numeric' });
         const formattedDay = todayDateObj.toLocaleDateString('ms-MY', { weekday: 'long' });
@@ -330,20 +329,17 @@ function App() {
         return (
             <div className="min-h-screen relative flex flex-col bg-slate-50 font-sans overflow-x-hidden">
                 
-                {/* Latar Belakang Geometrik/Ombak Modern */}
                 <div className="fixed inset-0 z-0 pointer-events-none">
                     <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-blue-300/20 rounded-full blur-[120px]"></div>
                     <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-emerald-300/20 rounded-full blur-[120px]"></div>
                     <div className="absolute top-[20%] right-[10%] w-[400px] h-[400px] bg-indigo-300/10 rounded-full blur-[100px]"></div>
                 </div>
 
-                {/* Navbar */}
                 <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md border-b border-slate-200/60 z-50 px-4 md:px-8 py-3 flex justify-between items-center shadow-sm">
                     <div className="flex items-center gap-4">
                         {isLogoLoading ? (
                             <div className="w-12 h-12 rounded-full border-2 border-slate-100 border-t-blue-600 animate-spin"></div>
                         ) : preloadedLogo ? (
-                            {/* ✅ KEMAS KINI: Logo menggunakan mix-blend-multiply untuk hide background putih */}
                             <img src={preloadedLogo} alt="Logo" className="h-14 w-auto mix-blend-multiply" />
                         ) : null}
                         <div className="hidden sm:block leading-tight">
@@ -384,16 +380,13 @@ function App() {
                     </div>
                 </nav>
 
-                {/* Main Content Area */}
                 <div className="relative z-10 w-full max-w-7xl mx-auto pt-32 pb-16 px-4 md:px-8 flex-1 flex flex-col">
                     
-                    {/* Hero Section */}
                     <div className="mb-12 animate-slide-up">
                         <div className="sm:hidden mb-6">
                             {isLogoLoading ? (
                                <div className="w-16 h-16 rounded-full border-[4px] border-slate-100 border-t-blue-600 animate-spin mx-auto"></div>
                             ) : preloadedLogo ? (
-                                {/* ✅ KEMAS KINI: Logo menggunakan mix-blend-multiply */}
                                 <img src={preloadedLogo} alt="Logo" className="h-24 w-auto object-contain mx-auto mix-blend-multiply" />
                             ) : null}
                         </div>
@@ -406,10 +399,8 @@ function App() {
                         </p>
                     </div>
 
-                    {/* Bento Grid Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-slide-up" style={{ animationDelay: '0.1s' }}>
                         
-                        {/* Card 1: Tugas */}
                         <button onClick={() => { setActiveForm('tugas'); setExpanded({...expanded, pegawai: true}); }} className="group relative bg-white/70 backdrop-blur-xl border border-slate-100 hover:border-blue-200 p-6 sm:p-8 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(59,130,246,0.12)] transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden min-h-[220px] flex flex-col justify-between">
                             <div className="absolute top-4 right-4 text-blue-50 opacity-60 transform group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.2-1.1.7l-1.2 3.6 7.7 4.4-3.5 3.5-3.5-.9c-.5-.1-1 .2-1.3.7l-1 2.6 5.8 1.5 1.5 5.8 2.6-1c.5-.3.8-.8.7-1.3l-.9-3.5 3.5-3.5 4.4 7.7 3.6-1.2c.5-.2.8-.6.7-1.1z"/></svg>
@@ -428,7 +419,6 @@ function App() {
                             </div>
                         </button>
 
-                        {/* Card 2: Cuti */}
                         <button onClick={() => { setActiveForm('cuti'); setExpanded({...expanded, pegawai: true}); }} className="group relative bg-white/70 backdrop-blur-xl border border-slate-100 hover:border-emerald-200 p-6 sm:p-8 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(16,185,129,0.12)] transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden min-h-[220px] flex flex-col justify-between">
                             <div className="absolute top-4 right-4 text-emerald-50 opacity-60 transform group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -447,7 +437,6 @@ function App() {
                             </div>
                         </button>
 
-                        {/* Card 3: Akujanji */}
                         <button onClick={() => { setActiveForm('akujanji'); setExpanded({...expanded, pegawai: true}); }} className="group relative bg-white/70 backdrop-blur-xl border border-slate-100 hover:border-indigo-200 p-6 sm:p-8 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(99,102,241,0.12)] transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden min-h-[220px] flex flex-col justify-between">
                             <div className="absolute top-4 right-4 text-indigo-50 opacity-60 transform group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-500">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="m9 15 2 2 4-4"/></svg>
@@ -466,7 +455,6 @@ function App() {
                             </div>
                         </button>
 
-                        {/* Card 4: Laporan */}
                         <button onClick={() => { setActiveForm('laporan'); setExpanded({...expanded, pegawai: true}); }} className="group relative bg-white/70 backdrop-blur-xl border border-slate-100 hover:border-amber-200 p-6 sm:p-8 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(245,158,11,0.12)] transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden min-h-[220px] flex flex-col justify-between">
                             <div className="absolute top-4 right-4 text-amber-50 opacity-60 transform group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="10 9 9 9 8 9"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
@@ -485,7 +473,6 @@ function App() {
                             </div>
                         </button>
 
-                        {/* Card 5: Lepas Kursus */}
                         <button onClick={() => { setActiveForm('lepasKursus'); setExpanded({...expanded, pegawai: true}); }} className="group relative bg-white/70 backdrop-blur-xl border border-slate-100 hover:border-sky-200 p-6 sm:p-8 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(14,165,233,0.12)] transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden min-h-[220px] flex flex-col justify-between">
                             <div className="absolute top-4 right-4 text-sky-50 opacity-60 transform group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-500">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
@@ -504,7 +491,6 @@ function App() {
                             </div>
                         </button>
                         
-                        {/* Card 6: Pasca Kursus */}
                         <button onClick={() => { setActiveForm('pascaKursus'); setExpanded({...expanded, pegawai: true}); }} className="group relative bg-white/70 backdrop-blur-xl border border-slate-100 hover:border-purple-200 p-6 sm:p-8 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(168,85,247,0.12)] transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden min-h-[220px] flex flex-col justify-between">
                             <div className="absolute top-4 right-4 text-purple-50 opacity-60 transform group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
