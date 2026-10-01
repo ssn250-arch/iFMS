@@ -17,6 +17,8 @@ import FormAkujanji from './components/forms/FormAkujanji';
 import FormLaporan from './components/forms/FormLaporan';
 import FormLepasKursus from './components/forms/FormLepasKursus';
 import FormPascaKursus from './components/forms/FormPascaKursus';
+import FormPelepasan from './components/forms/FormPelepasan';
+import FormTiket from './components/forms/FormTiket';
 
 // Import Logik PDF
 import { 
@@ -35,7 +37,6 @@ const formInputClass = "block w-full rounded-2xl border border-slate-200 bg-whit
 const formLabelClass = "block text-[13px] font-bold uppercase tracking-wider text-slate-500 mb-2 ml-1";
 
 // ================== IKON BANTUAN ==================
-const LockIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>);
 const EditIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>);
 const UnlockIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>);
 
@@ -69,7 +70,7 @@ function App() {
     const [showPanduan, setShowPanduan] = useState(false);
     const [showHubungi, setShowHubungi] = useState(false);
 
-    const [expanded, setExpanded] = useState({ pegawai: true, tugas: false, pengganti: false, tiket: false, cuti: false, peranan: false, tandatangan: false, laporanInfo: false, laporanSoalan: false, kursus: false, penilaian: false });
+    const [expanded, setExpanded] = useState({ pegawai: true, tugas: false, pengganti: false, tiket: false, cuti: false, peranan: false, tandatangan: false, laporanInfo: false, laporanSoalan: false, kursus: false, penilaian: false, pelepasanInfo: false, tiketInfo: false });
     const [notification, setNotification] = useState({ show: false, message: '', type: '' });
     const [isGenerating, setIsGenerating] = useState(false);
     const [shakeSection, setShakeSection] = useState(null);
@@ -191,11 +192,18 @@ function App() {
     };
 
     const isPegawaiComplete = formData.nama.trim() !== '' && formData.jawatan.trim() !== '' && formData.bahagian.trim() !== '' && formData.noKp.trim() !== '' && (activeForm === 'akujanji' || activeForm === 'laporan' || formData.noTel.trim() !== '');
+    
     const isTugasComplete = formData.tujuan.trim() !== '' && formData.tempat.trim() !== '' && formData.tarikhPergi !== '' && formData.tarikhBalik !== '' && formData.caraPerjalanan.length > 0;
-    const isPenggantiComplete = formData.namaPengganti.trim() !== '' && formData.subjek.trim() !== '';
+    const isPenggantiComplete = formData.namaPengganti.trim() !== '';
+    
     const isFlightSingleComplete = () => formData.flightPergiDari.length === 3 && formData.flightPergiKe.length === 3 && formData.flightPergiMasa && formData.flightBalikDari.length === 3 && formData.flightBalikKe.length === 3 && formData.flightBalikMasa;
     const isFlightMultiComplete = () => formData.flightPergiDari.length === 3 && formData.flightPergiKe.length === 3 && formData.flightPergiMasa && formData.flightPergiLeg2Dari.length === 3 && formData.flightPergiLeg2Ke.length === 3 && formData.flightPergiLeg2Masa && formData.flightBalikDari.length === 3 && formData.flightBalikKe.length === 3 && formData.flightBalikMasa && formData.flightBalikLeg2Dari.length === 3 && formData.flightBalikLeg2Ke.length === 3 && formData.flightBalikLeg2Masa;
-    const isTiketComplete = formData.caraPerjalanan.includes('Kapal Terbang (Waran Jabatan)') ? (formData.flightType === 'single' ? isFlightSingleComplete() : isFlightMultiComplete()) : true;
+    const isTiketFlightComplete = formData.flightType === 'single' ? isFlightSingleComplete() : isFlightMultiComplete();
+    const isTiketComplete = formData.caraPerjalanan.includes('Kapal Terbang (Waran Jabatan)') ? isTiketFlightComplete : true;
+    
+    const isPelepasanInfoComplete = formData.tempat.trim() !== '' && formData.subjek.trim() !== '' && formData.tarikhGantiDari !== '';
+    const isTiketInfoComplete = formData.tujuan.trim() !== '' && formData.tempat.trim() !== '' && formData.tarikhPergi !== '' && formData.tarikhBalik !== '';
+    
     const isCutiComplete = formData.jenisCuti !== '' && formData.cutiDari !== '' && formData.cutiHingga !== '' && formData.ketuaSokongan !== '' && formData.pegawaiPelulus !== '';
     const isCutiGantiComplete = () => (formData.jenisCuti !== 'Cuti Ganti' && formData.jenisCuti !== 'Cuti Tanpa Rekod') ? true : formData.cutiPenggantiNama.trim() !== '' && formData.cutiPenggantiTugas.trim() !== '';
     const isPerananComplete = formData.perananPeperiksaan.length > 0;
@@ -204,13 +212,7 @@ function App() {
     const isLaporanSoalanComplete = formData.q1Status !== '' && formData.q2Status !== '' && formData.q3Status !== '';
     const isKursusComplete = formData.kursusNama.trim() !== '' && formData.kursusDari !== '' && formData.kursusHingga !== '' && (activeForm === 'pascaKursus' ? (formData.penyediaLatihan.trim() !== '' && formData.tempatKursus.trim() !== '' && formData.namaPenyelia.trim() !== '' && formData.jawatanPenyelia.trim() !== '') : true);
     
-    const isPenilaianLepasKursusComplete = [
-        formData.lkA1, formData.lkA2, formData.lkA3, formData.lkA4, 
-        formData.lkB1, formData.lkB2, formData.lkB3, formData.lkB4, formData.lkB5, 
-        formData.lkC1, formData.lkC2, formData.lkC3, 
-        formData.lkD1, formData.lkD2a, formData.lkD2b, formData.lkD2c, 
-        formData.lkD3b, formData.lkD3c, formData.lkD3d
-    ].every(v => v > 0);
+    const isPenilaianLepasKursusComplete = [formData.lkA1, formData.lkA2, formData.lkA3, formData.lkA4, formData.lkB1, formData.lkB2, formData.lkB3, formData.lkB4, formData.lkB5, formData.lkC1, formData.lkC2, formData.lkC3, formData.lkD1, formData.lkD2a, formData.lkD2b, formData.lkD2c, formData.lkD3b, formData.lkD3c, formData.lkD3d].every(v => v > 0);
     const isPenilaianPascaKursusComplete = [formData.pk1a, formData.pk1b, formData.pk1c, formData.pk1d].every(v => v > 0);
 
     const isAllComplete = activeForm === 'cuti' ? (isPegawaiComplete && isCutiComplete && isCutiGantiComplete())
@@ -218,27 +220,40 @@ function App() {
         : activeForm === 'laporan' ? (isPegawaiComplete && isLaporanInfoComplete && isLaporanSoalanComplete && isTandatanganComplete)
         : activeForm === 'lepasKursus' ? (isPegawaiComplete && isKursusComplete && isPenilaianLepasKursusComplete)
         : activeForm === 'pascaKursus' ? (isPegawaiComplete && isKursusComplete && isPenilaianPascaKursusComplete)
+        : activeForm === 'pelepasan' ? (isPegawaiComplete && isPelepasanInfoComplete && isPenggantiComplete && isTandatanganComplete)
+        : activeForm === 'tempahanTiket' ? (isPegawaiComplete && isTiketInfoComplete && isTiketFlightComplete && isTandatanganComplete)
         : (isPegawaiComplete && isTugasComplete && isPenggantiComplete && isTiketComplete && isTandatanganComplete);
 
     const showNotification = (message, type = 'success') => { setNotification({ show: true, message, type }); setTimeout(() => setNotification({ show: false, message: '', type: '' }), 4000); };
 
     const toggleSection = (section) => {
         if (section !== 'pegawai' && !isPegawaiComplete) { showNotification("Sila lengkapkan Maklumat Pegawai terlebih dahulu.", "error"); document.getElementById('section-pegawai')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); setShakeSection('pegawai'); setTimeout(() => setShakeSection(null), 500); return; }
-        if (activeForm === 'tugas' && (section === 'pengganti' || section === 'tiket') && !isTugasComplete) { showNotification("Sila lengkapkan Maklumat Tugasan terlebih dahulu.", "error"); document.getElementById('section-tugas')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); setShakeSection('tugas'); setTimeout(() => setShakeSection(null), 500); return; }
-        if (activeForm === 'tugas' && section === 'tandatangan' && (!isTugasComplete || !isPenggantiComplete || !isTiketComplete)) { showNotification("Sila lengkapkan maklumat Tugasan & Pengganti terlebih dahulu.", "error"); document.getElementById('section-pengganti')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); setShakeSection('pengganti'); setTimeout(() => setShakeSection(null), 500); return; }
-        if (activeForm === 'akujanji' && section === 'tandatangan' && !isPerananComplete) { showNotification("Sila pilih sekurang-kurangnya satu Peranan Peperiksaan.", "error"); document.getElementById('section-peranan')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); setShakeSection('peranan'); setTimeout(() => setShakeSection(null), 500); return; }
-        if (activeForm === 'laporan') {
-            if (section === 'laporanSoalan' && !isLaporanInfoComplete) { showNotification("Sila lengkapkan Maklumat Peperiksaan terlebih dahulu.", "error"); document.getElementById('section-laporanInfo')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); setShakeSection('laporanInfo'); setTimeout(() => setShakeSection(null), 500); return; }
-            if (section === 'tandatangan' && !isLaporanSoalanComplete) { showNotification("Sila lengkapkan Status & Cadangan terlebih dahulu.", "error"); document.getElementById('section-laporanSoalan')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); setShakeSection('laporanSoalan'); setTimeout(() => setShakeSection(null), 500); return; }
-        }
-        if ((activeForm === 'lepasKursus' || activeForm === 'pascaKursus') && section === 'penilaian' && !isKursusComplete) { showNotification("Sila lengkapkan Maklumat Kursus terlebih dahulu.", "error"); document.getElementById('section-kursus')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); setShakeSection('kursus'); setTimeout(() => setShakeSection(null), 500); return; }
         
-        setExpanded(prev => ({ pegawai: section === 'pegawai' ? !prev.pegawai : false, tugas: section === 'tugas' ? !prev.tugas : false, pengganti: section === 'pengganti' ? !prev.pengganti : false, tiket: section === 'tiket' ? !prev.tiket : false, cuti: section === 'cuti' ? !prev.cuti : false, peranan: section === 'peranan' ? !prev.peranan : false, tandatangan: section === 'tandatangan' ? !prev.tandatangan : false, laporanInfo: section === 'laporanInfo' ? !prev.laporanInfo : false, laporanSoalan: section === 'laporanSoalan' ? !prev.laporanSoalan : false, kursus: section === 'kursus' ? !prev.kursus : false, penilaian: section === 'penilaian' ? !prev.penilaian : false }));
+        if (activeForm === 'tugas') {
+            if ((section === 'pengganti' || section === 'tiket') && !isTugasComplete) { showNotification("Sila lengkapkan Maklumat Tugasan.", "error"); document.getElementById('section-tugas')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); setShakeSection('tugas'); setTimeout(() => setShakeSection(null), 500); return; }
+            if (section === 'tandatangan' && (!isTugasComplete || !isPenggantiComplete || !isTiketComplete)) { showNotification("Lengkapkan Tugasan & Pengganti.", "error"); document.getElementById('section-pengganti')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); setShakeSection('pengganti'); setTimeout(() => setShakeSection(null), 500); return; }
+        }
+        else if (activeForm === 'pelepasan') {
+            if (section === 'pengganti' && !isPelepasanInfoComplete) { showNotification("Sila lengkapkan Maklumat Tugas ditinggalkan.", "error"); document.getElementById('section-pelepasanInfo')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); setShakeSection('pelepasanInfo'); setTimeout(() => setShakeSection(null), 500); return; }
+            if (section === 'tandatangan' && !isPenggantiComplete) { showNotification("Sila lengkapkan Maklumat Pengganti.", "error"); document.getElementById('section-pengganti')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); setShakeSection('pengganti'); setTimeout(() => setShakeSection(null), 500); return; }
+        }
+        else if (activeForm === 'tempahanTiket') {
+            if (section === 'tiket' && !isTiketInfoComplete) { showNotification("Sila lengkapkan Maklumat Destinasi.", "error"); document.getElementById('section-tiketInfo')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); setShakeSection('tiketInfo'); setTimeout(() => setShakeSection(null), 500); return; }
+            if (section === 'tandatangan' && !isTiketFlightComplete) { showNotification("Sila lengkapkan Butiran Penerbangan.", "error"); document.getElementById('section-tiket')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); setShakeSection('tiket'); setTimeout(() => setShakeSection(null), 500); return; }
+        }
+        else if (activeForm === 'akujanji' && section === 'tandatangan' && !isPerananComplete) { showNotification("Pilih sekurang-kurangnya satu Peranan.", "error"); document.getElementById('section-peranan')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); setShakeSection('peranan'); setTimeout(() => setShakeSection(null), 500); return; }
+        else if (activeForm === 'laporan') {
+            if (section === 'laporanSoalan' && !isLaporanInfoComplete) { showNotification("Lengkapkan Maklumat Peperiksaan.", "error"); document.getElementById('section-laporanInfo')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); setShakeSection('laporanInfo'); setTimeout(() => setShakeSection(null), 500); return; }
+            if (section === 'tandatangan' && !isLaporanSoalanComplete) { showNotification("Lengkapkan Status & Cadangan.", "error"); document.getElementById('section-laporanSoalan')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); setShakeSection('laporanSoalan'); setTimeout(() => setShakeSection(null), 500); return; }
+        }
+        else if ((activeForm === 'lepasKursus' || activeForm === 'pascaKursus') && section === 'penilaian' && !isKursusComplete) { showNotification("Sila lengkapkan Maklumat Kursus.", "error"); document.getElementById('section-kursus')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); setShakeSection('kursus'); setTimeout(() => setShakeSection(null), 500); return; }
+        
+        setExpanded(prev => ({ pegawai: section === 'pegawai' ? !prev.pegawai : false, tugas: section === 'tugas' ? !prev.tugas : false, pengganti: section === 'pengganti' ? !prev.pengganti : false, tiket: section === 'tiket' ? !prev.tiket : false, cuti: section === 'cuti' ? !prev.cuti : false, peranan: section === 'peranan' ? !prev.peranan : false, tandatangan: section === 'tandatangan' ? !prev.tandatangan : false, laporanInfo: section === 'laporanInfo' ? !prev.laporanInfo : false, laporanSoalan: section === 'laporanSoalan' ? !prev.laporanSoalan : false, kursus: section === 'kursus' ? !prev.kursus : false, penilaian: section === 'penilaian' ? !prev.penilaian : false, pelepasanInfo: section === 'pelepasanInfo' ? !prev.pelepasanInfo : false, tiketInfo: section === 'tiketInfo' ? !prev.tiketInfo : false }));
     };
 
     const nextSection = (current, nextSectionName) => {
         if (activeForm === 'tugas' && nextSectionName === 'tiket' && !formData.caraPerjalanan.includes('Kapal Terbang (Waran Jabatan)')) { nextSectionName = 'tandatangan'; }
-        setExpanded({ pegawai: nextSectionName === 'pegawai', tugas: nextSectionName === 'tugas', pengganti: nextSectionName === 'pengganti', tiket: nextSectionName === 'tiket', cuti: nextSectionName === 'cuti', peranan: nextSectionName === 'peranan', tandatangan: nextSectionName === 'tandatangan', laporanInfo: nextSectionName === 'laporanInfo', laporanSoalan: nextSectionName === 'laporanSoalan', kursus: nextSectionName === 'kursus', penilaian: nextSectionName === 'penilaian' });
+        setExpanded({ pegawai: nextSectionName === 'pegawai', tugas: nextSectionName === 'tugas', pengganti: nextSectionName === 'pengganti', tiket: nextSectionName === 'tiket', cuti: nextSectionName === 'cuti', peranan: nextSectionName === 'peranan', tandatangan: nextSectionName === 'tandatangan', laporanInfo: nextSectionName === 'laporanInfo', laporanSoalan: nextSectionName === 'laporanSoalan', kursus: nextSectionName === 'kursus', penilaian: nextSectionName === 'penilaian', pelepasanInfo: nextSectionName === 'pelepasanInfo', tiketInfo: nextSectionName === 'tiketInfo' });
         if (nextSectionName === 'jana') { setTimeout(() => document.getElementById('jana-button-container')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 200); }
     };
 
@@ -288,6 +303,16 @@ function App() {
                     doc.save(formData.nama ? `Borang_Cuti_${formData.nama.replace(/\s+/g, '_')}.pdf` : 'Borang_Cuti.pdf');
                     showNotification("Borang Cuti berjaya dijana!");
                 } 
+                else if (activeForm === 'pelepasan') {
+                    generateForm2(doc, preloadedLogo, formData);
+                    doc.save(formData.nama ? `Borang_Pelepasan_${formData.nama.replace(/\s+/g, '_')}.pdf` : 'Borang_Pelepasan.pdf');
+                    showNotification("Borang Pelepasan Tugas Sementara berjaya dijana!");
+                }
+                else if (activeForm === 'tempahanTiket') {
+                    generateForm3(doc, formData);
+                    doc.save(formData.nama ? `Borang_Tiket_${formData.nama.replace(/\s+/g, '_')}.pdf` : 'Borang_Tiket.pdf');
+                    showNotification("Borang Tempahan Tiket berjaya dijana!");
+                }
                 else if (activeForm === 'akujanji') {
                     generateFormAkujanji(doc, preloadedLogo, formData, peperiksaanRoles);
                     doc.save(formData.nama ? `Akujanji_Peperiksaan_${formData.nama.replace(/\s+/g, '_')}.pdf` : 'Akujanji_Peperiksaan.pdf');
@@ -332,9 +357,8 @@ function App() {
         return (
             <div className="min-h-screen relative flex flex-col font-sans overflow-x-hidden bg-slate-50">
                 
-                {/* ✅ KEMAS KINI: Background dipanggil menggunakan imej local 'adtec.png' */}
                 <div 
-                    className="absolute inset-0 z-0 pointer-events-none opacity-50 md:opacity-100"
+                    className="absolute inset-0 z-0 pointer-events-none opacity-40 md:opacity-100"
                     style={{
                         backgroundImage: `url(${adtecBg})`, 
                         backgroundPosition: 'right center',
@@ -343,13 +367,11 @@ function App() {
                     }}
                 ></div>
 
-                {/* Overlay Gradient (Supaya teks jelas dibaca) */}
-                <div className="absolute inset-0 bg-gradient-to-r from-slate-50 via-slate-50/90 to-slate-50/10 z-0 pointer-events-none"></div>
+                <div className="absolute inset-0 bg-white/70 sm:bg-white/40 backdrop-blur-[2px] sm:backdrop-blur-sm z-0 pointer-events-none"></div>
+                <div className="absolute inset-0 bg-gradient-to-b from-white/90 via-white/80 to-slate-50/90 md:bg-gradient-to-r md:from-slate-50 md:via-slate-50/90 md:to-slate-50/10 z-0 pointer-events-none"></div>
                 
-                {/* Efek Bulatan Biru */}
-                <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-blue-300/30 rounded-full blur-[120px] z-0 pointer-events-none"></div>
+                <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-blue-300/30 rounded-full blur-[120px] z-0 pointer-events-none hidden md:block"></div>
 
-                {/* Navbar */}
                 <nav className="fixed top-4 w-[95%] max-w-7xl mx-auto bg-white/90 backdrop-blur-md border border-slate-200/60 z-50 px-4 md:px-6 py-2.5 flex justify-between items-center shadow-sm rounded-2xl left-0 right-0">
                     <div className="flex items-center gap-3">
                         {isLogoLoading ? (
@@ -397,16 +419,15 @@ function App() {
 
                 <div className="relative z-10 w-full max-w-7xl mx-auto pt-32 pb-16 px-4 md:px-8 flex-1 flex flex-col justify-center">
                     
-                    <div className="mb-10 animate-slide-up md:text-left text-center">
-                        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] mb-4 text-slate-900 drop-shadow-sm">
+                    <div className="mb-10 animate-slide-up text-left">
+                        <h1 className="text-[32px] sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.15] mb-3 text-slate-900 drop-shadow-sm">
                             i-Form Management System (iFMS)<br/>
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-teal-500">ADTEC JTM Kampus Sandakan</span>
                         </h1>
-                        <p className="text-[15px] sm:text-[16px] md:text-lg text-slate-600 font-semibold max-w-4xl leading-relaxed mx-auto md:mx-0">
+                        <p className="text-[14px] sm:text-[16px] md:text-lg text-slate-600 font-medium max-w-3xl leading-relaxed mt-3">
                             Sistem pengurusan dan penjanaan dokumen rasmi secara digital, pantas dan sistematik.
                         </p>
-                        {/* Butang Navigasi (Hanya di Mobile) */}
-                        <div className="flex md:hidden justify-center items-center gap-3 mt-6">
+                        <div className="flex md:hidden items-center gap-3 mt-6">
                             <button onClick={() => setShowPanduan(true)} className="flex items-center gap-1.5 bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-xl text-[13px] font-bold shadow-sm">
                                 Panduan
                             </button>
@@ -416,7 +437,7 @@ function App() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-6 animate-slide-up" style={{ animationDelay: '0.1s' }}>
                         
                         <button onClick={() => { setActiveForm('tugas'); setExpanded({...expanded, pegawai: true}); }} className="group relative bg-white/80 backdrop-blur-xl border border-slate-100 hover:border-blue-200 p-6 rounded-3xl shadow-lg shadow-slate-200/40 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden min-h-[180px] sm:min-h-[200px] flex flex-col justify-between">
                             <div className="absolute top-4 right-4 text-blue-50 opacity-60 transform group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
@@ -428,10 +449,46 @@ function App() {
                                 </div>
                                 <div>
                                     <h3 className="text-[18px] font-extrabold text-slate-800 mb-1">Borang Tugas Rasmi</h3>
-                                    <p className="text-[13px] font-medium text-slate-500 leading-relaxed max-w-[90%]">Permohonan kebenaran keluar bertugas di luar kawasan & waran tiket.</p>
+                                    <p className="text-[13px] font-medium text-slate-500 leading-relaxed max-w-[90%]">Kebenaran tugas luar kawasan & waran.</p>
                                 </div>
                             </div>
                             <div className="absolute bottom-6 right-6 w-8 h-8 rounded-full flex items-center justify-center bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                            </div>
+                        </button>
+
+                        <button onClick={() => { setActiveForm('pelepasan'); setExpanded({...expanded, pegawai: true}); }} className="group relative bg-white/80 backdrop-blur-xl border border-slate-100 hover:border-rose-200 p-6 rounded-3xl shadow-lg shadow-slate-200/40 hover:shadow-xl hover:shadow-rose-500/10 transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden min-h-[180px] sm:min-h-[200px] flex flex-col justify-between">
+                            <div className="absolute top-4 right-4 text-rose-50 opacity-60 transform group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="90" height="90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="m16 13-4-4-4 4"/></svg>
+                            </div>
+                            <div className="relative z-10">
+                                <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-[14px] flex items-center justify-center mb-4 shadow-sm group-hover:bg-rose-600 group-hover:text-white transition-colors duration-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M9 14h6"></path><path d="M9 10h6"></path></svg>
+                                </div>
+                                <div>
+                                    <h3 className="text-[18px] font-extrabold text-slate-800 mb-1">Borang Pelepasan</h3>
+                                    <p className="text-[13px] font-medium text-slate-500 leading-relaxed max-w-[90%]">Pelepasan tugas / kuliah (Lampiran 7).</p>
+                                </div>
+                            </div>
+                            <div className="absolute bottom-6 right-6 w-8 h-8 rounded-full flex items-center justify-center bg-rose-50 text-rose-600 group-hover:bg-rose-600 group-hover:text-white transition-colors duration-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                            </div>
+                        </button>
+
+                        <button onClick={() => { setActiveForm('tempahanTiket'); setExpanded({...expanded, pegawai: true}); }} className="group relative bg-white/80 backdrop-blur-xl border border-slate-100 hover:border-cyan-200 p-6 rounded-3xl shadow-lg shadow-slate-200/40 hover:shadow-xl hover:shadow-cyan-500/10 transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden min-h-[180px] sm:min-h-[200px] flex flex-col justify-between">
+                            <div className="absolute top-4 right-4 text-cyan-50 opacity-60 transform group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="90" height="90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                            </div>
+                            <div className="relative z-10">
+                                <div className="w-12 h-12 bg-cyan-50 text-cyan-600 rounded-[14px] flex items-center justify-center mb-4 shadow-sm group-hover:bg-cyan-600 group-hover:text-white transition-colors duration-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></svg>
+                                </div>
+                                <div>
+                                    <h3 className="text-[18px] font-extrabold text-slate-800 mb-1">Tempahan Tiket</h3>
+                                    <p className="text-[13px] font-medium text-slate-500 leading-relaxed max-w-[90%]">Tempahan tiket penerbangan.</p>
+                                </div>
+                            </div>
+                            <div className="absolute bottom-6 right-6 w-8 h-8 rounded-full flex items-center justify-center bg-cyan-50 text-cyan-600 group-hover:bg-cyan-600 group-hover:text-white transition-colors duration-300">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                             </div>
                         </button>
@@ -529,7 +586,6 @@ function App() {
                     </div>
                 </div>
 
-                {/* Footer Modern */}
                 <footer className="w-full border-t border-slate-200/60 bg-white/70 backdrop-blur-md mt-auto z-10 relative">
                     <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-4">
                         <div className="text-[12px] font-bold text-slate-400 text-center md:text-left">
@@ -547,7 +603,6 @@ function App() {
                     </div>
                 </footer>
                 
-                {/* MODAL PANDUAN PENGGUNA */}
                 {showPanduan && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-slide-up">
                         <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative">
@@ -582,7 +637,6 @@ function App() {
                     </div>
                 )}
 
-                {/* MODAL HUBUNGI KAMI */}
                 {showHubungi && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-slide-up">
                         <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative">
@@ -627,14 +681,13 @@ function App() {
                         </div>
                     </div>
                 )}
-                
-                <FeedbackButton />
             </div>
         );
     }
 
     return (
         <div className="pb-12 relative min-h-screen bg-slate-50/50">
+            {/* Header & Butang Utama... */}
             <div className="absolute top-6 left-4 md:left-6 z-50 animate-slide-up">
                 <button onClick={() => setActiveForm(null)} className="flex items-center gap-2 px-4 py-2.5 bg-white/80 backdrop-blur-md border border-slate-200 rounded-full text-[13px] font-extrabold text-slate-500 hover:text-slate-800 hover:border-slate-300 hover:shadow-md shadow-sm transition-all group">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="group-hover:-translate-x-1 transition-transform"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
@@ -643,11 +696,11 @@ function App() {
             </div>
 
             <header className="relative pt-16 pb-10 px-6 max-w-3xl mx-auto text-center">
-                <div className={`inline-flex items-center justify-center p-3 rounded-2xl mb-6 text-white shadow-xl transform -rotate-3 hover:rotate-0 transition-transform duration-300 ${activeForm === 'cuti' ? 'bg-emerald-600 shadow-emerald-500/30' : activeForm === 'akujanji' ? 'bg-indigo-600 shadow-indigo-500/30' : activeForm === 'laporan' ? 'bg-amber-500 shadow-amber-500/30' : activeForm === 'lepasKursus' ? 'bg-sky-500 shadow-sky-500/30' : activeForm === 'pascaKursus' ? 'bg-purple-600 shadow-purple-500/30' : 'bg-blue-600 shadow-blue-500/30'}`}>
+                <div className={`inline-flex items-center justify-center p-3 rounded-2xl mb-6 text-white shadow-xl transform -rotate-3 hover:rotate-0 transition-transform duration-300 ${activeForm === 'cuti' ? 'bg-emerald-600 shadow-emerald-500/30' : activeForm === 'akujanji' ? 'bg-indigo-600 shadow-indigo-500/30' : activeForm === 'laporan' ? 'bg-amber-500 shadow-amber-500/30' : activeForm === 'lepasKursus' ? 'bg-sky-500 shadow-sky-500/30' : activeForm === 'pascaKursus' ? 'bg-purple-600 shadow-purple-500/30' : activeForm === 'pelepasan' ? 'bg-rose-500 shadow-rose-500/30' : activeForm === 'tempahanTiket' ? 'bg-cyan-500 shadow-cyan-500/30' : 'bg-blue-600 shadow-blue-500/30'}`}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                 </div>
                 <h1 className="text-2xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
-                    {activeForm === 'cuti' ? 'Borang Cuti Manual' : activeForm === 'akujanji' ? 'Surat Akujanji Peperiksaan' : activeForm === 'laporan' ? 'Laporan Peperiksaan Akhir' : activeForm === 'lepasKursus' ? 'Penilaian Lepas Kursus' : activeForm === 'pascaKursus' ? 'Penilaian Pasca Kursus' : 'Borang Tugas Rasmi'} <br />
+                    {activeForm === 'cuti' ? 'Borang Cuti Manual' : activeForm === 'akujanji' ? 'Surat Akujanji Peperiksaan' : activeForm === 'laporan' ? 'Laporan Peperiksaan Akhir' : activeForm === 'lepasKursus' ? 'Penilaian Lepas Kursus' : activeForm === 'pascaKursus' ? 'Penilaian Pasca Kursus' : activeForm === 'pelepasan' ? 'Borang Pelepasan Tugas' : activeForm === 'tempahanTiket' ? 'Tempahan Tiket Penerbangan' : 'Borang Tugas Rasmi'} <br />
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">ADTEC JTM Kampus Sandakan</span>
                 </h1>
             </header>
@@ -729,7 +782,7 @@ function App() {
                                 )}
                             </div>
                             <div className="mt-8 flex justify-end">
-                                <button onClick={() => nextSection('pegawai', activeForm === 'cuti' ? 'cuti' : activeForm === 'akujanji' ? 'peranan' : activeForm === 'laporan' ? 'laporanInfo' : (activeForm === 'lepasKursus' || activeForm === 'pascaKursus') ? 'kursus' : 'tugas')} className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-2">
+                                <button onClick={() => nextSection('pegawai', activeForm === 'cuti' ? 'cuti' : activeForm === 'akujanji' ? 'peranan' : activeForm === 'laporan' ? 'laporanInfo' : (activeForm === 'lepasKursus' || activeForm === 'pascaKursus') ? 'kursus' : activeForm === 'pelepasan' ? 'pelepasanInfo' : activeForm === 'tempahanTiket' ? 'tiketInfo' : 'tugas')} className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-2">
                                     Seterusnya <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                                 </button>
                             </div>
@@ -746,10 +799,13 @@ function App() {
                 
                 {activeForm === 'tugas' && <FormTugas formData={formData} handleChange={handleChange} setFormData={setFormData} expanded={expanded} toggleSection={toggleSection} nextSection={nextSection} formInputClass={formInputClass} formLabelClass={formLabelClass} pegawaiDatabase={pegawaiDatabase} malaysiaAirports={malaysiaAirports} getAirportName={getAirportName} setRoute={setRoute} isPegawaiComplete={isPegawaiComplete} isTugasComplete={isTugasComplete} isPenggantiComplete={isPenggantiComplete} isTiketComplete={isTiketComplete} isTandatanganComplete={isTandatanganComplete} jumlahHari={jumlahHari} isGantiDateLocked={isGantiDateLocked} setIsGantiDateLocked={setIsGantiDateLocked} handlePenggantiChange={handlePenggantiChange} shakeSection={shakeSection} canvasRef={canvasRef} startDrawing={startDrawing} draw={draw} stopDrawing={stopDrawing} clearSignature={clearSignature} handleSignatureUpload={handleSignatureUpload} />}
                 
-                {/* MODUL KURSUS */}
                 {activeForm === 'lepasKursus' && <FormLepasKursus formData={formData} handleChange={handleChange} expanded={expanded} toggleSection={toggleSection} nextSection={nextSection} formInputClass={formInputClass} formLabelClass={formLabelClass} isPegawaiComplete={isPegawaiComplete} isKursusComplete={isKursusComplete} isPenilaianComplete={isPenilaianLepasKursusComplete} shakeSection={shakeSection} calculateDays={calculateDays} />}
                 
                 {activeForm === 'pascaKursus' && <FormPascaKursus formData={formData} handleChange={handleChange} expanded={expanded} toggleSection={toggleSection} nextSection={nextSection} formInputClass={formInputClass} formLabelClass={formLabelClass} isPegawaiComplete={isPegawaiComplete} isKursusComplete={isKursusComplete} isPenilaianComplete={isPenilaianPascaKursusComplete} shakeSection={shakeSection} calculateDays={calculateDays} />}
+
+                {activeForm === 'pelepasan' && <FormPelepasan formData={formData} handleChange={handleChange} expanded={expanded} toggleSection={toggleSection} nextSection={nextSection} formInputClass={formInputClass} formLabelClass={formLabelClass} pegawaiDatabase={pegawaiDatabase} isPegawaiComplete={isPegawaiComplete} isPelepasanInfoComplete={isPelepasanInfoComplete} isPenggantiComplete={isPenggantiComplete} isTandatanganComplete={isTandatanganComplete} handlePenggantiChange={handlePenggantiChange} shakeSection={shakeSection} canvasRef={canvasRef} startDrawing={startDrawing} draw={draw} stopDrawing={stopDrawing} clearSignature={clearSignature} handleSignatureUpload={handleSignatureUpload} />}
+                
+                {activeForm === 'tempahanTiket' && <FormTiket formData={formData} handleChange={handleChange} setFormData={setFormData} expanded={expanded} toggleSection={toggleSection} nextSection={nextSection} formInputClass={formInputClass} formLabelClass={formLabelClass} malaysiaAirports={malaysiaAirports} getAirportName={getAirportName} setRoute={setRoute} isPegawaiComplete={isPegawaiComplete} isTiketInfoComplete={isTiketInfoComplete} isTiketFlightComplete={isTiketFlightComplete} isTandatanganComplete={isTandatanganComplete} shakeSection={shakeSection} canvasRef={canvasRef} startDrawing={startDrawing} draw={draw} stopDrawing={stopDrawing} clearSignature={clearSignature} handleSignatureUpload={handleSignatureUpload} />}
 
                 {/* BUTANG JANA PDF */}
                 <div id="jana-button-container" className="mt-12 mb-16 animate-slide-up" style={{animationDelay: '0.5s'}}>
