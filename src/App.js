@@ -329,12 +329,11 @@ function App() {
         return (
             <div className="min-h-screen relative flex flex-col font-sans overflow-x-hidden bg-slate-50">
                 
-                {/* Latar Belakang Gambar Bangunan */}
+                {/* Latar Belakang Gambar Bangunan menggunakan URL Google Drive yang betul */}
                 <div 
                     className="absolute inset-0 z-0 pointer-events-none opacity-50 md:opacity-100"
                     style={{
-                        // SILA TUKAR LINK GAMBAR DI BAWAH KEPADA GAMBAR BANGUNAN ADTEC YANG SEBENAR
-                        backgroundImage: "url('https://drive.google.com/file/d/1P1EwGO6jvuQfNNzI7Is6ChNCR9pr4uNa/view?usp=sharing')", 
+                        backgroundImage: "url('https://drive.google.com/uc?id=1P1EwGO6jvuQfNNzI7Is6ChNCR9pr4uNa')", 
                         backgroundPosition: 'right center',
                         backgroundSize: 'cover',
                         backgroundRepeat: 'no-repeat'
