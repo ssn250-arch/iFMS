@@ -27,29 +27,31 @@ const FormPelepasan = ({
                 {expanded.pelepasanInfo && isPegawaiComplete && (
                     <div className="p-6 md:p-8 pt-2 border-t border-slate-50 bg-white animate-slide-up">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-7">
-                            <div className="md:col-span-2">
+                            {/* ✅ KEMAS KINI: relative z-20 diletakkan pada input teks untuk atasi bug kalendar pada fon bimbit */}
+                            <div className="md:col-span-2 relative z-20">
                                 <label className={formLabelClass}>Lokasi Semasa Tugas <span className="text-red-500">*</span></label>
-                                <input type="text" name="tempat" value={formData.tempat} onChange={handleChange} className={formInputClass} placeholder="Cth: ADTEC Sandakan / Luar Kawasan" />
+                                <input type="text" name="tempat" value={formData.tempat} onChange={handleChange} className={`${formInputClass} relative z-20`} placeholder="Cth: ADTEC Sandakan / Luar Kawasan" />
                             </div>
-                            <div>
+                            <div className="relative z-20">
                                 <label className={formLabelClass}>Subjek / Tugas Ditinggalkan <span className="text-red-500">*</span></label>
-                                <input type="text" name="subjek" value={formData.subjek} onChange={handleChange} className={formInputClass} placeholder="Cth: Kelas Kimpalan 1A" />
+                                <input type="text" name="subjek" value={formData.subjek} onChange={handleChange} className={`${formInputClass} relative z-20`} placeholder="Cth: Kelas Kimpalan 1A" />
                             </div>
-                            <div>
+                            <div className="relative z-20">
                                 <label className={formLabelClass}>Semester / Kumpulan</label>
-                                <input type="text" name="semester" value={formData.semester} onChange={handleChange} className={formInputClass} placeholder="Cth: Sem 2 / Kump B" />
+                                <input type="text" name="semester" value={formData.semester} onChange={handleChange} className={`${formInputClass} relative z-20`} placeholder="Cth: Sem 2 / Kump B" />
                             </div>
-                            <div>
+                            {/* Input Tarikh di set ke z-0 */}
+                            <div className="relative z-0">
                                 <label className={formLabelClass}>Tarikh Mula Pelepasan <span className="text-red-500">*</span></label>
-                                <input type="date" name="tarikhGantiDari" value={formData.tarikhGantiDari} onChange={handleChange} className={formInputClass} />
+                                <input type="date" name="tarikhGantiDari" value={formData.tarikhGantiDari} onChange={handleChange} className={`${formInputClass} relative z-0`} />
                             </div>
-                            <div>
+                            <div className="relative z-0">
                                 <label className={formLabelClass}>Tarikh Tamat Pelepasan <span className="text-red-500">*</span></label>
-                                <input type="date" name="tarikhGantiHingga" value={formData.tarikhGantiHingga} min={formData.tarikhGantiDari} onChange={handleChange} className={formInputClass} />
+                                <input type="date" name="tarikhGantiHingga" value={formData.tarikhGantiHingga} min={formData.tarikhGantiDari} onChange={handleChange} className={`${formInputClass} relative z-0`} />
                             </div>
-                            <div className="md:col-span-2">
+                            <div className="md:col-span-2 relative z-20">
                                 <label className={formLabelClass}>Catatan</label>
-                                <textarea name="catatanTugas" value={formData.catatanTugas} onChange={handleChange} className={`${formInputClass} min-h-[100px] resize-none`} placeholder="Sebarang nota tambahan..." />
+                                <textarea name="catatanTugas" value={formData.catatanTugas} onChange={handleChange} className={`${formInputClass} relative z-20 min-h-[100px] resize-none`} placeholder="Sebarang nota tambahan..." />
                             </div>
                         </div>
                         <div className="mt-8 flex justify-end">
@@ -77,28 +79,28 @@ const FormPelepasan = ({
                 {expanded.pengganti && isPelepasanInfoComplete && (
                     <div className="p-6 md:p-8 pt-2 border-t border-slate-50 bg-white animate-slide-up">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-7">
-                            <div className="md:col-span-2">
+                            <div className="md:col-span-2 relative z-20">
                                 <label className={formLabelClass}>Nama Pengganti <span className="text-red-500">*</span></label>
                                 <div className="relative">
-                                    <select name="namaPengganti" value={formData.namaPengganti} onChange={handlePenggantiChange} className={`${formInputClass} appearance-none cursor-pointer relative z-10 ${formData.namaPengganti ? 'text-slate-800' : 'text-slate-400 font-medium'}`}>
+                                    <select name="namaPengganti" value={formData.namaPengganti} onChange={handlePenggantiChange} className={`${formInputClass} appearance-none cursor-pointer relative z-20 ${formData.namaPengganti ? 'text-slate-800' : 'text-slate-400 font-medium'}`}>
                                         <option value="" disabled>-- Pilih Pengganti --</option>
                                         <option value="TIADA PENGGANTI" className="font-bold text-red-600">-- TIADA PENGGANTI --</option>
                                         {[...pegawaiDatabase].sort((a,b) => a.nama.localeCompare(b.nama)).map((p, idx) => (
                                             <option key={idx} value={p.nama}>{p.nama} ({p.bahagian})</option>
                                         ))}
                                     </select>
-                                    <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400 z-20"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+                                    <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400 z-30"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
                                 </div>
                             </div>
                             {formData.namaPengganti !== "TIADA PENGGANTI" && (
                                 <>
-                                    <div>
+                                    <div className="relative z-20">
                                         <label className={formLabelClass}>Bahagian / Unit <span className="text-red-500">*</span></label>
-                                        <input type="text" name="bahagianPengganti" value={formData.bahagianPengganti} onChange={handleChange} className={formInputClass} placeholder="Cth: Unit Komputer" />
+                                        <input type="text" name="bahagianPengganti" value={formData.bahagianPengganti} onChange={handleChange} className={`${formInputClass} relative z-20`} placeholder="Cth: Unit Komputer" />
                                     </div>
-                                    <div>
+                                    <div className="relative z-20">
                                         <label className={formLabelClass}>No. Telefon <span className="text-red-500">*</span></label>
-                                        <input type="text" name="noTelPengganti" value={formData.noTelPengganti} onChange={handleChange} className={formInputClass} placeholder="01X-XXXXXXX" />
+                                        <input type="text" name="noTelPengganti" value={formData.noTelPengganti} onChange={handleChange} className={`${formInputClass} relative z-20`} placeholder="01X-XXXXXXX" />
                                     </div>
                                 </>
                             )}
@@ -127,7 +129,7 @@ const FormPelepasan = ({
                 </div>
                 {expanded.tandatangan && isPenggantiComplete && (
                     <div className="p-6 md:p-8 pt-2 border-t border-slate-50 bg-white animate-slide-up">
-                        <div className="bg-blue-50/50 rounded-2xl p-4 sm:p-6 border border-blue-100 relative">
+                        <div className="bg-blue-50/50 rounded-2xl p-4 sm:p-6 border border-blue-100 relative z-20">
                             {isTandatanganComplete ? (
                                 <div className="flex flex-col items-center justify-center space-y-4">
                                     <div className="w-full max-w-sm h-48 bg-white border border-slate-200 rounded-xl overflow-hidden flex items-center justify-center p-4">
