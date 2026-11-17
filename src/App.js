@@ -131,7 +131,7 @@ function App() {
 
     useEffect(() => { if (formData.kodSyarikat || formData.enrichId) { localStorage.setItem("flightInfo", JSON.stringify({ kodSyarikat: formData.kodSyarikat, enrichId: formData.enrichId })); } }, [formData.kodSyarikat, formData.enrichId]);
 
-    // Kunci tarikh automatik HANYA untuk Borang Tugas Rasmi
+    // ✅ FIX: Kunci tarikh HANYA berfungsi jika buka Borang Tugas Rasmi sahaja
     useEffect(() => {
         if (activeForm === 'tugas') {
             if (isGantiDateLocked) { 
@@ -173,19 +173,7 @@ function App() {
         if (name === 'noKp') value = formatIC(value);
         if (name === 'noTel' || name === 'noTelPengganti' || name === 'cutiPenggantiNoTel') value = formatPhone(value);
         if (['flightPergiDari', 'flightPergiKe', 'flightBalikDari', 'flightBalikKe', 'flightPergiLeg2Dari', 'flightPergiLeg2Ke', 'flightBalikLeg2Dari', 'flightBalikLeg2Ke'].includes(name)) { value = value.toUpperCase().replace(/[^A-Z]/g, '').substring(0, 3); }
-        
-        setFormData(prev => {
-            let updated = { ...prev, [name]: type === 'checkbox' ? checked : value };
-            
-            // Logik Anjakan Tarikh Auto (elak tersekat di mobile)
-            if (name === 'tarikhPergi' && new Date(value) > new Date(updated.tarikhBalik)) updated.tarikhBalik = value;
-            if (name === 'tarikhGantiDari' && new Date(value) > new Date(updated.tarikhGantiHingga)) updated.tarikhGantiHingga = value;
-            if (name === 'flightPergiTarikh' && new Date(value) > new Date(updated.flightBalikTarikh)) updated.flightBalikTarikh = value;
-            if (name === 'cutiDari' && new Date(value) > new Date(updated.cutiHingga)) updated.cutiHingga = value;
-            if (name === 'kursusDari' && new Date(value) > new Date(updated.kursusHingga)) updated.kursusHingga = value;
-            
-            return updated;
-        });
+        setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     };
 
     const toggleAutoFieldsEdit = () => {
@@ -210,7 +198,6 @@ function App() {
         if (p) setFormData(prev => ({ ...prev, cutiPenggantiNama: p.nama, cutiPenggantiBahagian: p.bahagian, cutiPenggantiNoTel: p.noTel || '' }));
     };
 
-    // ================== LOGIK VALIDASI ==================
     const isPegawaiComplete = formData.nama.trim() !== '' && formData.jawatan.trim() !== '' && formData.bahagian.trim() !== '' && formData.noKp.trim() !== '' && (activeForm === 'akujanji' || activeForm === 'laporan' || formData.noTel.trim() !== '');
     
     const isTugasComplete = formData.tujuan.trim() !== '' && formData.tempat.trim() !== '' && formData.tarikhPergi !== '' && formData.tarikhBalik !== '' && formData.caraPerjalanan.length > 0;
@@ -227,10 +214,7 @@ function App() {
     const isCutiComplete = formData.jenisCuti !== '' && formData.cutiDari !== '' && formData.cutiHingga !== '' && formData.ketuaSokongan !== '' && formData.pegawaiPelulus !== '';
     const isCutiGantiComplete = () => (formData.jenisCuti !== 'Cuti Ganti' && formData.jenisCuti !== 'Cuti Tanpa Rekod') ? true : formData.cutiPenggantiNama.trim() !== '' && formData.cutiPenggantiTugas.trim() !== '';
     const isPerananComplete = formData.perananPeperiksaan.length > 0;
-    
-    // Check if signature has data
     const isTandatanganComplete = formData.tandatangan !== null;
-    
     const isLaporanInfoComplete = formData.sesiPeperiksaan.trim() !== '' && formData.tarikhPeperiksaan !== '';
     const isLaporanSoalanComplete = formData.q1Status !== '' && formData.q2Status !== '' && formData.q3Status !== '';
     const isKursusComplete = formData.kursusNama.trim() !== '' && formData.kursusDari !== '' && formData.kursusHingga !== '' && (activeForm === 'pascaKursus' ? (formData.penyediaLatihan.trim() !== '' && formData.tempatKursus.trim() !== '' && formData.namaPenyelia.trim() !== '' && formData.jawatanPenyelia.trim() !== '') : true);
@@ -238,16 +222,14 @@ function App() {
     const isPenilaianLepasKursusComplete = [formData.lkA1, formData.lkA2, formData.lkA3, formData.lkA4, formData.lkB1, formData.lkB2, formData.lkB3, formData.lkB4, formData.lkB5, formData.lkC1, formData.lkC2, formData.lkC3, formData.lkD1, formData.lkD2a, formData.lkD2b, formData.lkD2c, formData.lkD3b, formData.lkD3c, formData.lkD3d].every(v => v > 0);
     const isPenilaianPascaKursusComplete = [formData.pk1a, formData.pk1b, formData.pk1c, formData.pk1d].every(v => v > 0);
 
-    // ✅ KEMAS KINI: Menghapuskan 'isTandatanganComplete' dari semua validasi isAllComplete.
-    // Ini menjadikan tandatangan 100% sebagai pilihan (optional) sebelum menjana PDF.
     const isAllComplete = activeForm === 'cuti' ? (isPegawaiComplete && isCutiComplete && isCutiGantiComplete())
-        : activeForm === 'akujanji' ? (isPegawaiComplete && isPerananComplete)
-        : activeForm === 'laporan' ? (isPegawaiComplete && isLaporanInfoComplete && isLaporanSoalanComplete)
+        : activeForm === 'akujanji' ? (isPegawaiComplete && isPerananComplete && isTandatanganComplete)
+        : activeForm === 'laporan' ? (isPegawaiComplete && isLaporanInfoComplete && isLaporanSoalanComplete && isTandatanganComplete)
         : activeForm === 'lepasKursus' ? (isPegawaiComplete && isKursusComplete && isPenilaianLepasKursusComplete)
         : activeForm === 'pascaKursus' ? (isPegawaiComplete && isKursusComplete && isPenilaianPascaKursusComplete)
-        : activeForm === 'pelepasan' ? (isPegawaiComplete && isPelepasanInfoComplete && isPenggantiComplete)
-        : activeForm === 'tempahanTiket' ? (isPegawaiComplete && isTiketInfoComplete && isTiketFlightComplete)
-        : (isPegawaiComplete && isTugasComplete && isPenggantiComplete && isTiketComplete); // Untuk tugas rasmi
+        : activeForm === 'pelepasan' ? (isPegawaiComplete && isPelepasanInfoComplete && isPenggantiComplete && isTandatanganComplete)
+        : activeForm === 'tempahanTiket' ? (isPegawaiComplete && isTiketInfoComplete && isTiketFlightComplete && isTandatanganComplete)
+        : (isPegawaiComplete && isTugasComplete && isPenggantiComplete && isTiketComplete && isTandatanganComplete);
 
     const showNotification = (message, type = 'success') => { setNotification({ show: true, message, type }); setTimeout(() => setNotification({ show: false, message: '', type: '' }), 4000); };
 
@@ -382,6 +364,7 @@ function App() {
         return (
             <div className="min-h-screen relative flex flex-col font-sans overflow-x-hidden bg-slate-50">
                 
+                {/* Latar Belakang Gambar Bangunan */}
                 <div 
                     className="absolute inset-0 z-0 pointer-events-none"
                     style={{
@@ -392,11 +375,10 @@ function App() {
                     }}
                 ></div>
 
-                <div className="absolute inset-0 bg-white/70 sm:bg-white/40 backdrop-blur-[2px] sm:backdrop-blur-sm z-0 pointer-events-none"></div>
+                {/* ✅ KEMAS KINI: Efek Gradient tanpa efek 'blur' supaya background nampak lebih jelas */}
                 <div className="absolute inset-0 bg-gradient-to-b from-white/95 via-white/80 to-slate-50/90 md:bg-gradient-to-r md:from-white md:via-white/80 md:to-transparent z-0 pointer-events-none"></div>
-                
-                <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-blue-300/30 rounded-full blur-[120px] z-0 pointer-events-none hidden md:block"></div>
 
+                {/* Navbar */}
                 <nav className="fixed top-4 w-[95%] max-w-7xl mx-auto bg-white/90 backdrop-blur-md border border-slate-200/60 z-50 px-4 md:px-6 py-2.5 flex justify-between items-center shadow-sm rounded-2xl left-0 right-0">
                     <div className="flex items-center gap-3">
                         {isLogoLoading ? (
@@ -452,6 +434,7 @@ function App() {
                         <p className="text-[14px] sm:text-[16px] md:text-lg text-slate-600 font-medium max-w-3xl leading-relaxed mt-3">
                             Sistem pengurusan dan penjanaan dokumen rasmi secara digital, pantas dan sistematik.
                         </p>
+                        {/* Butang Navigasi (Hanya di Mobile) */}
                         <div className="flex md:hidden items-center gap-3 mt-6">
                             <button onClick={() => setShowPanduan(true)} className="flex items-center gap-1.5 bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-xl text-[13px] font-bold shadow-sm">
                                 Panduan
@@ -510,7 +493,7 @@ function App() {
                                 </div>
                                 <div>
                                     <h3 className="text-[18px] font-extrabold text-slate-800 mb-1">Tempahan Tiket</h3>
-                                    <p className="text-[13px] font-medium text-slate-500 leading-relaxed max-w-[90%]">Tempahan tiket penerbangan berasingan.</p>
+                                    <p className="text-[13px] font-medium text-slate-500 leading-relaxed max-w-[90%]">Tempahan tiket penerbangan.</p>
                                 </div>
                             </div>
                             <div className="absolute bottom-6 right-6 w-8 h-8 rounded-full flex items-center justify-center bg-cyan-50 text-cyan-600 group-hover:bg-cyan-600 group-hover:text-white transition-colors duration-300">
@@ -528,7 +511,7 @@ function App() {
                                 </div>
                                 <div>
                                     <h3 className="text-[18px] font-extrabold text-slate-800 mb-1">Borang Cuti Manual</h3>
-                                    <p className="text-[13px] font-medium text-slate-500 leading-relaxed max-w-[90%]">Cuti Rehat, Cuti Ganti, dan Cuti Kecemasan.</p>
+                                    <p className="text-[13px] font-medium text-slate-500 leading-relaxed max-w-[90%]">Borang permohonan Cuti Rehat, Cuti Ganti, dan Cuti Kecemasan.</p>
                                 </div>
                             </div>
                             <div className="absolute bottom-6 right-6 w-8 h-8 rounded-full flex items-center justify-center bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300">
@@ -564,13 +547,50 @@ function App() {
                                 </div>
                                 <div>
                                     <h3 className="text-[18px] font-extrabold text-slate-800 mb-1">Laporan Peperiksaan</h3>
-                                    <p className="text-[13px] font-medium text-slate-500 leading-relaxed max-w-[90%]">Laporan pelaksanaan oleh Ketua Pengawas.</p>
+                                    <p className="text-[13px] font-medium text-slate-500 leading-relaxed max-w-[90%]">Laporan pelaksanaan Peperiksaan Akhir oleh Ketua Pengawas.</p>
                                 </div>
                             </div>
                             <div className="absolute bottom-6 right-6 w-8 h-8 rounded-full flex items-center justify-center bg-amber-50 text-amber-500 group-hover:bg-amber-500 group-hover:text-white transition-colors duration-300">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                             </div>
                         </button>
+
+                        <button onClick={() => { setActiveForm('lepasKursus'); setExpanded({...expanded, pegawai: true}); }} className="group relative bg-white/80 backdrop-blur-xl border border-slate-100 hover:border-sky-200 p-6 rounded-3xl shadow-lg shadow-slate-200/40 hover:shadow-xl hover:shadow-sky-500/10 transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden min-h-[180px] sm:min-h-[200px] flex flex-col justify-between">
+                            <div className="absolute top-4 right-4 text-sky-50 opacity-60 transform group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="90" height="90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                            </div>
+                            <div className="relative z-10">
+                                <div className="w-12 h-12 bg-sky-50 text-sky-500 rounded-[14px] flex items-center justify-center mb-4 shadow-sm group-hover:bg-sky-500 group-hover:text-white transition-colors duration-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15l2 2 4-4"/></svg>
+                                </div>
+                                <div>
+                                    <h3 className="text-[18px] font-extrabold text-slate-800 mb-1">Penilaian Lepas Kursus</h3>
+                                    <p className="text-[13px] font-medium text-slate-500 leading-relaxed max-w-[90%]">Borang Lampiran A untuk diisi sebaik sahaja kembali berkursus.</p>
+                                </div>
+                            </div>
+                            <div className="absolute bottom-6 right-6 w-8 h-8 rounded-full flex items-center justify-center bg-sky-50 text-sky-500 group-hover:bg-sky-500 group-hover:text-white transition-colors duration-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                            </div>
+                        </button>
+                        
+                        <button onClick={() => { setActiveForm('pascaKursus'); setExpanded({...expanded, pegawai: true}); }} className="group relative bg-white/80 backdrop-blur-xl border border-slate-100 hover:border-purple-200 p-6 rounded-3xl shadow-lg shadow-slate-200/40 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden min-h-[180px] sm:min-h-[200px] flex flex-col justify-between">
+                            <div className="absolute top-4 right-4 text-purple-50 opacity-60 transform group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="90" height="90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            </div>
+                            <div className="relative z-10">
+                                <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-[14px] flex items-center justify-center mb-4 shadow-sm group-hover:bg-purple-600 group-hover:text-white transition-colors duration-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+                                </div>
+                                <div>
+                                    <h3 className="text-[18px] font-extrabold text-slate-800 mb-1">Penilaian Pasca Kursus</h3>
+                                    <p className="text-[13px] font-medium text-slate-500 leading-relaxed max-w-[90%]">Borang Lampiran B untuk dinilai oleh penyelia selepas 3 bulan.</p>
+                                </div>
+                            </div>
+                            <div className="absolute bottom-6 right-6 w-8 h-8 rounded-full flex items-center justify-center bg-purple-50 text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-colors duration-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                            </div>
+                        </button>
+
                     </div>
                 </div>
 
