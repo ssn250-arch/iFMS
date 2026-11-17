@@ -27,7 +27,6 @@ const FormTiket = ({
                 {expanded.tiketInfo && isPegawaiComplete && (
                     <div className="p-6 md:p-8 pt-2 border-t border-slate-50 bg-white animate-slide-up">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-7">
-                            {/* ✅ KEMAS KINI: relative z-20 diletakkan pada input teks untuk elak tertutup kalendar */}
                             <div className="md:col-span-2 relative z-20">
                                 <label className={formLabelClass}>Tujuan Penerbangan <span className="text-red-500">*</span></label>
                                 <input type="text" name="tujuan" value={formData.tujuan} onChange={handleChange} className={`${formInputClass} relative z-20`} placeholder="Mesyuarat / Kursus / Bengkel dll" />
@@ -219,8 +218,9 @@ const FormTiket = ({
                             {!isTiketFlightComplete ? <LockIcon /> : (isTandatanganComplete && !expanded.tandatangan ? <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> : <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>)}
                         </div>
                         <div>
-                            <h2 className="text-lg font-extrabold text-slate-800">Tandatangan <span className="hidden sm:inline">Pemohon</span> {isTandatanganComplete && !expanded.tandatangan && <span className="ml-2 text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full uppercase tracking-wider">Lengkap</span>}</h2>
-                            {!expanded.tandatangan && isTiketFlightComplete && <p className="text-[13px] text-slate-500 font-semibold mt-0.5">{isTandatanganComplete ? 'Tandatangan telah direkodkan' : 'Ruangan tandatangan digital'}</p>}
+                            {/* Label Pilihan Ditambah Di Sini */}
+                            <h2 className="text-lg font-extrabold text-slate-800">Tandatangan <span className="hidden sm:inline">Pemohon</span> <span className="text-[11px] font-bold text-slate-400 ml-1 bg-slate-100 px-2 py-0.5 rounded-full uppercase">(Pilihan)</span></h2>
+                            {!expanded.tandatangan && isTiketFlightComplete && <p className="text-[13px] text-slate-500 font-semibold mt-0.5">{isTandatanganComplete ? 'Tandatangan telah direkodkan' : 'Boleh dikosongkan (optional)'}</p>}
                         </div>
                     </div>
                 </div>
@@ -257,8 +257,9 @@ const FormTiket = ({
                                 </div>
                             )}
                         </div>
+                        {/* ✅ KEMAS KINI: Butang Selesai tiada lagi halangan 'disabled={!isTandatanganComplete}' */}
                         <div className="mt-8 flex justify-end">
-                            <button onClick={() => nextSection('tandatangan', 'jana')} disabled={!isTandatanganComplete} className={`font-bold py-3 px-6 rounded-xl shadow-md transition-all flex items-center gap-2 ${isTandatanganComplete ? 'bg-slate-900 hover:bg-slate-800 text-white active:scale-95' : 'bg-slate-300 text-slate-500 cursor-not-allowed'}`}>
+                            <button onClick={() => nextSection('tandatangan', 'jana')} className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-2">
                                 Selesai <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                             </button>
                         </div>
