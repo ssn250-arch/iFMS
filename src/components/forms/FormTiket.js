@@ -27,21 +27,22 @@ const FormTiket = ({
                 {expanded.tiketInfo && isPegawaiComplete && (
                     <div className="p-6 md:p-8 pt-2 border-t border-slate-50 bg-white animate-slide-up">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-7">
-                            <div className="md:col-span-2">
+                            {/* ✅ KEMAS KINI: relative z-20 diletakkan pada input teks untuk elak tertutup kalendar */}
+                            <div className="md:col-span-2 relative z-20">
                                 <label className={formLabelClass}>Tujuan Penerbangan <span className="text-red-500">*</span></label>
-                                <input type="text" name="tujuan" value={formData.tujuan} onChange={handleChange} className={formInputClass} placeholder="Mesyuarat / Kursus / Bengkel dll" />
+                                <input type="text" name="tujuan" value={formData.tujuan} onChange={handleChange} className={`${formInputClass} relative z-20`} placeholder="Mesyuarat / Kursus / Bengkel dll" />
                             </div>
-                            <div className="md:col-span-2">
+                            <div className="md:col-span-2 relative z-20">
                                 <label className={formLabelClass}>Tempat / Lokasi Dituju <span className="text-red-500">*</span></label>
-                                <input type="text" name="tempat" value={formData.tempat} onChange={handleChange} className={formInputClass} placeholder="Cth: JTM Putrajaya" />
+                                <input type="text" name="tempat" value={formData.tempat} onChange={handleChange} className={`${formInputClass} relative z-20`} placeholder="Cth: JTM Putrajaya" />
                             </div>
-                            <div>
+                            <div className="relative z-0">
                                 <label className={formLabelClass}>Tarikh Pergi <span className="text-red-500">*</span></label>
-                                <input type="date" name="tarikhPergi" value={formData.tarikhPergi} onChange={handleChange} className={formInputClass} />
+                                <input type="date" name="tarikhPergi" value={formData.tarikhPergi} onChange={handleChange} className={`${formInputClass} relative z-0`} />
                             </div>
-                            <div>
+                            <div className="relative z-0">
                                 <label className={formLabelClass}>Tarikh Balik <span className="text-red-500">*</span></label>
-                                <input type="date" name="tarikhBalik" value={formData.tarikhBalik} min={formData.tarikhPergi} onChange={handleChange} className={formInputClass} />
+                                <input type="date" name="tarikhBalik" value={formData.tarikhBalik} min={formData.tarikhPergi} onChange={handleChange} className={`${formInputClass} relative z-0`} />
                             </div>
                         </div>
                         <div className="mt-8 flex justify-end">
@@ -83,22 +84,22 @@ const FormTiket = ({
                         <div className="mb-6 p-4 bg-slate-50 rounded-2xl border border-slate-200">
                             <h4 className="font-bold text-slate-700 mb-3 text-sm uppercase">Pergi (L1)</h4>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                <div>
+                                <div className="relative z-0">
                                     <label className="block text-xs font-bold text-slate-500 mb-1">Tarikh</label>
-                                    <input type="date" name="flightPergiTarikh" value={formData.flightPergiTarikh} onChange={handleChange} className={formInputClass} style={{padding: '10px'}} />
+                                    <input type="date" name="flightPergiTarikh" value={formData.flightPergiTarikh} onChange={handleChange} className={`${formInputClass} relative z-0`} style={{padding: '10px'}} />
                                 </div>
-                                <div>
+                                <div className="relative z-0">
                                     <label className="block text-xs font-bold text-slate-500 mb-1">Masa</label>
-                                    <input type="time" name="flightPergiMasa" value={formData.flightPergiMasa} onChange={handleChange} className={formInputClass} style={{padding: '10px'}} />
+                                    <input type="time" name="flightPergiMasa" value={formData.flightPergiMasa} onChange={handleChange} className={`${formInputClass} relative z-0`} style={{padding: '10px'}} />
                                 </div>
-                                <div>
+                                <div className="relative z-20">
                                     <label className="block text-xs font-bold text-slate-500 mb-1">Dari</label>
-                                    <input type="text" name="flightPergiDari" value={formData.flightPergiDari} onChange={handleChange} maxLength="3" placeholder="SDK" className={`${formInputClass} text-center uppercase tracking-widest`} style={{padding: '10px'}} />
+                                    <input type="text" name="flightPergiDari" value={formData.flightPergiDari} onChange={handleChange} maxLength="3" placeholder="SDK" className={`${formInputClass} relative z-20 text-center uppercase tracking-widest`} style={{padding: '10px'}} />
                                     <div className="text-[10px] text-slate-400 mt-1 truncate">{getAirportName(formData.flightPergiDari)}</div>
                                 </div>
-                                <div>
+                                <div className="relative z-20">
                                     <label className="block text-xs font-bold text-slate-500 mb-1">Ke</label>
-                                    <input type="text" name="flightPergiKe" value={formData.flightPergiKe} onChange={handleChange} maxLength="3" placeholder="KUL" className={`${formInputClass} text-center uppercase tracking-widest`} style={{padding: '10px'}} />
+                                    <input type="text" name="flightPergiKe" value={formData.flightPergiKe} onChange={handleChange} maxLength="3" placeholder="KUL" className={`${formInputClass} relative z-20 text-center uppercase tracking-widest`} style={{padding: '10px'}} />
                                     <div className="text-[10px] text-slate-400 mt-1 truncate">{getAirportName(formData.flightPergiKe)}</div>
                                 </div>
                             </div>
@@ -109,21 +110,21 @@ const FormTiket = ({
                             <div className="mb-6 p-4 bg-amber-50/50 rounded-2xl border border-amber-100">
                                 <h4 className="font-bold text-amber-700 mb-3 text-sm uppercase">Pergi Transit (L2)</h4>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                    <div>
+                                    <div className="relative z-0">
                                         <label className="block text-xs font-bold text-slate-500 mb-1">Tarikh</label>
-                                        <input type="date" name="flightPergiLeg2Tarikh" value={formData.flightPergiLeg2Tarikh} onChange={handleChange} className={formInputClass} style={{padding: '10px'}} />
+                                        <input type="date" name="flightPergiLeg2Tarikh" value={formData.flightPergiLeg2Tarikh} onChange={handleChange} className={`${formInputClass} relative z-0`} style={{padding: '10px'}} />
                                     </div>
-                                    <div>
+                                    <div className="relative z-0">
                                         <label className="block text-xs font-bold text-slate-500 mb-1">Masa</label>
-                                        <input type="time" name="flightPergiLeg2Masa" value={formData.flightPergiLeg2Masa} onChange={handleChange} className={formInputClass} style={{padding: '10px'}} />
+                                        <input type="time" name="flightPergiLeg2Masa" value={formData.flightPergiLeg2Masa} onChange={handleChange} className={`${formInputClass} relative z-0`} style={{padding: '10px'}} />
                                     </div>
-                                    <div>
+                                    <div className="relative z-20">
                                         <label className="block text-xs font-bold text-slate-500 mb-1">Dari</label>
-                                        <input type="text" name="flightPergiLeg2Dari" value={formData.flightPergiLeg2Dari} onChange={handleChange} maxLength="3" placeholder="KUL" className={`${formInputClass} text-center uppercase tracking-widest`} style={{padding: '10px'}} />
+                                        <input type="text" name="flightPergiLeg2Dari" value={formData.flightPergiLeg2Dari} onChange={handleChange} maxLength="3" placeholder="KUL" className={`${formInputClass} relative z-20 text-center uppercase tracking-widest`} style={{padding: '10px'}} />
                                     </div>
-                                    <div>
+                                    <div className="relative z-20">
                                         <label className="block text-xs font-bold text-slate-500 mb-1">Ke</label>
-                                        <input type="text" name="flightPergiLeg2Ke" value={formData.flightPergiLeg2Ke} onChange={handleChange} maxLength="3" placeholder="JHB" className={`${formInputClass} text-center uppercase tracking-widest`} style={{padding: '10px'}} />
+                                        <input type="text" name="flightPergiLeg2Ke" value={formData.flightPergiLeg2Ke} onChange={handleChange} maxLength="3" placeholder="JHB" className={`${formInputClass} relative z-20 text-center uppercase tracking-widest`} style={{padding: '10px'}} />
                                     </div>
                                 </div>
                             </div>
@@ -132,24 +133,24 @@ const FormTiket = ({
                         {/* Balik L1 */}
                         <div className="mb-6 p-4 bg-slate-50 rounded-2xl border border-slate-200 relative">
                             <h4 className="font-bold text-slate-700 mb-3 text-sm uppercase">Balik (L1)</h4>
-                            <button onClick={() => setRoute('SDK', 'KUL')} className="absolute top-4 right-4 text-xs font-bold text-blue-600 bg-blue-100 hover:bg-blue-200 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></svg> Auto-Terbalik</button>
+                            <button onClick={() => setRoute('SDK', 'KUL')} className="absolute top-4 right-4 text-xs font-bold text-blue-600 bg-blue-100 hover:bg-blue-200 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 z-30"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></svg> Auto-Terbalik</button>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                <div>
+                                <div className="relative z-0">
                                     <label className="block text-xs font-bold text-slate-500 mb-1">Tarikh</label>
-                                    <input type="date" name="flightBalikTarikh" value={formData.flightBalikTarikh} onChange={handleChange} className={formInputClass} style={{padding: '10px'}} />
+                                    <input type="date" name="flightBalikTarikh" value={formData.flightBalikTarikh} onChange={handleChange} className={`${formInputClass} relative z-0`} style={{padding: '10px'}} />
                                 </div>
-                                <div>
+                                <div className="relative z-0">
                                     <label className="block text-xs font-bold text-slate-500 mb-1">Masa</label>
-                                    <input type="time" name="flightBalikMasa" value={formData.flightBalikMasa} onChange={handleChange} className={formInputClass} style={{padding: '10px'}} />
+                                    <input type="time" name="flightBalikMasa" value={formData.flightBalikMasa} onChange={handleChange} className={`${formInputClass} relative z-0`} style={{padding: '10px'}} />
                                 </div>
-                                <div>
+                                <div className="relative z-20">
                                     <label className="block text-xs font-bold text-slate-500 mb-1">Dari</label>
-                                    <input type="text" name="flightBalikDari" value={formData.flightBalikDari} onChange={handleChange} maxLength="3" placeholder="KUL" className={`${formInputClass} text-center uppercase tracking-widest`} style={{padding: '10px'}} />
+                                    <input type="text" name="flightBalikDari" value={formData.flightBalikDari} onChange={handleChange} maxLength="3" placeholder="KUL" className={`${formInputClass} relative z-20 text-center uppercase tracking-widest`} style={{padding: '10px'}} />
                                     <div className="text-[10px] text-slate-400 mt-1 truncate">{getAirportName(formData.flightBalikDari)}</div>
                                 </div>
-                                <div>
+                                <div className="relative z-20">
                                     <label className="block text-xs font-bold text-slate-500 mb-1">Ke</label>
-                                    <input type="text" name="flightBalikKe" value={formData.flightBalikKe} onChange={handleChange} maxLength="3" placeholder="SDK" className={`${formInputClass} text-center uppercase tracking-widest`} style={{padding: '10px'}} />
+                                    <input type="text" name="flightBalikKe" value={formData.flightBalikKe} onChange={handleChange} maxLength="3" placeholder="SDK" className={`${formInputClass} relative z-20 text-center uppercase tracking-widest`} style={{padding: '10px'}} />
                                     <div className="text-[10px] text-slate-400 mt-1 truncate">{getAirportName(formData.flightBalikKe)}</div>
                                 </div>
                             </div>
@@ -160,31 +161,31 @@ const FormTiket = ({
                             <div className="mb-6 p-4 bg-amber-50/50 rounded-2xl border border-amber-100">
                                 <h4 className="font-bold text-amber-700 mb-3 text-sm uppercase">Balik Transit (L2)</h4>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                    <div>
+                                    <div className="relative z-0">
                                         <label className="block text-xs font-bold text-slate-500 mb-1">Tarikh</label>
-                                        <input type="date" name="flightBalikLeg2Tarikh" value={formData.flightBalikLeg2Tarikh} onChange={handleChange} className={formInputClass} style={{padding: '10px'}} />
+                                        <input type="date" name="flightBalikLeg2Tarikh" value={formData.flightBalikLeg2Tarikh} onChange={handleChange} className={`${formInputClass} relative z-0`} style={{padding: '10px'}} />
                                     </div>
-                                    <div>
+                                    <div className="relative z-0">
                                         <label className="block text-xs font-bold text-slate-500 mb-1">Masa</label>
-                                        <input type="time" name="flightBalikLeg2Masa" value={formData.flightBalikLeg2Masa} onChange={handleChange} className={formInputClass} style={{padding: '10px'}} />
+                                        <input type="time" name="flightBalikLeg2Masa" value={formData.flightBalikLeg2Masa} onChange={handleChange} className={`${formInputClass} relative z-0`} style={{padding: '10px'}} />
                                     </div>
-                                    <div>
+                                    <div className="relative z-20">
                                         <label className="block text-xs font-bold text-slate-500 mb-1">Dari</label>
-                                        <input type="text" name="flightBalikLeg2Dari" value={formData.flightBalikLeg2Dari} onChange={handleChange} maxLength="3" placeholder="JHB" className={`${formInputClass} text-center uppercase tracking-widest`} style={{padding: '10px'}} />
+                                        <input type="text" name="flightBalikLeg2Dari" value={formData.flightBalikLeg2Dari} onChange={handleChange} maxLength="3" placeholder="JHB" className={`${formInputClass} relative z-20 text-center uppercase tracking-widest`} style={{padding: '10px'}} />
                                     </div>
-                                    <div>
+                                    <div className="relative z-20">
                                         <label className="block text-xs font-bold text-slate-500 mb-1">Ke</label>
-                                        <input type="text" name="flightBalikLeg2Ke" value={formData.flightBalikLeg2Ke} onChange={handleChange} maxLength="3" placeholder="KUL" className={`${formInputClass} text-center uppercase tracking-widest`} style={{padding: '10px'}} />
+                                        <input type="text" name="flightBalikLeg2Ke" value={formData.flightBalikLeg2Ke} onChange={handleChange} maxLength="3" placeholder="KUL" className={`${formInputClass} relative z-20 text-center uppercase tracking-widest`} style={{padding: '10px'}} />
                                     </div>
                                 </div>
                             </div>
                         )}
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-7 mt-6 border-t border-slate-100 pt-6">
-                            <div>
+                            <div className="relative z-20">
                                 <label className={formLabelClass}>Syarikat Penerbangan</label>
                                 <div className="relative">
-                                    <select name="kodSyarikat" value={formData.kodSyarikat} onChange={handleChange} className={`${formInputClass} appearance-none`}>
+                                    <select name="kodSyarikat" value={formData.kodSyarikat} onChange={handleChange} className={`${formInputClass} relative z-20 appearance-none`}>
                                         <option value="">Pilih Penerbangan...</option>
                                         <option value="MAS">Malaysia Airlines (MAS)</option>
                                         <option value="AIRASIA">AirAsia</option>
@@ -192,12 +193,12 @@ const FormTiket = ({
                                         <option value="BATIK">Batik Air</option>
                                         <option value="MYAIRLINE">MYAirline</option>
                                     </select>
-                                    <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400 z-20"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+                                    <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400 z-30"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
                                 </div>
                             </div>
-                            <div>
+                            <div className="relative z-20">
                                 <label className={formLabelClass}>No. Ahli <span className="text-slate-400 font-normal lowercase">(Enrich/BIG ID)</span></label>
-                                <input type="text" name="enrichId" value={formData.enrichId} onChange={handleChange} className={formInputClass} placeholder="Kosongkan jika tiada" />
+                                <input type="text" name="enrichId" value={formData.enrichId} onChange={handleChange} className={`${formInputClass} relative z-20`} placeholder="Kosongkan jika tiada" />
                             </div>
                         </div>
 
@@ -225,7 +226,7 @@ const FormTiket = ({
                 </div>
                 {expanded.tandatangan && isTiketFlightComplete && (
                     <div className="p-6 md:p-8 pt-2 border-t border-slate-50 bg-white animate-slide-up">
-                        <div className="bg-blue-50/50 rounded-2xl p-4 sm:p-6 border border-blue-100 relative">
+                        <div className="bg-blue-50/50 rounded-2xl p-4 sm:p-6 border border-blue-100 relative z-20">
                             {isTandatanganComplete ? (
                                 <div className="flex flex-col items-center justify-center space-y-4">
                                     <div className="w-full max-w-sm h-48 bg-white border border-slate-200 rounded-xl overflow-hidden flex items-center justify-center p-4">
