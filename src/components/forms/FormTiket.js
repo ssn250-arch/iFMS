@@ -57,14 +57,14 @@ const FormTiket = ({
 
     const selectAirport = (code) => {
         if (!activeAirportField) return;
+        const cleanCode = code.trim().toUpperCase().slice(0, 3);
         setFormData(prev => {
-            const updated = { ...prev, [activeAirportField]: code };
-            // Auto-isi arah balik jika Pergi (L1) diubah
+            const updated = { ...prev, [activeAirportField]: cleanCode };
             if (activeAirportField === 'flightPergiDari' && !prev.flightBalikKe) {
-                updated.flightBalikKe = code;
+                updated.flightBalikKe = cleanCode;
             }
             if (activeAirportField === 'flightPergiKe' && !prev.flightBalikDari) {
-                updated.flightBalikDari = code;
+                updated.flightBalikDari = cleanCode;
             }
             return updated;
         });
@@ -86,6 +86,43 @@ const FormTiket = ({
                 flightBalikDari: prev.flightPergiKe || prev.flightBalikKe,
                 flightBalikKe: prev.flightPergiDari || prev.flightBalikDari
             }));
+        } else if (leg === 'pergi2') {
+            setFormData(prev => ({
+                ...prev,
+                flightPergiLeg2Dari: prev.flightPergiLeg2Ke,
+                flightPergiLeg2Ke: prev.flightPergiLeg2Dari
+            }));
+        } else if (leg === 'balik2') {
+            setFormData(prev => ({
+                ...prev,
+                flightBalikLeg2Dari: prev.flightBalikLeg2Ke,
+                flightBalikLeg2Ke: prev.flightBalikLeg2Dari
+            }));
+        }
+    };
+
+    const handleSafeDateChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => {
+            const updated = { ...prev, [name]: value };
+            // Elak konflik tarikh balik tertinggal di belakang tarikh pergi
+            if (name === 'tarikhPergi' && prev.tarikhBalik && value > prev.tarikhBalik) {
+                updated.tarikhBalik = value;
+            }
+            if (name === 'flightPergiTarikh' && prev.flightBalikTarikh && value > prev.flightBalikTarikh) {
+                updated.flightBalikTarikh = value;
+            }
+            return updated;
+        });
+    };
+
+    const openNativePicker = (e) => {
+        try {
+            if (typeof e.currentTarget.showPicker === 'function') {
+                e.currentTarget.showPicker();
+            }
+        } catch (_) {
+            // Abaikan jika pelayar tidak menyokong showPicker
         }
     };
 
@@ -96,14 +133,14 @@ const FormTiket = ({
     );
 
     const renderRouteSelector = (label, dariField, keField, onSwap, isBalik = false) => (
-        <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm relative z-20 isolate">
+        <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm relative z-30 isolate">
             <div className="flex items-center justify-between mb-3">
                 <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">{label}</span>
                 {isBalik && (
                     <button
                         type="button"
                         onClick={onSwap}
-                        className="text-[11px] font-bold text-cyan-700 bg-cyan-50 hover:bg-cyan-100 active:scale-95 px-2.5 py-1 rounded-lg transition-all flex items-center gap-1"
+                        className="relative z-30 text-[11px] font-bold text-cyan-700 bg-cyan-50 hover:bg-cyan-100 active:scale-95 px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 cursor-pointer"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></svg>
                         Salin Terbalik dari Pergi
@@ -116,7 +153,7 @@ const FormTiket = ({
                 <button
                     type="button"
                     onClick={(e) => openAirportPicker(e, dariField)}
-                    className="text-left p-3 rounded-xl bg-slate-50 hover:bg-cyan-50/60 border border-slate-200/80 hover:border-cyan-400 transition-all active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-cyan-500/30"
+                    className="relative z-30 text-left p-3 rounded-xl bg-slate-50 hover:bg-cyan-50/60 border border-slate-200/80 hover:border-cyan-400 transition-all active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-cyan-500/30 cursor-pointer"
                 >
                     <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Dari</div>
                     <div className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight mt-0.5">
@@ -132,7 +169,7 @@ const FormTiket = ({
                     type="button"
                     onClick={onSwap}
                     title="Tukar Destinasi"
-                    className="w-9 h-9 rounded-full bg-white border border-slate-200 shadow-sm flex items-center justify-center text-cyan-600 hover:bg-cyan-600 hover:text-white hover:border-cyan-600 transition-all active:rotate-180"
+                    className="relative z-30 w-9 h-9 rounded-full bg-white border border-slate-200 shadow-sm flex items-center justify-center text-cyan-600 hover:bg-cyan-600 hover:text-white hover:border-cyan-600 transition-all active:rotate-180 cursor-pointer"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg>
                 </button>
@@ -141,7 +178,7 @@ const FormTiket = ({
                 <button
                     type="button"
                     onClick={(e) => openAirportPicker(e, keField)}
-                    className="text-right p-3 rounded-xl bg-slate-50 hover:bg-cyan-50/60 border border-slate-200/80 hover:border-cyan-400 transition-all active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-cyan-500/30"
+                    className="relative z-30 text-right p-3 rounded-xl bg-slate-50 hover:bg-cyan-50/60 border border-slate-200/80 hover:border-cyan-400 transition-all active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-cyan-500/30 cursor-pointer"
                 >
                     <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Ke</div>
                     <div className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight mt-0.5">
@@ -157,6 +194,28 @@ const FormTiket = ({
 
     return (
         <>
+            {/* KUNCI CSS: Halang ikon kalendar/jam daripada melimpah keluar menutupi input lain */}
+            <style>{`
+                .safe-date-input {
+                    position: relative !important;
+                    overflow: hidden !important;
+                    z-index: 1 !important;
+                    display: block !important;
+                    width: 100% !important;
+                    box-sizing: border-box !important;
+                }
+                .safe-date-input::-webkit-calendar-picker-indicator {
+                    position: static !important;
+                    inset: auto !important;
+                    width: auto !important;
+                    height: auto !important;
+                    margin: 0 !important;
+                    padding: 0 2px !important;
+                    opacity: 0.75 !important;
+                    cursor: pointer !important;
+                }
+            `}</style>
+
             {/* TIKET INFO */}
             <div id="section-tiketInfo" className={`bg-white/90 backdrop-blur-xl rounded-[2rem] shadow-[0_4px_20px_rgb(0,0,0,0.03)] border overflow-hidden transition-all duration-500 ${!isPegawaiComplete ? 'border-slate-200/50 opacity-60 grayscale-[20%]' : (expanded.tiketInfo ? 'border-slate-100 ring-[3px] ring-cyan-500/20' : 'border-slate-100 hover:shadow-md')} ${shakeSection === 'tiketInfo' ? 'animate-shake border-red-400' : ''}`}>
                 <div onClick={() => isPegawaiComplete && toggleSection('tiketInfo')} className={`px-6 py-5 flex items-center justify-between transition-colors ${!isPegawaiComplete ? 'bg-slate-50/50 cursor-not-allowed' : 'bg-white hover:bg-slate-50 cursor-pointer'}`}>
@@ -173,25 +232,25 @@ const FormTiket = ({
                 {expanded.tiketInfo && isPegawaiComplete && (
                     <div className="p-6 md:p-8 pt-2 border-t border-slate-50 bg-white animate-slide-up">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-7">
-                            <div className="md:col-span-2">
+                            <div className="md:col-span-2 relative z-30">
                                 <label className={formLabelClass}>Tujuan Penerbangan <span className="text-red-500">*</span></label>
-                                <input type="text" name="tujuan" value={formData.tujuan} onChange={handleChange} className={formInputClass} placeholder="Mesyuarat / Kursus / Bengkel dll" />
+                                <input type="text" name="tujuan" value={formData.tujuan} onChange={handleChange} className={`${formInputClass} relative z-30`} placeholder="Mesyuarat / Kursus / Bengkel dll" />
                             </div>
-                            <div className="md:col-span-2">
+                            <div className="md:col-span-2 relative z-30">
                                 <label className={formLabelClass}>Tempat / Lokasi Dituju <span className="text-red-500">*</span></label>
-                                <input type="text" name="tempat" value={formData.tempat} onChange={handleChange} className={formInputClass} placeholder="Cth: JTM Putrajaya" />
+                                <input type="text" name="tempat" value={formData.tempat} onChange={handleChange} className={`${formInputClass} relative z-30`} placeholder="Cth: JTM Putrajaya" />
                             </div>
-                            <div className="overflow-hidden">
+                            <div className="relative z-10 overflow-hidden isolate">
                                 <label className={formLabelClass}>Tarikh Pergi <span className="text-red-500">*</span></label>
-                                <input type="date" name="tarikhPergi" value={formData.tarikhPergi} onChange={handleChange} className={`${formInputClass} block w-full`} />
+                                <input type="date" name="tarikhPergi" value={formData.tarikhPergi} onChange={handleSafeDateChange} onClick={openNativePicker} className={`${formInputClass} safe-date-input`} />
                             </div>
-                            <div className="overflow-hidden">
+                            <div className="relative z-10 overflow-hidden isolate">
                                 <label className={formLabelClass}>Tarikh Balik <span className="text-red-500">*</span></label>
-                                <input type="date" name="tarikhBalik" value={formData.tarikhBalik} min={formData.tarikhPergi} onChange={handleChange} className={`${formInputClass} block w-full`} />
+                                <input type="date" name="tarikhBalik" value={formData.tarikhBalik} min={formData.tarikhPergi} onChange={handleSafeDateChange} onClick={openNativePicker} className={`${formInputClass} safe-date-input`} />
                             </div>
                         </div>
-                        <div className="mt-8 flex justify-end">
-                            <button type="button" onClick={() => nextSection('tiketInfo', 'tiket')} className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-2">
+                        <div className="mt-8 flex justify-end relative z-30">
+                            <button type="button" onClick={() => nextSection('tiketInfo', 'tiket')} className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-2 cursor-pointer">
                                 Seterusnya <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                             </button>
                         </div>
@@ -222,25 +281,25 @@ const FormTiket = ({
                 {expanded.tiket && isTiketInfoComplete && (
                     <div className="p-5 md:p-8 pt-3 border-t border-slate-100 bg-white animate-slide-up">
                         {/* Segmented Pill Toggle */}
-                        <div className="bg-slate-100 p-1.5 rounded-2xl flex gap-1.5 mb-6">
+                        <div className="bg-slate-100 p-1.5 rounded-2xl flex gap-1.5 mb-6 relative z-30">
                             <button
                                 type="button"
                                 onClick={() => setFormData(prev => ({ ...prev, flightType: 'single' }))}
-                                className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-extrabold transition-all ${formData.flightType === 'single' ? 'bg-white text-cyan-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer ${formData.flightType === 'single' ? 'bg-white text-cyan-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                             >
                                 ✈ Penerbangan Terus
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setFormData(prev => ({ ...prev, flightType: 'multi' }))}
-                                className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-extrabold transition-all ${formData.flightType === 'multi' ? 'bg-white text-cyan-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer ${formData.flightType === 'multi' ? 'bg-white text-cyan-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                             >
                                 ⇄ Transit (Multi-Leg)
                             </button>
                         </div>
 
                         {/* KAD PERGI (L1) */}
-                        <div className="mb-6 p-4 sm:p-5 bg-gradient-to-br from-slate-50 to-cyan-50/30 rounded-3xl border border-slate-200/80 space-y-4">
+                        <div className="mb-6 p-4 sm:p-5 bg-gradient-to-br from-slate-50 to-cyan-50/30 rounded-3xl border border-slate-200/80 space-y-4 isolate">
                             <div className="flex items-center gap-2">
                                 <span className="w-2.5 h-2.5 rounded-full bg-cyan-500"></span>
                                 <h4 className="font-extrabold text-slate-800 text-sm uppercase tracking-wide">Penerbangan Pergi (L1)</h4>
@@ -249,25 +308,27 @@ const FormTiket = ({
                             {renderRouteSelector('Laluan Pergi', 'flightPergiDari', 'flightPergiKe', (e) => swapRoute(e, 'pergi1'))}
 
                             <div className="grid grid-cols-2 gap-3 pt-1 isolate">
-                                <div className="overflow-hidden rounded-xl">
+                                <div className="relative z-10 overflow-hidden rounded-xl">
                                     <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Tarikh Pergi</label>
                                     <input
                                         type="date"
                                         name="flightPergiTarikh"
                                         value={formData.flightPergiTarikh}
-                                        onChange={handleChange}
-                                        className={`${formInputClass} block w-full bg-white text-sm`}
+                                        onChange={handleSafeDateChange}
+                                        onClick={openNativePicker}
+                                        className={`${formInputClass} safe-date-input bg-white text-sm`}
                                         style={{ padding: '10px 12px' }}
                                     />
                                 </div>
-                                <div className="overflow-hidden rounded-xl">
+                                <div className="relative z-10 overflow-hidden rounded-xl">
                                     <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Masa Berlepas</label>
                                     <input
                                         type="time"
                                         name="flightPergiMasa"
                                         value={formData.flightPergiMasa}
                                         onChange={handleChange}
-                                        className={`${formInputClass} block w-full bg-white text-sm`}
+                                        onClick={openNativePicker}
+                                        className={`${formInputClass} safe-date-input bg-white text-sm`}
                                         style={{ padding: '10px 12px' }}
                                     />
                                 </div>
@@ -276,35 +337,29 @@ const FormTiket = ({
 
                         {/* KAD PERGI TRANSIT (L2) */}
                         {formData.flightType === 'multi' && (
-                            <div className="mb-6 p-4 sm:p-5 bg-amber-50/50 rounded-3xl border border-amber-200/80 space-y-4">
+                            <div className="mb-6 p-4 sm:p-5 bg-amber-50/50 rounded-3xl border border-amber-200/80 space-y-4 isolate">
                                 <div className="flex items-center gap-2">
                                     <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
                                     <h4 className="font-extrabold text-amber-800 text-sm uppercase tracking-wide">Pergi Transit (L2)</h4>
                                 </div>
 
-                                {renderRouteSelector('Laluan Transit Pergi', 'flightPergiLeg2Dari', 'flightPergiLeg2Ke', () => {
-                                    setFormData(prev => ({
-                                        ...prev,
-                                        flightPergiLeg2Dari: prev.flightPergiLeg2Ke,
-                                        flightPergiLeg2Ke: prev.flightPergiLeg2Dari
-                                    }));
-                                })}
+                                {renderRouteSelector('Laluan Transit Pergi', 'flightPergiLeg2Dari', 'flightPergiLeg2Ke', (e) => swapRoute(e, 'pergi2'))}
 
                                 <div className="grid grid-cols-2 gap-3 pt-1 isolate">
-                                    <div className="overflow-hidden rounded-xl">
+                                    <div className="relative z-10 overflow-hidden rounded-xl">
                                         <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Tarikh Transit</label>
-                                        <input type="date" name="flightPergiLeg2Tarikh" value={formData.flightPergiLeg2Tarikh} onChange={handleChange} className={`${formInputClass} block w-full bg-white text-sm`} style={{ padding: '10px 12px' }} />
+                                        <input type="date" name="flightPergiLeg2Tarikh" value={formData.flightPergiLeg2Tarikh} onChange={handleChange} onClick={openNativePicker} className={`${formInputClass} safe-date-input bg-white text-sm`} style={{ padding: '10px 12px' }} />
                                     </div>
-                                    <div className="overflow-hidden rounded-xl">
+                                    <div className="relative z-10 overflow-hidden rounded-xl">
                                         <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Masa Transit</label>
-                                        <input type="time" name="flightPergiLeg2Masa" value={formData.flightPergiLeg2Masa} onChange={handleChange} className={`${formInputClass} block w-full bg-white text-sm`} style={{ padding: '10px 12px' }} />
+                                        <input type="time" name="flightPergiLeg2Masa" value={formData.flightPergiLeg2Masa} onChange={handleChange} onClick={openNativePicker} className={`${formInputClass} safe-date-input bg-white text-sm`} style={{ padding: '10px 12px' }} />
                                     </div>
                                 </div>
                             </div>
                         )}
 
                         {/* KAD BALIK (L1) */}
-                        <div className="mb-6 p-4 sm:p-5 bg-gradient-to-br from-slate-50 to-indigo-50/30 rounded-3xl border border-slate-200/80 space-y-4">
+                        <div className="mb-6 p-4 sm:p-5 bg-gradient-to-br from-slate-50 to-indigo-50/30 rounded-3xl border border-slate-200/80 space-y-4 isolate">
                             <div className="flex items-center gap-2">
                                 <span className="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
                                 <h4 className="font-extrabold text-slate-800 text-sm uppercase tracking-wide">Penerbangan Balik (L1)</h4>
@@ -313,26 +368,28 @@ const FormTiket = ({
                             {renderRouteSelector('Laluan Balik', 'flightBalikDari', 'flightBalikKe', (e) => swapRoute(e, 'balik1'), true)}
 
                             <div className="grid grid-cols-2 gap-3 pt-1 isolate">
-                                <div className="overflow-hidden rounded-xl">
+                                <div className="relative z-10 overflow-hidden rounded-xl">
                                     <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Tarikh Balik</label>
                                     <input
                                         type="date"
                                         name="flightBalikTarikh"
                                         value={formData.flightBalikTarikh}
                                         min={formData.flightPergiTarikh}
-                                        onChange={handleChange}
-                                        className={`${formInputClass} block w-full bg-white text-sm`}
+                                        onChange={handleSafeDateChange}
+                                        onClick={openNativePicker}
+                                        className={`${formInputClass} safe-date-input bg-white text-sm`}
                                         style={{ padding: '10px 12px' }}
                                     />
                                 </div>
-                                <div className="overflow-hidden rounded-xl">
+                                <div className="relative z-10 overflow-hidden rounded-xl">
                                     <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Masa Balik</label>
                                     <input
                                         type="time"
                                         name="flightBalikMasa"
                                         value={formData.flightBalikMasa}
                                         onChange={handleChange}
-                                        className={`${formInputClass} block w-full bg-white text-sm`}
+                                        onClick={openNativePicker}
+                                        className={`${formInputClass} safe-date-input bg-white text-sm`}
                                         style={{ padding: '10px 12px' }}
                                     />
                                 </div>
@@ -341,35 +398,29 @@ const FormTiket = ({
 
                         {/* KAD BALIK TRANSIT (L2) */}
                         {formData.flightType === 'multi' && (
-                            <div className="mb-6 p-4 sm:p-5 bg-amber-50/50 rounded-3xl border border-amber-200/80 space-y-4">
+                            <div className="mb-6 p-4 sm:p-5 bg-amber-50/50 rounded-3xl border border-amber-200/80 space-y-4 isolate">
                                 <div className="flex items-center gap-2">
                                     <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
                                     <h4 className="font-extrabold text-amber-800 text-sm uppercase tracking-wide">Balik Transit (L2)</h4>
                                 </div>
 
-                                {renderRouteSelector('Laluan Transit Balik', 'flightBalikLeg2Dari', 'flightBalikLeg2Ke', () => {
-                                    setFormData(prev => ({
-                                        ...prev,
-                                        flightBalikLeg2Dari: prev.flightBalikLeg2Ke,
-                                        flightBalikLeg2Ke: prev.flightBalikLeg2Dari
-                                    }));
-                                })}
+                                {renderRouteSelector('Laluan Transit Balik', 'flightBalikLeg2Dari', 'flightBalikLeg2Ke', (e) => swapRoute(e, 'balik2'))}
 
                                 <div className="grid grid-cols-2 gap-3 pt-1 isolate">
-                                    <div className="overflow-hidden rounded-xl">
+                                    <div className="relative z-10 overflow-hidden rounded-xl">
                                         <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Tarikh Transit</label>
-                                        <input type="date" name="flightBalikLeg2Tarikh" value={formData.flightBalikLeg2Tarikh} onChange={handleChange} className={`${formInputClass} block w-full bg-white text-sm`} style={{ padding: '10px 12px' }} />
+                                        <input type="date" name="flightBalikLeg2Tarikh" value={formData.flightBalikLeg2Tarikh} onChange={handleChange} onClick={openNativePicker} className={`${formInputClass} safe-date-input bg-white text-sm`} style={{ padding: '10px 12px' }} />
                                     </div>
-                                    <div className="overflow-hidden rounded-xl">
+                                    <div className="relative z-10 overflow-hidden rounded-xl">
                                         <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Masa Transit</label>
-                                        <input type="time" name="flightBalikLeg2Masa" value={formData.flightBalikLeg2Masa} onChange={handleChange} className={`${formInputClass} block w-full bg-white text-sm`} style={{ padding: '10px 12px' }} />
+                                        <input type="time" name="flightBalikLeg2Masa" value={formData.flightBalikLeg2Masa} onChange={handleChange} onClick={openNativePicker} className={`${formInputClass} safe-date-input bg-white text-sm`} style={{ padding: '10px 12px' }} />
                                     </div>
                                 </div>
                             </div>
                         )}
 
                         {/* PILIHAN SYARIKAT PENERBANGAN VISUAL */}
-                        <div className="mt-6 border-t border-slate-100 pt-6 space-y-5">
+                        <div className="mt-6 border-t border-slate-100 pt-6 space-y-5 relative z-30">
                             <div>
                                 <label className={formLabelClass}>Syarikat Penerbangan Pilihan</label>
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-2">
@@ -380,7 +431,7 @@ const FormTiket = ({
                                                 key={airline.id}
                                                 type="button"
                                                 onClick={() => setFormData(prev => ({ ...prev, kodSyarikat: airline.id }))}
-                                                className={`p-3 rounded-2xl border-2 text-left transition-all flex items-center gap-2.5 ${isSelected ? 'border-cyan-500 bg-cyan-50/70 shadow-sm' : 'border-slate-200/80 bg-white hover:bg-slate-50'}`}
+                                                className={`relative z-30 p-3 rounded-2xl border-2 text-left transition-all flex items-center gap-2.5 cursor-pointer ${isSelected ? 'border-cyan-500 bg-cyan-50/70 shadow-sm' : 'border-slate-200/80 bg-white hover:bg-slate-50'}`}
                                             >
                                                 <span className={`w-8 h-8 rounded-xl ${airline.color} text-white font-black text-xs flex items-center justify-center shrink-0`}>
                                                     {airline.badge}
@@ -394,14 +445,14 @@ const FormTiket = ({
                                 </div>
                             </div>
 
-                            <div>
+                            <div className="relative z-30">
                                 <label className={formLabelClass}>No. Ahli <span className="text-slate-400 font-normal lowercase">(Enrich / AirAsia Rewards ID)</span></label>
-                                <input type="text" name="enrichId" value={formData.enrichId} onChange={handleChange} className={formInputClass} placeholder="Kosongkan jika tiada" />
+                                <input type="text" name="enrichId" value={formData.enrichId} onChange={handleChange} className={`${formInputClass} relative z-30`} placeholder="Kosongkan jika tiada" />
                             </div>
                         </div>
 
-                        <div className="mt-8 flex justify-end">
-                            <button type="button" onClick={() => nextSection('tiket', 'tandatangan')} className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-2">
+                        <div className="mt-8 flex justify-end relative z-30">
+                            <button type="button" onClick={() => nextSection('tiket', 'tandatangan')} className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-2 cursor-pointer">
                                 Seterusnya <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                             </button>
                         </div>
@@ -429,7 +480,7 @@ const FormTiket = ({
                             <button
                                 type="button"
                                 onClick={() => setActiveAirportField(null)}
-                                className="w-8 h-8 rounded-full bg-slate-200/80 hover:bg-slate-300 flex items-center justify-center text-slate-600 font-bold"
+                                className="w-8 h-8 rounded-full bg-slate-200/80 hover:bg-slate-300 flex items-center justify-center text-slate-600 font-bold cursor-pointer"
                             >
                                 ✕
                             </button>
@@ -454,7 +505,7 @@ const FormTiket = ({
                                         key={airport.code}
                                         type="button"
                                         onClick={() => selectAirport(airport.code)}
-                                        className={`w-full p-3.5 rounded-2xl flex items-center justify-between text-left transition-all ${isCurrent ? 'bg-cyan-50 border border-cyan-300' : 'hover:bg-slate-50 border border-transparent'}`}
+                                        className={`w-full p-3.5 rounded-2xl flex items-center justify-between text-left transition-all cursor-pointer ${isCurrent ? 'bg-cyan-50 border border-cyan-300' : 'hover:bg-slate-50 border border-transparent'}`}
                                     >
                                         <div>
                                             <div className="font-extrabold text-slate-800 text-sm flex items-center gap-2">
@@ -470,8 +521,17 @@ const FormTiket = ({
                                 );
                             })}
                             {filteredAirports.length === 0 && (
-                                <div className="text-center py-8 text-sm text-slate-400 font-medium">
-                                    Tiada lapangan terbang dijumpai.
+                                <div className="text-center py-6 space-y-3">
+                                    <p className="text-sm text-slate-400 font-medium">Tiada dalam senarai.</p>
+                                    {searchAirport.trim().length >= 2 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => selectAirport(searchAirport)}
+                                            className="px-4 py-2 bg-cyan-600 text-white text-xs font-bold rounded-xl shadow-sm hover:bg-cyan-700 cursor-pointer"
+                                        >
+                                            Guna Kod Manual: &quot;{searchAirport.trim().toUpperCase().slice(0, 3)}&quot;
+                                        </button>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -494,13 +554,13 @@ const FormTiket = ({
                 </div>
                 {expanded.tandatangan && isTiketFlightComplete && (
                     <div className="p-6 md:p-8 pt-2 border-t border-slate-50 bg-white animate-slide-up">
-                        <div className="bg-blue-50/50 rounded-2xl p-4 sm:p-6 border border-blue-100 relative z-20">
+                        <div className="bg-blue-50/50 rounded-2xl p-4 sm:p-6 border border-blue-100 relative z-30">
                             {isTandatanganComplete ? (
                                 <div className="flex flex-col items-center justify-center space-y-4">
                                     <div className="w-full max-w-sm h-48 bg-white border border-slate-200 rounded-xl overflow-hidden flex items-center justify-center p-4">
                                         <img src={formData.tandatangan} alt="Tandatangan" className="max-w-full max-h-full object-contain" />
                                     </div>
-                                    <button type="button" onClick={clearSignature} className="text-red-500 hover:text-red-700 text-[13px] font-bold py-2 px-4 rounded-xl border border-red-200 hover:bg-red-50 transition-colors">Padam & Lukis Semula</button>
+                                    <button type="button" onClick={clearSignature} className="text-red-500 hover:text-red-700 text-[13px] font-bold py-2 px-4 rounded-xl border border-red-200 hover:bg-red-50 transition-colors cursor-pointer">Padam & Lukis Semula</button>
                                 </div>
                             ) : (
                                 <div className="flex flex-col space-y-4">
@@ -525,8 +585,8 @@ const FormTiket = ({
                                 </div>
                             )}
                         </div>
-                        <div className="mt-8 flex justify-end">
-                            <button type="button" onClick={() => nextSection('tandatangan', 'jana')} className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-2">
+                        <div className="mt-8 flex justify-end relative z-30">
+                            <button type="button" onClick={() => nextSection('tandatangan', 'jana')} className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-2 cursor-pointer">
                                 Selesai <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                             </button>
                         </div>
