@@ -80,6 +80,15 @@ function App() {
     const isDrawing = useRef(false);
     const lastPos = useRef({ x: 0, y: 0 });
 
+    const openForm = (formName) => {
+        setActiveForm(formName);
+        setExpanded({
+            pegawai: true, tugas: false, pengganti: false, tiket: false, cuti: false,
+            peranan: false, tandatangan: false, laporanInfo: false, laporanSoalan: false,
+            kursus: false, penilaian: false, pelepasanInfo: false, tiketInfo: false
+        });
+    };
+
     useEffect(() => { setIsKnownStaff(pegawaiDatabase.some(p => p.nama === formData.nama)); }, [formData.nama]);
 
     useEffect(() => {
@@ -131,7 +140,7 @@ function App() {
 
     useEffect(() => { if (formData.kodSyarikat || formData.enrichId) { localStorage.setItem("flightInfo", JSON.stringify({ kodSyarikat: formData.kodSyarikat, enrichId: formData.enrichId })); } }, [formData.kodSyarikat, formData.enrichId]);
 
-    // ✅ FIX: Kunci tarikh HANYA berfungsi jika buka Borang Tugas Rasmi sahaja
+    // Kunci tarikh HANYA berfungsi jika buka Borang Tugas Rasmi sahaja
     useEffect(() => {
         if (activeForm === 'tugas') {
             if (isGantiDateLocked) { 
@@ -198,6 +207,7 @@ function App() {
         if (p) setFormData(prev => ({ ...prev, cutiPenggantiNama: p.nama, cutiPenggantiBahagian: p.bahagian, cutiPenggantiNoTel: p.noTel || '' }));
     };
 
+    // ================== VALIDASI BORANG (TANDATANGAN = OPTIONAL) ==================
     const isPegawaiComplete = formData.nama.trim() !== '' && formData.jawatan.trim() !== '' && formData.bahagian.trim() !== '' && formData.noKp.trim() !== '' && (activeForm === 'akujanji' || activeForm === 'laporan' || formData.noTel.trim() !== '');
     
     const isTugasComplete = formData.tujuan.trim() !== '' && formData.tempat.trim() !== '' && formData.tarikhPergi !== '' && formData.tarikhBalik !== '' && formData.caraPerjalanan.length > 0;
@@ -222,14 +232,15 @@ function App() {
     const isPenilaianLepasKursusComplete = [formData.lkA1, formData.lkA2, formData.lkA3, formData.lkA4, formData.lkB1, formData.lkB2, formData.lkB3, formData.lkB4, formData.lkB5, formData.lkC1, formData.lkC2, formData.lkC3, formData.lkD1, formData.lkD2a, formData.lkD2b, formData.lkD2c, formData.lkD3b, formData.lkD3c, formData.lkD3d].every(v => v > 0);
     const isPenilaianPascaKursusComplete = [formData.pk1a, formData.pk1b, formData.pk1c, formData.pk1d].every(v => v > 0);
 
+    // Tandatangan adalah pilihan (optional) untuk semua modul
     const isAllComplete = activeForm === 'cuti' ? (isPegawaiComplete && isCutiComplete && isCutiGantiComplete())
-        : activeForm === 'akujanji' ? (isPegawaiComplete && isPerananComplete && isTandatanganComplete)
-        : activeForm === 'laporan' ? (isPegawaiComplete && isLaporanInfoComplete && isLaporanSoalanComplete && isTandatanganComplete)
+        : activeForm === 'akujanji' ? (isPegawaiComplete && isPerananComplete)
+        : activeForm === 'laporan' ? (isPegawaiComplete && isLaporanInfoComplete && isLaporanSoalanComplete)
         : activeForm === 'lepasKursus' ? (isPegawaiComplete && isKursusComplete && isPenilaianLepasKursusComplete)
         : activeForm === 'pascaKursus' ? (isPegawaiComplete && isKursusComplete && isPenilaianPascaKursusComplete)
-        : activeForm === 'pelepasan' ? (isPegawaiComplete && isPelepasanInfoComplete && isPenggantiComplete && isTandatanganComplete)
-        : activeForm === 'tempahanTiket' ? (isPegawaiComplete && isTiketInfoComplete && isTiketFlightComplete && isTandatanganComplete)
-        : (isPegawaiComplete && isTugasComplete && isPenggantiComplete && isTiketComplete && isTandatanganComplete);
+        : activeForm === 'pelepasan' ? (isPegawaiComplete && isPelepasanInfoComplete && isPenggantiComplete)
+        : activeForm === 'tempahanTiket' ? (isPegawaiComplete && isTiketInfoComplete && isTiketFlightComplete)
+        : (isPegawaiComplete && isTugasComplete && isPenggantiComplete && isTiketComplete);
 
     const showNotification = (message, type = 'success') => { setNotification({ show: true, message, type }); setTimeout(() => setNotification({ show: false, message: '', type: '' }), 4000); };
 
@@ -375,7 +386,7 @@ function App() {
                     }}
                 ></div>
 
-                {/* ✅ KEMAS KINI: Efek Gradient tanpa efek 'blur' supaya background nampak lebih jelas */}
+                {/* Efek Gradient tanpa blur supaya background nampak jelas */}
                 <div className="absolute inset-0 bg-gradient-to-b from-white/95 via-white/80 to-slate-50/90 md:bg-gradient-to-r md:from-white md:via-white/80 md:to-transparent z-0 pointer-events-none"></div>
 
                 {/* Navbar */}
@@ -447,7 +458,7 @@ function App() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-6 animate-slide-up" style={{ animationDelay: '0.1s' }}>
                         
-                        <button onClick={() => { setActiveForm('tugas'); setExpanded({...expanded, pegawai: true}); }} className="group relative bg-white/80 backdrop-blur-xl border border-slate-100 hover:border-blue-200 p-6 rounded-3xl shadow-lg shadow-slate-200/40 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden min-h-[180px] sm:min-h-[200px] flex flex-col justify-between">
+                        <button onClick={() => openForm('tugas')} className="group relative bg-white/80 backdrop-blur-xl border border-slate-100 hover:border-blue-200 p-6 rounded-3xl shadow-lg shadow-slate-200/40 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden min-h-[180px] sm:min-h-[200px] flex flex-col justify-between">
                             <div className="absolute top-4 right-4 text-blue-50 opacity-60 transform group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="90" height="90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.2-1.1.7l-1.2 3.6 7.7 4.4-3.5 3.5-3.5-.9c-.5-.1-1 .2-1.3.7l-1 2.6 5.8 1.5 1.5 5.8 2.6-1c.5-.3.8-.8.7-1.3l-.9-3.5 3.5-3.5 4.4 7.7 3.6-1.2c.5-.2.8-.6.7-1.1z"/></svg>
                             </div>
@@ -465,7 +476,7 @@ function App() {
                             </div>
                         </button>
 
-                        <button onClick={() => { setActiveForm('pelepasan'); setExpanded({...expanded, pegawai: true}); }} className="group relative bg-white/80 backdrop-blur-xl border border-slate-100 hover:border-rose-200 p-6 rounded-3xl shadow-lg shadow-slate-200/40 hover:shadow-xl hover:shadow-rose-500/10 transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden min-h-[180px] sm:min-h-[200px] flex flex-col justify-between">
+                        <button onClick={() => openForm('pelepasan')} className="group relative bg-white/80 backdrop-blur-xl border border-slate-100 hover:border-rose-200 p-6 rounded-3xl shadow-lg shadow-slate-200/40 hover:shadow-xl hover:shadow-rose-500/10 transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden min-h-[180px] sm:min-h-[200px] flex flex-col justify-between">
                             <div className="absolute top-4 right-4 text-rose-50 opacity-60 transform group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="90" height="90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="m16 13-4-4-4 4"/></svg>
                             </div>
@@ -483,7 +494,7 @@ function App() {
                             </div>
                         </button>
 
-                        <button onClick={() => { setActiveForm('tempahanTiket'); setExpanded({...expanded, pegawai: true}); }} className="group relative bg-white/80 backdrop-blur-xl border border-slate-100 hover:border-cyan-200 p-6 rounded-3xl shadow-lg shadow-slate-200/40 hover:shadow-xl hover:shadow-cyan-500/10 transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden min-h-[180px] sm:min-h-[200px] flex flex-col justify-between">
+                        <button onClick={() => openForm('tempahanTiket')} className="group relative bg-white/80 backdrop-blur-xl border border-slate-100 hover:border-cyan-200 p-6 rounded-3xl shadow-lg shadow-slate-200/40 hover:shadow-xl hover:shadow-cyan-500/10 transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden min-h-[180px] sm:min-h-[200px] flex flex-col justify-between">
                             <div className="absolute top-4 right-4 text-cyan-50 opacity-60 transform group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-500">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="90" height="90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                             </div>
@@ -501,7 +512,7 @@ function App() {
                             </div>
                         </button>
 
-                        <button onClick={() => { setActiveForm('cuti'); setExpanded({...expanded, pegawai: true}); }} className="group relative bg-white/80 backdrop-blur-xl border border-slate-100 hover:border-emerald-200 p-6 rounded-3xl shadow-lg shadow-slate-200/40 hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden min-h-[180px] sm:min-h-[200px] flex flex-col justify-between">
+                        <button onClick={() => openForm('cuti')} className="group relative bg-white/80 backdrop-blur-xl border border-slate-100 hover:border-emerald-200 p-6 rounded-3xl shadow-lg shadow-slate-200/40 hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden min-h-[180px] sm:min-h-[200px] flex flex-col justify-between">
                             <div className="absolute top-4 right-4 text-emerald-50 opacity-60 transform group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="90" height="90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                             </div>
@@ -519,7 +530,7 @@ function App() {
                             </div>
                         </button>
 
-                        <button onClick={() => { setActiveForm('akujanji'); setExpanded({...expanded, pegawai: true}); }} className="group relative bg-white/80 backdrop-blur-xl border border-slate-100 hover:border-indigo-200 p-6 rounded-3xl shadow-lg shadow-slate-200/40 hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden min-h-[180px] sm:min-h-[200px] flex flex-col justify-between">
+                        <button onClick={() => openForm('akujanji')} className="group relative bg-white/80 backdrop-blur-xl border border-slate-100 hover:border-indigo-200 p-6 rounded-3xl shadow-lg shadow-slate-200/40 hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden min-h-[180px] sm:min-h-[200px] flex flex-col justify-between">
                             <div className="absolute top-4 right-4 text-indigo-50 opacity-60 transform group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-500">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="90" height="90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="m9 15 2 2 4-4"/></svg>
                             </div>
@@ -537,7 +548,7 @@ function App() {
                             </div>
                         </button>
 
-                        <button onClick={() => { setActiveForm('laporan'); setExpanded({...expanded, pegawai: true}); }} className="group relative bg-white/80 backdrop-blur-xl border border-slate-100 hover:border-amber-200 p-6 rounded-3xl shadow-lg shadow-slate-200/40 hover:shadow-xl hover:shadow-amber-500/10 transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden min-h-[180px] sm:min-h-[200px] flex flex-col justify-between">
+                        <button onClick={() => openForm('laporan')} className="group relative bg-white/80 backdrop-blur-xl border border-slate-100 hover:border-amber-200 p-6 rounded-3xl shadow-lg shadow-slate-200/40 hover:shadow-xl hover:shadow-amber-500/10 transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden min-h-[180px] sm:min-h-[200px] flex flex-col justify-between">
                             <div className="absolute top-4 right-4 text-amber-50 opacity-60 transform group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="90" height="90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="10 9 9 9 8 9"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                             </div>
@@ -555,7 +566,7 @@ function App() {
                             </div>
                         </button>
 
-                        <button onClick={() => { setActiveForm('lepasKursus'); setExpanded({...expanded, pegawai: true}); }} className="group relative bg-white/80 backdrop-blur-xl border border-slate-100 hover:border-sky-200 p-6 rounded-3xl shadow-lg shadow-slate-200/40 hover:shadow-xl hover:shadow-sky-500/10 transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden min-h-[180px] sm:min-h-[200px] flex flex-col justify-between">
+                        <button onClick={() => openForm('lepasKursus')} className="group relative bg-white/80 backdrop-blur-xl border border-slate-100 hover:border-sky-200 p-6 rounded-3xl shadow-lg shadow-slate-200/40 hover:shadow-xl hover:shadow-sky-500/10 transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden min-h-[180px] sm:min-h-[200px] flex flex-col justify-between">
                             <div className="absolute top-4 right-4 text-sky-50 opacity-60 transform group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-500">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="90" height="90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
                             </div>
@@ -573,7 +584,7 @@ function App() {
                             </div>
                         </button>
                         
-                        <button onClick={() => { setActiveForm('pascaKursus'); setExpanded({...expanded, pegawai: true}); }} className="group relative bg-white/80 backdrop-blur-xl border border-slate-100 hover:border-purple-200 p-6 rounded-3xl shadow-lg shadow-slate-200/40 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden min-h-[180px] sm:min-h-[200px] flex flex-col justify-between">
+                        <button onClick={() => openForm('pascaKursus')} className="group relative bg-white/80 backdrop-blur-xl border border-slate-100 hover:border-purple-200 p-6 rounded-3xl shadow-lg shadow-slate-200/40 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300 transform hover:-translate-y-1 text-left overflow-hidden min-h-[180px] sm:min-h-[200px] flex flex-col justify-between">
                             <div className="absolute top-4 right-4 text-purple-50 opacity-60 transform group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="90" height="90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                             </div>
@@ -634,7 +645,7 @@ function App() {
                                 </div>
                                 <div className="flex gap-4">
                                     <span className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-extrabold flex-shrink-0 border border-blue-100">3</span> 
-                                    <p className="pt-1 leading-relaxed">Turunkan <strong className="text-slate-800">Tandatangan Digital</strong> anda menggunakan tetikus atau skrin sentuh di ruangan yang disediakan.</p>
+                                    <p className="pt-1 leading-relaxed">Turunkan <strong className="text-slate-800">Tandatangan Digital (Pilihan)</strong> menggunakan tetikus/skrin sentuh, atau biarkan kosong jika ingin menandatangani secara manual selepas dicetak.</p>
                                 </div>
                                 <div className="flex gap-4">
                                     <span className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-extrabold flex-shrink-0 border border-blue-100">4</span> 
@@ -695,7 +706,6 @@ function App() {
 
     return (
         <div className="pb-12 relative min-h-screen bg-slate-50/50">
-            {/* Header & Button forms... kekal sama... */}
             <div className="absolute top-6 left-4 md:left-6 z-50 animate-slide-up">
                 <button onClick={() => setActiveForm(null)} className="flex items-center gap-2 px-4 py-2.5 bg-white/80 backdrop-blur-md border border-slate-200 rounded-full text-[13px] font-extrabold text-slate-500 hover:text-slate-800 hover:border-slate-300 hover:shadow-md shadow-sm transition-all group">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="group-hover:-translate-x-1 transition-transform"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
