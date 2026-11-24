@@ -296,100 +296,106 @@ export const generateForm2 = (doc, logoImgBase64, formData, customData = null) =
 };
 
 export const generateForm3 = (doc, formData) => {
-    doc.setFont("helvetica"); 
-    doc.setDrawColor(0); 
+    doc.setFont("helvetica");
+    doc.setDrawColor(0);
     doc.setLineWidth(0.3);
-    doc.rect(130, 15, 65, 12);
-    
-    doc.setFontSize(9); 
-    doc.text("NO.WARAN :", 132, 20); 
-    doc.text("RUJ.TIKET :", 132, 25);
-    
-    doc.setFontSize(12); 
+
+    // Kotak No. Waran & Ruj. Tiket
+    doc.rect(130, 10, 65, 11);
+    doc.setFontSize(8.5);
+    doc.text("NO.WARAN :", 132, 14.5);
+    doc.text("RUJ.TIKET :", 132, 19);
+
+    // Tajuk Utama
+    doc.setFontSize(11.5);
     doc.setFont("helvetica", "normal");
-    
-    const title1 = "BORANG TEMPAHAN TIKET KAPAL TERBANG ADTEC JTM KAMPUS"; 
+    const title1 = "BORANG TEMPAHAN TIKET KAPAL TERBANG ADTEC JTM KAMPUS";
     const title2 = "SANDAKAN";
-    doc.text(title1, 105, 35, { align: 'center' }); 
-    doc.text(title2, 105, 42, { align: 'center' });
-    
+    doc.text(title1, 105, 28, { align: 'center' });
+    doc.text(title2, 105, 34, { align: 'center' });
+
     const t1Width = doc.getTextWidth(title1);
     const t2Width = doc.getTextWidth(title2);
-    doc.line(105 - t1Width/2, 36, 105 + t1Width/2, 36); 
-    doc.line(105 - t2Width/2, 43, 105 + t2Width/2, 43);
-    
+    doc.line(105 - t1Width / 2, 29, 105 + t1Width / 2, 29);
+    doc.line(105 - t2Width / 2, 35, 105 + t2Width / 2, 35);
+
     const drawSectionHeader = (text, y, width) => {
         doc.setFillColor(210, 210, 210);
-        doc.rect(15, y - 5, width, 7, 'F'); 
-        doc.setFontSize(10); 
-        doc.setFont("helvetica", "normal"); 
+        doc.rect(15, y - 4.5, width, 6.5, 'F');
+        doc.setFontSize(9.5);
+        doc.setFont("helvetica", "bold");
         doc.text(text, 17, y);
+        doc.setFont("helvetica", "normal");
     };
 
     const upperVal = (text) => val(text).toUpperCase();
-    
-    drawSectionHeader("A. MAKLUMAT DESTINASI", 55, 60); 
-    doc.setFontSize(9); 
-    doc.text("TUJUAN", 15, 65); 
-    doc.text(":", 42, 65); 
-    doc.line(45, 65, 195, 65); 
-    doc.text(upperVal(formData.tujuan), 47, 64);
-    
-    doc.setFontSize(8);
-    doc.setFont("helvetica", "italic"); 
-    doc.text("(Mesyuarat/Kursus/Seminar/Bengkel Kerja/Lain-lain)", 120, 69, {align: 'center'});
-    doc.text("* Sila sertakan salinan surat/memo yang berkaitan", 120, 73, {align: 'center'});
-    
-    doc.setFont("helvetica", "normal"); 
-    doc.setFontSize(9);
-    doc.text("TEMPAT/ LOKASI", 15, 82); 
-    doc.text(":", 42, 82); 
-    doc.line(45, 82, 195, 82); 
-    doc.text(upperVal(formData.tempat), 47, 81);
-    
+
+    // SEKSYEN A
+    drawSectionHeader("A. MAKLUMAT DESTINASI", 44, 62);
+    doc.setFontSize(8.5);
+    doc.text("TUJUAN", 15, 52);
+    doc.text(":", 42, 52);
+    doc.line(45, 52, 195, 52);
+    doc.text(upperVal(formData.tujuan), 47, 51);
+
+    doc.setFontSize(7.5);
+    doc.setFont("helvetica", "italic");
+    doc.text("(Mesyuarat/Kursus/Seminar/Bengkel Kerja/Lain-lain)", 120, 56, { align: 'center' });
+    doc.text("* Sila sertakan salinan surat/memo yang berkaitan", 120, 59.5, { align: 'center' });
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.text("TEMPAT/ LOKASI", 15, 66);
+    doc.text(":", 42, 66);
+    doc.line(45, 66, 195, 66);
+    doc.text(upperVal(formData.tempat), 47, 65);
+
     const tPergiFormat = formData.tarikhPergi ? formData.tarikhPergi.split('-').reverse().join('/') : '';
     const tBalikFormat = formData.tarikhBalik ? formData.tarikhBalik.split('-').reverse().join('/') : '';
 
-    doc.text("TARIKH/ TEMPOH", 15, 90);
-    doc.text(":", 42, 90); 
-    doc.text("DARI:", 45, 90); 
-    doc.line(55, 90, 85, 90); 
-    doc.text(val(tPergiFormat), 57, 89);
-    doc.text("HINGGA:", 90, 90); 
-    doc.line(105, 90, 135, 90);
-    doc.text(val(tBalikFormat), 107, 89);
+    doc.text("TARIKH/ TEMPOH", 15, 73);
+    doc.text(":", 42, 73);
+    doc.text("DARI:", 45, 73);
+    doc.line(55, 73, 85, 73);
+    doc.text(val(tPergiFormat), 57, 72);
+    doc.text("HINGGA:", 90, 73);
+    doc.line(105, 73, 135, 73);
+    doc.text(val(tBalikFormat), 107, 72);
 
-    drawSectionHeader("B. MAKLUMAT PEMOHON", 102, 60);
-    doc.text("NAMA PEGAWAI", 15, 112); 
-    doc.text(":", 58, 112); 
-    doc.line(61, 112, 195, 112);
-    doc.text(upperVal(formData.nama), 63, 111);
-    
-    doc.text("NO. KAD PENGENALAN", 15, 120); 
-    doc.text(":", 58, 120); 
-    doc.line(61, 120, 195, 120); 
-    doc.text(upperVal(formData.noKp), 63, 119);
-    
-    doc.text("NO. TEL PEGAWAI", 15, 128); 
-    doc.text(":", 58, 128); 
-    doc.line(61, 128, 110, 128); 
-    doc.text(upperVal(formData.noTel), 63, 127);
-    
-    doc.text("T/TANGAN :", 118, 128);
+    // SEKSYEN B
+    drawSectionHeader("B. MAKLUMAT PEMOHON", 83, 62);
+    doc.setFontSize(8.5);
+    doc.text("NAMA PEGAWAI", 15, 91);
+    doc.text(":", 58, 91);
+    doc.line(61, 91, 195, 91);
+    doc.text(upperVal(formData.nama), 63, 90);
+
+    doc.text("NO. KAD PENGENALAN", 15, 98);
+    doc.text(":", 58, 98);
+    doc.line(61, 98, 195, 98);
+    doc.text(upperVal(formData.noKp), 63, 97);
+
+    doc.text("NO. TEL PEGAWAI", 15, 105);
+    doc.text(":", 58, 105);
+    doc.line(61, 105, 110, 105);
+    doc.text(upperVal(formData.noTel), 63, 104);
+
+    doc.text("T/TANGAN :", 118, 105);
     if (formData.tandatangan) {
         try {
-            doc.addImage(formData.tandatangan, 'PNG', 140, 115, 40, 20);
-        } catch(e) {}
+            doc.addImage(formData.tandatangan, 'PNG', 140, 93, 38, 16);
+        } catch (e) {}
     }
-    doc.line(138, 128, 195, 128);
-    
-    drawSectionHeader("C. MAKLUMAT TIKET PENERBANGAN", 140, 75);
-    
+    doc.line(138, 105, 195, 105);
+
+    // SEKSYEN C
+    drawSectionHeader("C. MAKLUMAT TIKET PENERBANGAN", 115, 78);
+
     const fPTFormat = formData.flightPergiTarikh ? formData.flightPergiTarikh.split('-').reverse().join('/') : '';
     const fBTFormat = formData.flightBalikTarikh ? formData.flightBalikTarikh.split('-').reverse().join('/') : '';
     const fP2TFormat = formData.flightPergiLeg2Tarikh ? formData.flightPergiLeg2Tarikh.split('-').reverse().join('/') : '';
     const fB2TFormat = formData.flightBalikLeg2Tarikh ? formData.flightBalikLeg2Tarikh.split('-').reverse().join('/') : '';
-    
+
     let tableRows = [];
     tableRows.push(['PERGI (L1)', val(fPTFormat), upperVal(formData.flightPergiMasa), upperVal(formData.flightPergiDari), upperVal(formData.flightPergiKe), '*Waran Jabatan / Beli sendiri']);
     if (formData.flightType === 'multi' && formData.flightPergiLeg2Dari && formData.flightPergiLeg2Ke) {
@@ -400,120 +406,126 @@ export const generateForm3 = (doc, formData) => {
         tableRows.push(['BALIK (L2)', val(fB2TFormat), upperVal(formData.flightBalikLeg2Masa), upperVal(formData.flightBalikLeg2Dari), upperVal(formData.flightBalikLeg2Ke), '*Waran Jabatan / Beli sendiri']);
     }
 
-    autoTable(doc,{
-        startY: 145, 
-        margin: { left: 15, right: 15 }, 
+    autoTable(doc, {
+        startY: 119,
+        margin: { left: 15, right: 15 },
         theme: 'grid',
-        headStyles: { fillColor: [210, 210, 210], textColor: [0, 0, 0], halign: 'center', valign: 'middle', lineColor: [0,0,0], lineWidth: 0.3 },
-        bodyStyles: { textColor: [0, 0, 0], halign: 'center', valign: 'middle', lineColor: [0,0,0], lineWidth: 0.3 },
-        columnStyles: { 0: { fillColor: [210, 210, 210], fontStyle: 'bold', cellWidth: 18 }, 1: { cellWidth: 28 }, 2: { cellWidth: 28 }, 3: { cellWidth: 28 }, 4: { cellWidth: 28 }, 5: { cellWidth: 'auto' } },
+        styles: { font: 'helvetica', fontSize: 8, cellPadding: 1.8 },
+        headStyles: { fillColor: [210, 210, 210], textColor: [0, 0, 0], halign: 'center', valign: 'middle', lineColor: [0, 0, 0], lineWidth: 0.3 },
+        bodyStyles: { textColor: [0, 0, 0], halign: 'center', valign: 'middle', lineColor: [0, 0, 0], lineWidth: 0.3 },
+        columnStyles: { 0: { fillColor: [210, 210, 210], fontStyle: 'bold', cellWidth: 20 }, 1: { cellWidth: 25 }, 2: { cellWidth: 22 }, 3: { cellWidth: 22 }, 4: { cellWidth: 22 }, 5: { cellWidth: 'auto' } },
         head: [['', 'TARIKH', 'MASA', 'DARI', 'KE', 'CATATAN']],
         body: tableRows
     });
-    
-    let currentY = doc.lastAutoTable.finalY + 8;
-    
-    doc.setFontSize(9); 
-    doc.text("KELAYAKAN TAMBANG:", 15, currentY); 
-    doc.text("** B/H/Y", 60, currentY); 
-    currentY += 8;
-    
-    doc.text("HARGA TAMBANG", 15, currentY); 
-    doc.text(":", 50, currentY); 
-    doc.rect(55, currentY - 4, 30, 6); 
+
+    let currentY = doc.lastAutoTable.finalY + 6;
+
+    doc.setFontSize(8.5);
+    doc.text("KELAYAKAN TAMBANG:", 15, currentY);
+    doc.text("** B/H/Y", 60, currentY);
+    currentY += 6.5;
+
+    doc.text("HARGA TAMBANG", 15, currentY);
+    doc.text(":", 50, currentY);
+    doc.rect(55, currentY - 3.8, 30, 5.5);
     doc.text("RM", 57, currentY);
-    
+
     doc.text("KOD JENIS", 100, currentY);
-    doc.text(":", 135, currentY); 
-    doc.rect(140, currentY - 4, 45, 6); 
-    doc.text(upperVal(formData.kodSyarikat), 142, currentY); 
-    currentY += 8;
-    
-    doc.text("CUKAI AIRPORT", 15, currentY);
-    doc.text(":", 50, currentY); 
-    doc.rect(55, currentY - 4, 30, 6); 
-    doc.text("RM", 57, currentY);
-    
-    doc.text("MAS / AIR ASIA", 100, currentY);
-    doc.text(":", 135, currentY); 
-    doc.rect(140, currentY - 4, 45, 6); 
-    currentY += 8;
-    
-    doc.text("CUKAI PERKHIDMATAN", 15, currentY); 
-    doc.text(":", 50, currentY);
-    doc.rect(55, currentY - 4, 30, 6); 
-    doc.text("RM", 57, currentY);
-    
-    doc.text("ENRICH / BIG ID", 100, currentY); 
     doc.text(":", 135, currentY);
-    doc.rect(140, currentY - 4, 45, 6); 
-    doc.text(upperVal(formData.enrichId), 142, currentY); 
-    currentY += 8;
-    
-    doc.setFont("helvetica", "bold"); 
-    doc.text("JUMLAH", 15, currentY); 
+    doc.rect(140, currentY - 3.8, 45, 5.5);
+    doc.text(upperVal(formData.kodSyarikat), 142, currentY);
+    currentY += 6.5;
+
+    doc.text("CUKAI AIRPORT", 15, currentY);
     doc.text(":", 50, currentY);
-    doc.rect(55, currentY - 4, 30, 6); 
-    doc.text("RM", 57, currentY); 
-    doc.setFont("helvetica", "normal"); 
-    currentY += 12;
+    doc.rect(55, currentY - 3.8, 30, 5.5);
+    doc.text("RM", 57, currentY);
 
+    doc.text("MAS / AIR ASIA", 100, currentY);
+    doc.text(":", 135, currentY);
+    doc.rect(140, currentY - 3.8, 45, 5.5);
+    currentY += 6.5;
+
+    doc.text("CUKAI PERKHIDMATAN", 15, currentY);
+    doc.text(":", 50, currentY);
+    doc.rect(55, currentY - 3.8, 30, 5.5);
+    doc.text("RM", 57, currentY);
+
+    doc.text("ENRICH / BIG ID", 100, currentY);
+    doc.text(":", 135, currentY);
+    doc.rect(140, currentY - 3.8, 45, 5.5);
+    doc.text(upperVal(formData.enrichId), 142, currentY);
+    currentY += 6.5;
+
+    doc.setFont("helvetica", "bold");
+    doc.text("JUMLAH", 15, currentY);
+    doc.text(":", 50, currentY);
+    doc.rect(55, currentY - 3.8, 30, 5.5);
+    doc.text("RM", 57, currentY);
+    doc.setFont("helvetica", "normal");
+    currentY += 9;
+
+    // SEKSYEN D
     drawSectionHeader("D. PENGESAHAN PENYERAHAN TIKET", currentY, 90);
-    currentY += 7;
-    doc.setFontSize(9); 
+    currentY += 6;
+    doc.setFontSize(8.5);
     doc.text("Laporan sebelum meninggalkan pejabat", 15, currentY);
-    
-    let rightBox1Y = currentY - 5;
-    doc.rect(110, rightBox1Y, 85, 25);
-    doc.text("Baki Peruntukan : RM", 113, rightBox1Y + 5); 
-    doc.text("Baki Perbelanjaan : RM", 113, rightBox1Y + 10);
-    doc.text("Tarikh:", 113, rightBox1Y + 15);
-    doc.text("Tandatangan :", 140, rightBox1Y + 20); 
-    doc.line(162, rightBox1Y + 20, 190, rightBox1Y + 20);
-    doc.text("(CC (Kew) / PA)", 162, rightBox1Y + 24);
 
-    currentY += 8; 
+    let rightBox1Y = currentY - 4;
+    doc.rect(110, rightBox1Y, 85, 23);
+    doc.text("Baki Peruntukan : RM", 113, rightBox1Y + 5);
+    doc.text("Baki Perbelanjaan : RM", 113, rightBox1Y + 9.5);
+    doc.text("Tarikh:", 113, rightBox1Y + 14);
+    doc.text("Tandatangan :", 140, rightBox1Y + 18.5);
+    doc.line(162, rightBox1Y + 18.5, 190, rightBox1Y + 18.5);
+    doc.setFontSize(7.5);
+    doc.text("(CC (Kew) / PA)", 162, rightBox1Y + 21.8);
+    doc.setFontSize(8.5);
+
+    currentY += 7;
     doc.text("1.   Persediaan", 15, currentY);
-    doc.rect(55, currentY - 4, 35, 6); 
-    doc.setFontSize(8); 
-    doc.setFont("helvetica", "italic"); 
-    doc.text("** Sudah/Belum", 55, currentY + 5); 
-    doc.setFontSize(9); 
-    doc.setFont("helvetica", "normal");
-    
-    currentY += 12; 
-    doc.text("2.   Makluman KJ/KB", 15, currentY); 
-    doc.rect(55, currentY - 4, 35, 6); 
-    doc.setFontSize(8); 
+    doc.rect(55, currentY - 3.8, 35, 5.5);
+    doc.setFontSize(7.5);
     doc.setFont("helvetica", "italic");
-    doc.text("** Sudah/Belum", 55, currentY + 5); 
-    doc.setFontSize(9); 
+    doc.text("** Sudah/Belum", 55, currentY + 4.5);
+    doc.setFontSize(8.5);
     doc.setFont("helvetica", "normal");
 
-    let rightBox2Y = rightBox1Y + 28; 
-    doc.rect(110, rightBox2Y, 85, 40);
+    currentY += 11;
+    doc.text("2.   Makluman KJ/KB", 15, currentY);
+    doc.rect(55, currentY - 3.8, 35, 5.5);
+    doc.setFontSize(7.5);
+    doc.setFont("helvetica", "italic");
+    doc.text("** Sudah/Belum", 55, currentY + 4.5);
+    doc.setFontSize(8.5);
+    doc.setFont("helvetica", "normal");
+
+    let rightBox2Y = rightBox1Y + 25;
+    doc.rect(110, rightBox2Y, 85, 36);
     doc.text("Diluluskan Oleh :", 113, rightBox2Y + 5);
-    doc.text("Tandatangan", 113, rightBox2Y + 15); 
-    doc.text(":", 135, rightBox2Y + 15);
-    doc.line(138, rightBox2Y + 15, 190, rightBox2Y + 15);
-    doc.text("Nama/Jawatan", 113, rightBox2Y + 25); 
-    doc.text(":", 135, rightBox2Y + 25);
-    doc.line(138, rightBox2Y + 25, 190, rightBox2Y + 25); 
-    doc.text("(Pengarah / Penolong Pengarah)", 142, rightBox2Y + 29);
-    doc.text("Tarikh", 113, rightBox2Y + 36); 
-    doc.text(":", 135, rightBox2Y + 36); 
-    doc.line(138, rightBox2Y + 36, 170, rightBox2Y + 36);
-    
-    currentY += 8; 
-    doc.text("3.   Laporan apabila kembali :", 15, currentY); 
+    doc.text("Tandatangan", 113, rightBox2Y + 13);
+    doc.text(":", 135, rightBox2Y + 13);
+    doc.line(138, rightBox2Y + 13, 190, rightBox2Y + 13);
+    doc.text("Nama/Jawatan", 113, rightBox2Y + 22);
+    doc.text(":", 135, rightBox2Y + 22);
+    doc.line(138, rightBox2Y + 22, 190, rightBox2Y + 22);
+    doc.setFontSize(7.5);
+    doc.text("(Pengarah / Penolong Pengarah)", 142, rightBox2Y + 25.5);
+    doc.setFontSize(8.5);
+    doc.text("Tarikh", 113, rightBox2Y + 32.5);
+    doc.text(":", 135, rightBox2Y + 32.5);
+    doc.line(138, rightBox2Y + 32.5, 175, rightBox2Y + 32.5);
+
+    currentY += 9;
+    doc.text("3.   Laporan apabila kembali :", 15, currentY);
     currentY += 6;
     doc.text("3.1 Tarikh Kembali", 20, currentY);
-    doc.line(50, currentY, 90, currentY); 
+    doc.line(50, currentY, 90, currentY);
     currentY += 6;
-    doc.text("3.2 Lapor Kepada", 20, currentY); 
-    doc.line(50, currentY, 90, currentY); 
-    currentY += 8;
-    
+    doc.text("3.2 Lapor Kepada", 20, currentY);
+    doc.line(50, currentY, 90, currentY);
+    currentY += 7;
+
     doc.setFontSize(7);
     doc.text("Nota: Para A dan B - diisi oleh pemohon", 15, currentY);
     doc.text("         Para C dan D - untuk kegunaan pejabat", 15, currentY + 3);
