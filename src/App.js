@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import jsPDF from 'jspdf';
 import './index.css';
+import './App.css';
 
 // Import Gambar Background Tempatan (Local)
 // Tip: Tukar kepada './adtec.webp' jika sudah convert untuk loading lebih pantas
@@ -12,6 +13,7 @@ import { unitOptions, peperiksaanRoles, pegawaiDatabase, malaysiaAirports } from
 // Import Komponen UI & Borang
 import UniversalSelect from './components/ui/UniversalSelect';
 import SplashScreen from './components/ui/SplashScreen';
+import PanduanModal from './components/ui/PanduanModal';
 import FeedbackButton from './components/FeedbackButton';
 import FormTugas from './components/forms/FormTugas';
 import FormCuti from './components/forms/FormCuti';
@@ -627,39 +629,11 @@ function App() {
                         </div>
                     </footer>
                     
-                    {showPanduan && (
-                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-slide-up">
-                            <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative">
-                                <button onClick={() => setShowPanduan(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 p-2 rounded-full transition-colors focus:outline-none">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                                </button>
-                                <h2 className="text-2xl font-extrabold text-slate-800 mb-6 flex items-center gap-3">
-                                    <div className="p-2 bg-blue-100 text-blue-600 rounded-xl">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-                                    </div>
-                                    Panduan Penggunaan
-                                </h2>
-                                <div className="space-y-5 text-sm text-slate-600 font-medium">
-                                    <div className="flex gap-4">
-                                        <span className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-extrabold flex-shrink-0 border border-blue-100">1</span> 
-                                        <p className="pt-1 leading-relaxed">Pilih <strong className="text-slate-800">Modul Borang</strong> yang bersesuaian dari menu utama di halaman ini.</p>
-                                    </div>
-                                    <div className="flex gap-4">
-                                        <span className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-extrabold flex-shrink-0 border border-blue-100">2</span> 
-                                        <p className="pt-1 leading-relaxed">Lengkapkan semua maklumat yang diwajibkan <strong className="text-red-500">(*)</strong> mengikut turutan seksyen.</p>
-                                    </div>
-                                    <div className="flex gap-4">
-                                        <span className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-extrabold flex-shrink-0 border border-blue-100">3</span> 
-                                        <p className="pt-1 leading-relaxed">Turunkan <strong className="text-slate-800">Tandatangan Digital</strong> anda menggunakan tetikus atau skrin sentuh di ruangan yang disediakan.</p>
-                                    </div>
-                                    <div className="flex gap-4">
-                                        <span className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-extrabold flex-shrink-0 border border-blue-100">4</span> 
-                                        <p className="pt-1 leading-relaxed">Klik butang <strong className="text-slate-800">Jana & Muat Turun</strong>. Fail PDF berformat rasmi akan disimpan terus ke peranti anda.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    {/* ✅ MODAL PANDUAN INTERAKTIF 2026 */}
+                    <PanduanModal 
+                        isOpen={showPanduan} 
+                        onClose={() => setShowPanduan(false)} 
+                    />
 
                     {showHubungi && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-slide-up">

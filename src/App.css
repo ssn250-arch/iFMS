@@ -69,3 +69,33 @@
 .animate-shimmer {
   animation: shimmer-sweep 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
+
+/* Animasi Panduan Penggunaan Interaktif 2026 */
+@keyframes draw-signature {
+  0% { stroke-dashoffset: 320; }
+  60%, 100% { stroke-dashoffset: 0; }
+}
+
+@keyframes float-badge {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes flow-dash {
+  to { stroke-dashoffset: -24; }
+}
+
+.animate-draw-sign {
+  stroke-dasharray: 320;
+  stroke-dashoffset: 320;
+  animation: draw-signature 2.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.animate-float-badge {
+  animation: float-badge 3s ease-in-out infinite;
+}
+
+.animate-flow-line {
+  stroke-dasharray: 6 6;
+  animation: flow-dash 1s linear infinite;
+}
