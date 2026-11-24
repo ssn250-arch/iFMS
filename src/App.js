@@ -3,7 +3,7 @@ import jsPDF from 'jspdf';
 import './index.css';
 
 // Import Gambar Background Tempatan (Local)
-import adtecBg from './adtec.png';
+import adtecBg from './adtec.webp';
 
 // Import Data
 import { unitOptions, peperiksaanRoles, pegawaiDatabase, malaysiaAirports } from './data/database';
@@ -373,7 +373,7 @@ function App() {
         const formattedDay = todayDateObj.toLocaleDateString('ms-MY', { weekday: 'long' });
 
         return (
-            <div className="min-h-screen relative flex flex-col font-sans overflow-x-hidden bg-slate-50">
+            <div className="min-h-screen relative flex flex-col font-sans overflow-x-hidden bg-slate-100">
                 
                 {/* Latar Belakang Gambar Bangunan */}
                 <div 
