@@ -1,17 +1,347 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const LockIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
 );
+
+const PlaneTakeoffIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><path d="M2 22h20"/><path d="M6.36 17.4 4 17l-2-4 1.1-.55a2 2 0 0 1 1.8 0l.17.1a2 2 0 0 0 1.8 0L8 12 5 6l.9-.45a2 2 0 0 1 2.09.2l4.02 3a2 2 0 0 0 2.1.2l4.19-2.06a2.41 2.41 0 0 1 1.73-.17L21 7a1.4 1.4 0 0 1 .87 1.99l-.38.76c-.23.46-.6.84-1.07 1.08L7.58 17.2a2 2 0 0 1-1.22.18Z"/></svg>
+);
+
+const PlaneLandingIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><path d="M2 22h20"/><path d="M3.77 10.77 2 9l2-4.5 1.1.55c.55.28.9.84.9 1.45s.35 1.17.9 1.45L8 8.5l3-6 1.05.53a2 2 0 0 1 1.09 1.52l.72 5.4a2 2 0 0 0 1.09 1.52l4.4 2.2c.42.22.78.55 1.01.96l.6 1.03c.49.88-.06 1.98-1.06 2.1l-1.18.15c-.47.06-.95-.02-1.37-.24L4.29 11.15a2 2 0 0 1-.52-.38Z"/></svg>
+);
+
+const SwapIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg>
+);
+
+// Senarai Lapangan Terbang Popular & Domestik Malaysia (Gaya AirAsia/MAS)
+const AIRPORT_LIST = [
+    { code: 'SDK', city: 'Sandakan', name: 'Lapangan Terbang Sandakan', state: 'Sabah', popular: true },
+    { code: 'KUL', city: 'Kuala Lumpur', name: 'KLIA / KLIA2', state: 'Selangor', popular: true },
+    { code: 'BKI', city: 'Kota Kinabalu', name: 'Lapangan Terbang Antarabangsa KK', state: 'Sabah', popular: true },
+    { code: 'TWU', city: 'Tawau', name: 'Lapangan Terbang Tawau', state: 'Sabah', popular: true },
+    { code: 'LDU', city: 'Lahad Datu', name: 'Lapangan Terbang Lahad Datu', state: 'Sabah', popular: false },
+    { code: 'LBU', city: 'Labuan', name: 'Lapangan Terbang Labuan', state: 'WP Labuan', popular: false },
+    { code: 'KCH', city: 'Kuching', name: 'Lapangan Terbang Antarabangsa Kuching', state: 'Sarawak', popular: true },
+    { code: 'MYY', city: 'Miri', name: 'Lapangan Terbang Miri', state: 'Sarawak', popular: false },
+    { code: 'SBW', city: 'Sibu', name: 'Lapangan Terbang Sibu', state: 'Sarawak', popular: false },
+    { code: 'BTU', city: 'Bintulu', name: 'Lapangan Terbang Bintulu', state: 'Sarawak', popular: false },
+    { code: 'PEN', city: 'Pulau Pinang', name: 'Lapangan Terbang Antarabangsa Penang', state: 'Pulau Pinang', popular: true },
+    { code: 'JHB', city: 'Johor Bahru', name: 'Lapangan Terbang Antarabangsa Senai', state: 'Johor', popular: true },
+    { code: 'KBR', city: 'Kota Bharu', name: 'Lapangan Terbang Sultan Ismail Petra', state: 'Kelantan', popular: false },
+    { code: 'TGG', city: 'Kuala Terengganu', name: 'Lapangan Terbang Sultan Mahmud', state: 'Terengganu', popular: false },
+    { code: 'AOR', city: 'Alor Setar', name: 'Lapangan Terbang Sultan Abdul Halim', state: 'Kedah', popular: false },
+    { code: 'LGK', city: 'Langkawi', name: 'Lapangan Terbang Antarabangsa Langkawi', state: 'Kedah', popular: false },
+    { code: 'KUA', city: 'Kuantan', name: 'Lapangan Terbang Sultan Haji Ahmad Shah', state: 'Pahang', popular: false },
+    { code: 'IPH', city: 'Ipoh', name: 'Lapangan Terbang Sultan Azlan Shah', state: 'Perak', popular: false },
+    { code: 'SZB', city: 'Subang', name: 'Lapangan Terbang Sultan Abdul Aziz Shah', state: 'Selangor', popular: true },
+];
+
+const AIRLINES = [
+    { id: 'AIRASIA', name: 'AirAsia', tag: 'AK / D7', color: 'border-red-500 bg-red-50/70 text-red-700', dot: 'bg-red-500' },
+    { id: 'MAS', name: 'Malaysia Airlines', tag: 'MH', color: 'border-blue-600 bg-blue-50/70 text-blue-800', dot: 'bg-blue-600' },
+    { id: 'BATIK', name: 'Batik Air', tag: 'OD', color: 'border-indigo-500 bg-indigo-50/70 text-indigo-800', dot: 'bg-indigo-600' },
+    { id: 'FIREFLY', name: 'Firefly', tag: 'FY', color: 'border-orange-500 bg-orange-50/70 text-orange-800', dot: 'bg-orange-500' },
+];
 
 const FormTiket = ({
     formData, handleChange, setFormData, expanded, toggleSection, nextSection, formInputClass, formLabelClass,
     malaysiaAirports, getAirportName, setRoute, isPegawaiComplete, isTiketInfoComplete, isTiketFlightComplete, isTandatanganComplete,
     shakeSection, canvasRef, startDrawing, draw, stopDrawing, clearSignature, handleSignatureUpload
 }) => {
+    // State untuk Modal Pemilih Lapangan Terbang (Ala AirAsia/MAS)
+    const [airportModal, setAirportModal] = useState({ open: false, field: '', label: '' });
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const openAirportPicker = (field, label) => {
+        setSearchQuery('');
+        setAirportModal({ open: true, field, label });
+    };
+
+    const selectAirport = (code) => {
+        setFormData(prev => {
+            const updated = { ...prev, [airportModal.field]: code };
+            // Auto-kemaskini laluan balik jika user ubah Pergi L1 dan laluan balik belum diisi
+            if (airportModal.field === 'flightPergiDari' && !prev.flightBalikKe) {
+                updated.flightBalikKe = code;
+            }
+            if (airportModal.field === 'flightPergiKe' && !prev.flightBalikDari) {
+                updated.flightBalikDari = code;
+            }
+            return updated;
+        });
+        setAirportModal({ open: false, field: '', label: '' });
+    };
+
+    const swapRoute = (dariField, keField) => {
+        setFormData(prev => ({
+            ...prev,
+            [dariField]: prev[keField],
+            [keField]: prev[dariField]
+        }));
+    };
+
+    const autoMirrorReturn = () => {
+        setFormData(prev => ({
+            ...prev,
+            flightBalikDari: prev.flightPergiKe || 'KUL',
+            flightBalikKe: prev.flightPergiDari || 'SDK',
+            ...(prev.flightType === 'multi' ? {
+                flightBalikLeg2Dari: prev.flightPergiLeg2Ke || '',
+                flightBalikLeg2Ke: prev.flightPergiLeg2Dari || ''
+            } : {})
+        }));
+    };
+
+    const getAirportDetails = (code) => {
+        if (!code) return { city: 'Pilih Lokasi', name: 'Klik untuk pilih lapangan terbang' };
+        const upper = code.toUpperCase();
+        const found = AIRPORT_LIST.find(a => a.code === upper);
+        if (found) return found;
+        const fallbackName = getAirportName ? getAirportName(upper) : '';
+        return { city: upper, name: fallbackName || 'Kod Lapangan Terbang' };
+    };
+
+    const filteredAirports = AIRPORT_LIST.filter(a =>
+        a.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        a.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        a.state.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    // Komponen Kad Segmen Penerbangan Moden (Ala Boarding Pass / App AirAsia)
+    const renderFlightLegCard = ({
+        badge,
+        title,
+        accentColor = 'cyan',
+        tarikhName,
+        masaName,
+        dariName,
+        keName,
+        dariPlaceholder,
+        kePlaceholder,
+        showAutoMirror = false
+    }) => {
+        const dariInfo = getAirportDetails(formData[dariName]);
+        const keInfo = getAirportDetails(formData[keName]);
+        const isAmber = accentColor === 'amber';
+
+        return (
+            <div className={`mb-5 rounded-3xl border transition-all overflow-hidden ${isAmber ? 'bg-amber-50/40 border-amber-200/80' : 'bg-slate-50/80 border-slate-200/90'}`}>
+                {/* Header Kad Tiket */}
+                <div className={`px-5 py-3 flex items-center justify-between border-b ${isAmber ? 'bg-amber-100/50 border-amber-200/60' : 'bg-white border-slate-100'}`}>
+                    <div className="flex items-center gap-2.5">
+                        <span className={`px-2.5 py-1 rounded-lg text-[11px] font-extrabold uppercase tracking-wider ${isAmber ? 'bg-amber-500 text-white' : 'bg-slate-900 text-white'}`}>
+                            {badge}
+                        </span>
+                        <span className="text-xs font-bold text-slate-600">{title}</span>
+                    </div>
+                    {showAutoMirror && (
+                        <button
+                            type="button"
+                            onClick={autoMirrorReturn}
+                            className="text-xs font-bold text-cyan-700 bg-cyan-50 hover:bg-cyan-100 border border-cyan-200 px-3 py-1.5 rounded-xl transition-all active:scale-95 flex items-center gap-1.5"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></svg>
+                            Sama Macam Pergi
+                        </button>
+                    )}
+                </div>
+
+                {/* Bahagian Pilihan Laluan (DARI ⇄ KE) Ala App Penerbangan */}
+                <div className="p-4 sm:p-5">
+                    <div className="relative grid grid-cols-1 sm:grid-cols-2 gap-3 items-stretch">
+                        {/* Kotak DARI */}
+                        <div
+                            onClick={() => openAirportPicker(dariName, `${title} — Berlepas Dari`)}
+                            className="group bg-white hover:bg-cyan-50/40 border-2 border-slate-200/90 hover:border-cyan-500 rounded-2xl p-4 cursor-pointer transition-all shadow-sm flex flex-col justify-between"
+                        >
+                            <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                                <span className="flex items-center gap-1.5 text-slate-500"><PlaneTakeoffIcon /> Dari (Berlepas)</span>
+                                <span className="text-cyan-600 opacity-80 group-hover:opacity-100">Tukar</span>
+                            </div>
+                            <div className="flex items-baseline gap-2.5 my-0.5">
+                                <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
+                                    {formData[dariName] || dariPlaceholder}
+                                </span>
+                                <span className="text-sm font-bold text-slate-700 truncate">
+                                    {dariInfo.city}
+                                </span>
+                            </div>
+                            <div className="text-[11px] font-medium text-slate-400 truncate">
+                                {dariInfo.name}
+                            </div>
+                        </div>
+
+                        {/* Butang Swap Tengah (Terapung antara DARI dan KE) */}
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                swapRoute(dariName, keName);
+                            }}
+                            title="Tukar arah pergi & balik"
+                            className="sm:absolute sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 z-10 mx-auto -my-1.5 sm:my-0 w-10 h-10 rounded-full bg-white hover:bg-cyan-600 text-slate-600 hover:text-white border-2 border-slate-200 hover:border-cyan-600 shadow-md flex items-center justify-center transition-all active:scale-90"
+                        >
+                            <SwapIcon />
+                        </button>
+
+                        {/* Kotak KE */}
+                        <div
+                            onClick={() => openAirportPicker(keName, `${title} — Destinasi Ke`)}
+                            className="group bg-white hover:bg-cyan-50/40 border-2 border-slate-200/90 hover:border-cyan-500 rounded-2xl p-4 cursor-pointer transition-all shadow-sm flex flex-col justify-between sm:pl-7"
+                        >
+                            <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                                <span className="flex items-center gap-1.5 text-slate-500"><PlaneLandingIcon /> Ke (Destinasi)</span>
+                                <span className="text-cyan-600 opacity-80 group-hover:opacity-100">Tukar</span>
+                            </div>
+                            <div className="flex items-baseline gap-2.5 my-0.5">
+                                <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
+                                    {formData[keName] || kePlaceholder}
+                                </span>
+                                <span className="text-sm font-bold text-slate-700 truncate">
+                                    {keInfo.city}
+                                </span>
+                            </div>
+                            <div className="text-[11px] font-medium text-slate-400 truncate">
+                                {keInfo.name}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Garisan Putus-Putus Ala Boarding Pass */}
+                    <div className="my-4 border-t-2 border-dashed border-slate-200/90"></div>
+
+                    {/* Tarikh & Masa Penerbangan */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-white border border-slate-200/90 rounded-2xl px-3.5 py-2.5 focus-within:border-cyan-500 focus-within:ring-2 focus-within:ring-cyan-500/20 transition-all">
+                            <label className="block text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">
+                                Tarikh Penerbangan
+                            </label>
+                            <input
+                                type="date"
+                                name={tarikhName}
+                                value={formData[tarikhName]}
+                                onChange={handleChange}
+                                className="w-full bg-transparent text-sm sm:text-base font-bold text-slate-800 focus:outline-none"
+                            />
+                        </div>
+                        <div className="bg-white border border-slate-200/90 rounded-2xl px-3.5 py-2.5 focus-within:border-cyan-500 focus-within:ring-2 focus-within:ring-cyan-500/20 transition-all">
+                            <label className="block text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">
+                                Waktu Berlepas
+                            </label>
+                            <input
+                                type="time"
+                                name={masaName}
+                                value={formData[masaName]}
+                                onChange={handleChange}
+                                className="w-full bg-transparent text-sm sm:text-base font-bold text-slate-800 focus:outline-none"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <>
-            {/* TIKET INFO */}
+            {/* MODAL CARIAN LAPANGAN TERBANG (GAYA AIRASIA / MAS) */}
+            {airportModal.open && (
+                <div
+                    onClick={() => setAirportModal({ open: false, field: '', label: '' })}
+                    className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in"
+                >
+                    <div
+                        onClick={(e) => e.stopPropagation()}
+                        className="bg-white w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[85vh]"
+                    >
+                        {/* Header Modal */}
+                        <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+                            <div>
+                                <p className="text-[11px] font-bold text-cyan-400 uppercase tracking-wider">Pilih Lapangan Terbang</p>
+                                <h3 className="text-base font-extrabold">{airportModal.label}</h3>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setAirportModal({ open: false, field: '', label: '' })}
+                                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        {/* Kotak Carian Pantas */}
+                        <div className="p-4 border-b border-slate-100 bg-slate-50">
+                            <div className="relative">
+                                <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                                <input
+                                    type="text"
+                                    autoFocus
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    placeholder="Cari bandar, negeri atau kod (cth: Sandakan, KUL, KK)..."
+                                    className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-semibold text-slate-800 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Senarai Lapangan Terbang */}
+                        <div className="overflow-y-auto p-3 space-y-1.5 flex-1">
+                            {filteredAirports.length > 0 ? (
+                                filteredAirports.map((airport) => {
+                                    const isSelected = formData[airportModal.field] === airport.code;
+                                    return (
+                                        <button
+                                            key={airport.code}
+                                            type="button"
+                                            onClick={() => selectAirport(airport.code)}
+                                            className={`w-full text-left px-4 py-3 rounded-2xl flex items-center justify-between transition-all ${
+                                                isSelected
+                                                    ? 'bg-cyan-50 border-2 border-cyan-500'
+                                                    : 'hover:bg-slate-50 border-2 border-transparent'
+                                            }`}
+                                        >
+                                            <div className="pr-3">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-extrabold text-slate-800 text-sm">{airport.city}</span>
+                                                    <span className="text-[11px] font-semibold text-slate-400">• {airport.state}</span>
+                                                    {airport.popular && !searchQuery && (
+                                                        <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Popular</span>
+                                                    )}
+                                                </div>
+                                                <div className="text-xs text-slate-500 mt-0.5">{airport.name}</div>
+                                            </div>
+                                            <span className={`px-3 py-1.5 rounded-xl font-black text-sm tracking-widest ${
+                                                isSelected ? 'bg-cyan-600 text-white' : 'bg-slate-100 text-slate-700'
+                                            }`}>
+                                                {airport.code}
+                                            </span>
+                                        </button>
+                                    );
+                                })
+                            ) : (
+                                <div className="p-6 text-center">
+                                    <p className="text-sm font-bold text-slate-600 mb-3">Tiada dalam senarai? Guna kod IATA manual:</p>
+                                    {searchQuery.trim().length === 3 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => selectAirport(searchQuery.trim().toUpperCase())}
+                                            className="bg-cyan-600 text-white font-bold px-5 py-2.5 rounded-xl text-sm shadow-md"
+                                        >
+                                            Guna Kod "{searchQuery.trim().toUpperCase()}"
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 1. MAKLUMAT DESTINASI */}
             <div id="section-tiketInfo" className={`bg-white/90 backdrop-blur-xl rounded-[2rem] shadow-[0_4px_20px_rgb(0,0,0,0.03)] border overflow-hidden transition-all duration-500 ${!isPegawaiComplete ? 'border-slate-200/50 opacity-60 grayscale-[20%]' : (expanded.tiketInfo ? 'border-slate-100 ring-[3px] ring-cyan-500/20' : 'border-slate-100 hover:shadow-md')} ${shakeSection === 'tiketInfo' ? 'animate-shake border-red-400' : ''}`}>
                 <div onClick={() => isPegawaiComplete && toggleSection('tiketInfo')} className={`px-6 py-5 flex items-center justify-between transition-colors ${!isPegawaiComplete ? 'bg-slate-50/50 cursor-not-allowed' : 'bg-white hover:bg-slate-50 cursor-pointer'}`}>
                     <div className="flex items-center gap-4">
@@ -53,151 +383,149 @@ const FormTiket = ({
                 )}
             </div>
 
-            {/* FLIGHT TIKET */}
+            {/* 2. BUTIRAN PENERBANGAN (REKA BENTUK MODEN ALA AIRASIA / MAS) */}
             <div id="section-tiket" className={`bg-white/90 backdrop-blur-xl rounded-[2rem] shadow-[0_4px_20px_rgb(0,0,0,0.03)] border overflow-hidden transition-all duration-500 ${!isTiketInfoComplete ? 'border-slate-200/50 opacity-60 grayscale-[20%]' : (expanded.tiket ? 'border-slate-100 ring-[3px] ring-cyan-500/20' : 'border-slate-100 hover:shadow-md')} ${shakeSection === 'tiket' ? 'animate-shake border-red-400' : ''} mt-5`}>
                 <div onClick={() => isTiketInfoComplete && toggleSection('tiket')} className={`px-6 py-5 flex items-center justify-between transition-colors ${!isTiketInfoComplete ? 'bg-slate-50/50 cursor-not-allowed' : 'bg-white hover:bg-slate-50 cursor-pointer'}`}>
                     <div className="flex items-center gap-4">
                         <div className={`p-2.5 rounded-xl transition-colors ${!isTiketInfoComplete ? 'bg-slate-200 text-slate-500' : (expanded.tiket ? 'bg-cyan-600 text-white shadow-md shadow-cyan-500/30' : (isTiketFlightComplete ? 'bg-emerald-50 text-emerald-600' : 'bg-cyan-50 text-cyan-600'))}`}>
-                            {!isTiketInfoComplete ? <LockIcon /> : (isTiketFlightComplete && !expanded.tiket ? <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> : <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>)}
+                            {!isTiketInfoComplete ? <LockIcon /> : (isTiketFlightComplete && !expanded.tiket ? <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> : <PlaneTakeoffIcon />)}
                         </div>
                         <div>
                             <h2 className="text-lg font-extrabold text-slate-800">Butiran Penerbangan {isTiketFlightComplete && !expanded.tiket && <span className="ml-2 text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full uppercase tracking-wider">Lengkap</span>}</h2>
-                            {!expanded.tiket && isTiketInfoComplete && <p className="text-[13px] text-slate-500 font-semibold mt-0.5">{isTiketFlightComplete ? 'Penerbangan Lengkap' : 'Isi jadual penerbangan anda'}</p>}
+                            {!expanded.tiket && isTiketInfoComplete && (
+                                <p className="text-[13px] text-slate-500 font-semibold mt-0.5">
+                                    {isTiketFlightComplete ? `${formData.flightPergiDari || 'SDK'} ⇄ ${formData.flightPergiKe || 'KUL'}` : 'Pilih laluan & jadual penerbangan'}
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>
+
                 {expanded.tiket && isTiketInfoComplete && (
-                    <div className="p-6 md:p-8 pt-2 border-t border-slate-50 bg-white animate-slide-up">
-                        <div className="flex gap-4 mb-6">
-                            <label className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all ${formData.flightType === 'single' ? 'bg-cyan-50 border-cyan-500 text-cyan-700 font-bold' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}>
-                                <input type="radio" name="flightType" value="single" checked={formData.flightType === 'single'} onChange={handleChange} className="hidden" />
-                                <span>Penerbangan Terus</span>
+                    <div className="p-5 md:p-8 pt-3 border-t border-slate-100 bg-white animate-slide-up">
+                        {/* Segmented Tab Switcher (Ala App Penerbangan) */}
+                        <div className="bg-slate-100 p-1.5 rounded-2xl flex gap-1.5 mb-6">
+                            <button
+                                type="button"
+                                onClick={() => setFormData(prev => ({ ...prev, flightType: 'single' }))}
+                                className={`flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-extrabold transition-all ${
+                                    formData.flightType === 'single'
+                                        ? 'bg-white text-slate-900 shadow-sm'
+                                        : 'text-slate-500 hover:text-slate-700'
+                                }`}
+                            >
+                                ✈️ Penerbangan Terus
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setFormData(prev => ({ ...prev, flightType: 'multi' }))}
+                                className={`flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-extrabold transition-all ${
+                                    formData.flightType === 'multi'
+                                        ? 'bg-white text-slate-900 shadow-sm'
+                                        : 'text-slate-500 hover:text-slate-700'
+                                }`}
+                            >
+                                🔄 Transit (Multi-Leg)
+                            </button>
+                        </div>
+
+                        {/* KAD PERGI (L1) */}
+                        {renderFlightLegCard({
+                            badge: 'Pergi • L1',
+                            title: 'Penerbangan Pergi',
+                            accentColor: 'cyan',
+                            tarikhName: 'flightPergiTarikh',
+                            masaName: 'flightPergiMasa',
+                            dariName: 'flightPergiDari',
+                            keName: 'flightPergiKe',
+                            dariPlaceholder: 'SDK',
+                            kePlaceholder: 'KUL'
+                        })}
+
+                        {/* KAD PERGI TRANSIT (L2) */}
+                        {formData.flightType === 'multi' && renderFlightLegCard({
+                            badge: 'Pergi • L2',
+                            title: 'Penerbangan Sambungan (Transit)',
+                            accentColor: 'amber',
+                            tarikhName: 'flightPergiLeg2Tarikh',
+                            masaName: 'flightPergiLeg2Masa',
+                            dariName: 'flightPergiLeg2Dari',
+                            keName: 'flightPergiLeg2Ke',
+                            dariPlaceholder: 'KUL',
+                            kePlaceholder: 'JHB'
+                        })}
+
+                        {/* KAD BALIK (L1) */}
+                        {renderFlightLegCard({
+                            badge: 'Balik • L1',
+                            title: 'Penerbangan Balik',
+                            accentColor: 'cyan',
+                            tarikhName: 'flightBalikTarikh',
+                            masaName: 'flightBalikMasa',
+                            dariName: 'flightBalikDari',
+                            keName: 'flightBalikKe',
+                            dariPlaceholder: 'KUL',
+                            kePlaceholder: 'SDK',
+                            showAutoMirror: true
+                        })}
+
+                        {/* KAD BALIK TRANSIT (L2) */}
+                        {formData.flightType === 'multi' && renderFlightLegCard({
+                            badge: 'Balik • L2',
+                            title: 'Penerbangan Sambungan Balik',
+                            accentColor: 'amber',
+                            tarikhName: 'flightBalikLeg2Tarikh',
+                            masaName: 'flightBalikLeg2Masa',
+                            dariName: 'flightBalikLeg2Dari',
+                            keName: 'flightBalikLeg2Ke',
+                            dariPlaceholder: 'JHB',
+                            kePlaceholder: 'KUL'
+                        })}
+
+                        {/* PILIHAN SYARIKAT PENERBANGAN VISUAL (GAYA APP MODEN) */}
+                        <div className="mt-7 pt-6 border-t border-slate-100">
+                            <label className="block text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-3">
+                                Pilih Syarikat Penerbangan
                             </label>
-                            <label className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all ${formData.flightType === 'multi' ? 'bg-cyan-50 border-cyan-500 text-cyan-700 font-bold' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}>
-                                <input type="radio" name="flightType" value="multi" checked={formData.flightType === 'multi'} onChange={handleChange} className="hidden" />
-                                <span>Transit (Multi-Leg)</span>
-                            </label>
-                        </div>
-
-                        {/* Pergi L1 */}
-                        <div className="mb-6 p-4 bg-slate-50 rounded-2xl border border-slate-200">
-                            <h4 className="font-bold text-slate-700 mb-3 text-sm uppercase">Pergi (L1)</h4>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                <div className="relative z-0">
-                                    <label className="block text-xs font-bold text-slate-500 mb-1">Tarikh</label>
-                                    <input type="date" name="flightPergiTarikh" value={formData.flightPergiTarikh} onChange={handleChange} className={`${formInputClass} relative z-0`} style={{padding: '10px'}} />
-                                </div>
-                                <div className="relative z-0">
-                                    <label className="block text-xs font-bold text-slate-500 mb-1">Masa</label>
-                                    <input type="time" name="flightPergiMasa" value={formData.flightPergiMasa} onChange={handleChange} className={`${formInputClass} relative z-0`} style={{padding: '10px'}} />
-                                </div>
-                                <div className="relative z-20">
-                                    <label className="block text-xs font-bold text-slate-500 mb-1">Dari</label>
-                                    <input type="text" name="flightPergiDari" value={formData.flightPergiDari} onChange={handleChange} maxLength="3" placeholder="SDK" className={`${formInputClass} relative z-20 text-center uppercase tracking-widest`} style={{padding: '10px'}} />
-                                    <div className="text-[10px] text-slate-400 mt-1 truncate">{getAirportName(formData.flightPergiDari)}</div>
-                                </div>
-                                <div className="relative z-20">
-                                    <label className="block text-xs font-bold text-slate-500 mb-1">Ke</label>
-                                    <input type="text" name="flightPergiKe" value={formData.flightPergiKe} onChange={handleChange} maxLength="3" placeholder="KUL" className={`${formInputClass} relative z-20 text-center uppercase tracking-widest`} style={{padding: '10px'}} />
-                                    <div className="text-[10px] text-slate-400 mt-1 truncate">{getAirportName(formData.flightPergiKe)}</div>
-                                </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-6">
+                                {AIRLINES.map((airline) => {
+                                    const active = formData.kodSyarikat === airline.id;
+                                    return (
+                                        <button
+                                            key={airline.id}
+                                            type="button"
+                                            onClick={() => setFormData(prev => ({ ...prev, kodSyarikat: airline.id }))}
+                                            className={`p-3.5 rounded-2xl border-2 text-left transition-all flex flex-col justify-between ${
+                                                active
+                                                    ? `${airline.color} shadow-sm scale-[1.01]`
+                                                    : 'bg-white border-slate-200/80 hover:border-slate-300 text-slate-600'
+                                            }`}
+                                        >
+                                            <div className="flex items-center justify-between mb-1.5">
+                                                <span className={`w-2.5 h-2.5 rounded-full ${active ? airline.dot : 'bg-slate-300'}`}></span>
+                                                <span className="text-[10px] font-black opacity-70">{airline.tag}</span>
+                                            </div>
+                                            <div className="text-xs sm:text-[13px] font-extrabold leading-tight">
+                                                {airline.name}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
                             </div>
-                        </div>
 
-                        {/* Pergi L2 */}
-                        {formData.flightType === 'multi' && (
-                            <div className="mb-6 p-4 bg-amber-50/50 rounded-2xl border border-amber-100">
-                                <h4 className="font-bold text-amber-700 mb-3 text-sm uppercase">Pergi Transit (L2)</h4>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                    <div className="relative z-0">
-                                        <label className="block text-xs font-bold text-slate-500 mb-1">Tarikh</label>
-                                        <input type="date" name="flightPergiLeg2Tarikh" value={formData.flightPergiLeg2Tarikh} onChange={handleChange} className={`${formInputClass} relative z-0`} style={{padding: '10px'}} />
-                                    </div>
-                                    <div className="relative z-0">
-                                        <label className="block text-xs font-bold text-slate-500 mb-1">Masa</label>
-                                        <input type="time" name="flightPergiLeg2Masa" value={formData.flightPergiLeg2Masa} onChange={handleChange} className={`${formInputClass} relative z-0`} style={{padding: '10px'}} />
-                                    </div>
-                                    <div className="relative z-20">
-                                        <label className="block text-xs font-bold text-slate-500 mb-1">Dari</label>
-                                        <input type="text" name="flightPergiLeg2Dari" value={formData.flightPergiLeg2Dari} onChange={handleChange} maxLength="3" placeholder="KUL" className={`${formInputClass} relative z-20 text-center uppercase tracking-widest`} style={{padding: '10px'}} />
-                                    </div>
-                                    <div className="relative z-20">
-                                        <label className="block text-xs font-bold text-slate-500 mb-1">Ke</label>
-                                        <input type="text" name="flightPergiLeg2Ke" value={formData.flightPergiLeg2Ke} onChange={handleChange} maxLength="3" placeholder="JHB" className={`${formInputClass} relative z-20 text-center uppercase tracking-widest`} style={{padding: '10px'}} />
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Balik L1 */}
-                        <div className="mb-6 p-4 bg-slate-50 rounded-2xl border border-slate-200 relative">
-                            <h4 className="font-bold text-slate-700 mb-3 text-sm uppercase">Balik (L1)</h4>
-                            <button onClick={() => setRoute('SDK', 'KUL')} className="absolute top-4 right-4 text-xs font-bold text-blue-600 bg-blue-100 hover:bg-blue-200 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 z-30"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></svg> Auto-Terbalik</button>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                <div className="relative z-0">
-                                    <label className="block text-xs font-bold text-slate-500 mb-1">Tarikh</label>
-                                    <input type="date" name="flightBalikTarikh" value={formData.flightBalikTarikh} onChange={handleChange} className={`${formInputClass} relative z-0`} style={{padding: '10px'}} />
-                                </div>
-                                <div className="relative z-0">
-                                    <label className="block text-xs font-bold text-slate-500 mb-1">Masa</label>
-                                    <input type="time" name="flightBalikMasa" value={formData.flightBalikMasa} onChange={handleChange} className={`${formInputClass} relative z-0`} style={{padding: '10px'}} />
-                                </div>
-                                <div className="relative z-20">
-                                    <label className="block text-xs font-bold text-slate-500 mb-1">Dari</label>
-                                    <input type="text" name="flightBalikDari" value={formData.flightBalikDari} onChange={handleChange} maxLength="3" placeholder="KUL" className={`${formInputClass} relative z-20 text-center uppercase tracking-widest`} style={{padding: '10px'}} />
-                                    <div className="text-[10px] text-slate-400 mt-1 truncate">{getAirportName(formData.flightBalikDari)}</div>
-                                </div>
-                                <div className="relative z-20">
-                                    <label className="block text-xs font-bold text-slate-500 mb-1">Ke</label>
-                                    <input type="text" name="flightBalikKe" value={formData.flightBalikKe} onChange={handleChange} maxLength="3" placeholder="SDK" className={`${formInputClass} relative z-20 text-center uppercase tracking-widest`} style={{padding: '10px'}} />
-                                    <div className="text-[10px] text-slate-400 mt-1 truncate">{getAirportName(formData.flightBalikKe)}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Balik L2 */}
-                        {formData.flightType === 'multi' && (
-                            <div className="mb-6 p-4 bg-amber-50/50 rounded-2xl border border-amber-100">
-                                <h4 className="font-bold text-amber-700 mb-3 text-sm uppercase">Balik Transit (L2)</h4>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                    <div className="relative z-0">
-                                        <label className="block text-xs font-bold text-slate-500 mb-1">Tarikh</label>
-                                        <input type="date" name="flightBalikLeg2Tarikh" value={formData.flightBalikLeg2Tarikh} onChange={handleChange} className={`${formInputClass} relative z-0`} style={{padding: '10px'}} />
-                                    </div>
-                                    <div className="relative z-0">
-                                        <label className="block text-xs font-bold text-slate-500 mb-1">Masa</label>
-                                        <input type="time" name="flightBalikLeg2Masa" value={formData.flightBalikLeg2Masa} onChange={handleChange} className={`${formInputClass} relative z-0`} style={{padding: '10px'}} />
-                                    </div>
-                                    <div className="relative z-20">
-                                        <label className="block text-xs font-bold text-slate-500 mb-1">Dari</label>
-                                        <input type="text" name="flightBalikLeg2Dari" value={formData.flightBalikLeg2Dari} onChange={handleChange} maxLength="3" placeholder="JHB" className={`${formInputClass} relative z-20 text-center uppercase tracking-widest`} style={{padding: '10px'}} />
-                                    </div>
-                                    <div className="relative z-20">
-                                        <label className="block text-xs font-bold text-slate-500 mb-1">Ke</label>
-                                        <input type="text" name="flightBalikLeg2Ke" value={formData.flightBalikLeg2Ke} onChange={handleChange} maxLength="3" placeholder="KUL" className={`${formInputClass} relative z-20 text-center uppercase tracking-widest`} style={{padding: '10px'}} />
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-7 mt-6 border-t border-slate-100 pt-6">
-                            <div className="relative z-20">
-                                <label className={formLabelClass}>Syarikat Penerbangan</label>
-                                <div className="relative">
-                                    <select name="kodSyarikat" value={formData.kodSyarikat} onChange={handleChange} className={`${formInputClass} relative z-20 appearance-none`}>
-                                        <option value="">Pilih Penerbangan...</option>
-                                        <option value="MAS">Malaysia Airlines (MAS)</option>
-                                        <option value="AIRASIA">AirAsia</option>
-                                        <option value="FIREFLY">Firefly</option>
-                                        <option value="BATIK">Batik Air</option>
-                                        <option value="MYAIRLINE">MYAirline</option>
-                                    </select>
-                                    <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400 z-30"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
-                                </div>
-                            </div>
-                            <div className="relative z-20">
-                                <label className={formLabelClass}>No. Ahli <span className="text-slate-400 font-normal lowercase">(Enrich/BIG ID)</span></label>
-                                <input type="text" name="enrichId" value={formData.enrichId} onChange={handleChange} className={`${formInputClass} relative z-20`} placeholder="Kosongkan jika tiada" />
+                            {/* No Ahli Enrich / AirAsia Rewards */}
+                            <div>
+                                <label className={formLabelClass}>
+                                    No. Ahli <span className="text-slate-400 font-normal lowercase">(Enrich / AirAsia Rewards ID)</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    name="enrichId"
+                                    value={formData.enrichId}
+                                    onChange={handleChange}
+                                    className={formInputClass}
+                                    placeholder="Kosongkan jika tiada"
+                                />
                             </div>
                         </div>
 
@@ -210,7 +538,7 @@ const FormTiket = ({
                 )}
             </div>
 
-            {/* TANDATANGAN */}
+            {/* 3. TANDATANGAN PEMOHON */}
             <div id="section-tandatangan" className={`bg-white/90 backdrop-blur-xl rounded-[2rem] shadow-[0_4px_20px_rgb(0,0,0,0.03)] border overflow-hidden transition-all duration-500 ${!isTiketFlightComplete ? 'border-slate-200/50 opacity-60 grayscale-[20%]' : (expanded.tandatangan ? 'border-slate-100 ring-[3px] ring-cyan-500/20' : 'border-slate-100 hover:shadow-md')} ${shakeSection === 'tandatangan' ? 'animate-shake border-red-400' : ''} mt-5`}>
                 <div onClick={() => isTiketFlightComplete && toggleSection('tandatangan')} className={`px-6 py-5 flex items-center justify-between transition-colors ${!isTiketFlightComplete ? 'bg-slate-50/50 cursor-not-allowed' : 'bg-white hover:bg-slate-50 cursor-pointer'}`}>
                     <div className="flex items-center gap-4">
@@ -218,7 +546,6 @@ const FormTiket = ({
                             {!isTiketFlightComplete ? <LockIcon /> : (isTandatanganComplete && !expanded.tandatangan ? <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> : <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>)}
                         </div>
                         <div>
-                            {/* Label Pilihan Ditambah Di Sini */}
                             <h2 className="text-lg font-extrabold text-slate-800">Tandatangan <span className="hidden sm:inline">Pemohon</span> <span className="text-[11px] font-bold text-slate-400 ml-1 bg-slate-100 px-2 py-0.5 rounded-full uppercase">(Pilihan)</span></h2>
                             {!expanded.tandatangan && isTiketFlightComplete && <p className="text-[13px] text-slate-500 font-semibold mt-0.5">{isTandatanganComplete ? 'Tandatangan telah direkodkan' : 'Boleh dikosongkan (optional)'}</p>}
                         </div>
@@ -257,7 +584,6 @@ const FormTiket = ({
                                 </div>
                             )}
                         </div>
-                        {/* ✅ KEMAS KINI: Butang Selesai tiada lagi halangan 'disabled={!isTandatanganComplete}' */}
                         <div className="mt-8 flex justify-end">
                             <button onClick={() => nextSection('tandatangan', 'jana')} className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-2">
                                 Selesai <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
