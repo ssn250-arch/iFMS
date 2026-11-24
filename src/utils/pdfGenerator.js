@@ -701,42 +701,41 @@ export const generateFormCuti = (doc, formData, pegawaiDatabase, today) => {
 };
 
 export const generateFormAkujanji = (doc, logoImgBase64, formData, peperiksaanRoles) => {
-    doc.setFont("helvetica", "bold"); 
+    doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
-    doc.text("LAMPIRAN 11", 190, 15, { align: 'right' });
+    doc.text("LAMPIRAN 11", 190, 14, { align: 'right' });
 
-    let currentY = 25;
-    if(logoImgBase64) { 
+    let currentY = 18;
+    if (logoImgBase64) {
         doc.addImage(logoImgBase64, 'JPEG', 92.5, currentY, 25, 20);
-        currentY += 25; 
-    } else { 
+        currentY += 24;
+    } else {
         currentY += 10;
     }
 
-    doc.setFontSize(10); 
+    doc.setFontSize(10);
     doc.text("JABATAN TENAGA MANUSIA", 105, currentY, { align: 'center' });
-    currentY += 15;
-    
-    doc.setFontSize(11); 
+    currentY += 8;
+
+    doc.setFontSize(11);
     doc.text("SURAT AKUJANJI INTEGRITI PEPERIKSAAN AKHIR JTM", 105, currentY, { align: 'center' });
 
-    currentY += 15;
-    doc.setFont("helvetica", "normal"); 
+    currentY += 12;
+    doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
-    
-    doc.text("Adalah saya,", 15, currentY);
 
+    doc.text("Adalah saya,", 15, currentY);
     doc.setLineWidth(0.4);
     doc.setLineDashPattern([1, 2], 0);
-    doc.line(38, currentY, 188, currentY); 
+    doc.line(38, currentY, 188, currentY);
     doc.setLineDashPattern([], 0);
     doc.text(val(formData.nama).toUpperCase(), 113, currentY - 1.5, { align: 'center' });
     doc.text(",", 190, currentY);
-    
-    currentY += 10;
+
+    currentY += 9;
     doc.text("No. Kad Pengenalan", 15, currentY);
     doc.text("yang bertugas", 190, currentY, { align: 'right' });
-    
+
     let textBertugasW = doc.getTextWidth("yang bertugas");
     let line2End = 190 - textBertugasW - 3;
     let line2Start = 49;
@@ -747,16 +746,15 @@ export const generateFormAkujanji = (doc, logoImgBase64, formData, peperiksaanRo
     doc.setLineDashPattern([], 0);
     doc.text(val(formData.noKp), line2Center, currentY - 1.5, { align: 'center' });
 
-    currentY += 10;
+    currentY += 9;
     doc.text("sebagai", 15, currentY);
 
     doc.setLineDashPattern([1, 2], 0);
     doc.line(30, currentY, 100, currentY);
     doc.setLineDashPattern([], 0);
-
     doc.text(val(formData.jawatan).toUpperCase(), 65, currentY - 1.5, { align: 'center' });
     doc.text("di", 103, currentY);
-    
+
     let tempatStr = "Kolej Teknologi Termaju (ADTEC), Jabatan Tenaga Manusia, Kampus Sandakan, Sabah.";
     let splitTempat = doc.splitTextToSize(tempatStr, 80);
 
@@ -766,59 +764,60 @@ export const generateFormAkujanji = (doc, logoImgBase64, formData, peperiksaanRo
     doc.text(splitTempat[0], 148, currentY - 1.5, { align: 'center' });
 
     if (splitTempat.length > 1) {
-        currentY += 10;
+        currentY += 8;
         let textRemaining = splitTempat.slice(1).join(" ");
         let splitRemaining = doc.splitTextToSize(textRemaining, 173);
-        
-        for(let i = 0; i < splitRemaining.length; i++) {
+
+        for (let i = 0; i < splitRemaining.length; i++) {
             doc.setLineDashPattern([1, 2], 0);
             doc.line(15, currentY, 188, currentY);
             doc.setLineDashPattern([], 0);
             doc.text(splitRemaining[i], 101.5, currentY - 1.5, { align: 'center' });
-            
-            if(i < splitRemaining.length - 1) currentY += 10;
+
+            if (i < splitRemaining.length - 1) currentY += 8;
         }
     }
     doc.text(",", 190, currentY);
 
-    currentY += 10;
+    currentY += 9;
     doc.text("yang terlibat secara langsung dalam mengendalikan Peperiksaan Akhir JTM sebagai:", 15, currentY);
 
-    currentY += 10;
+    currentY += 6;
     let tableData = peperiksaanRoles.map(role => {
         const isTicked = formData.perananPeperiksaan.includes(role);
         return [isTicked ? '/' : '', role];
     });
-    
-    autoTable(doc,{
+
+    autoTable(doc, {
         startY: currentY,
         margin: { left: 20, right: 20 },
         theme: 'grid',
         body: tableData,
-        columnStyles: { 
-            0: { cellWidth: 15, halign: 'center', fontStyle: 'bold', fontSize: 12 }, 
-            1: { cellWidth: 'auto' } 
+        columnStyles: {
+            0: { cellWidth: 15, halign: 'center', fontStyle: 'bold', fontSize: 11 },
+            1: { cellWidth: 'auto' }
         },
-        styles: { font: 'helvetica', fontSize: 10, textColor: [0, 0, 0], lineColor: [0, 0, 0], lineWidth: 0.3, minCellHeight: 8, valign: 'middle' }
+        styles: { font: 'helvetica', fontSize: 9.5, textColor: [0, 0, 0], lineColor: [0, 0, 0], lineWidth: 0.3, minCellHeight: 7, valign: 'middle' }
     });
-    
+
     currentY = doc.lastAutoTable.finalY + 5;
     doc.text("(Tanda /  pada ruangan yang berkenaan dan potong yang tidak berkenaan)", 105, currentY, { align: 'center' });
-    currentY += 15;
-    
+    currentY += 10;
+
     const p2 = "berjanji bahawasanya saya akan menjaga segala kerahsiaan yang berkaitan dengan aktiviti-aktiviti peperiksaan jabatan ini. Saya faham bahawa jika saya membocor maklumat-maklumat berkaitan peperiksaan ini atau melanggar integriti dengan apa cara sekali pun kepada mana-mana pihak maka saya boleh dikenakan tindakan di bawah Akta Rahsia Rasmi 1972.";
     const splitP2 = doc.splitTextToSize(p2, 175);
     doc.text(splitP2, 15, currentY, { align: 'justify', maxWidth: 175 });
 
-    currentY += 35;
+    currentY += 26;
     doc.text("Yang Benar :", 15, currentY);
     doc.text("Disaksikan oleh :", 120, currentY);
 
-    currentY += 25;
+    currentY += 20;
+    // Tandatangan adalah optional: hanya cetak jika pengguna melukis/muat naik
     if (formData.tandatangan) {
         try {
-            doc.addImage(formData.tandatangan, 'PNG', 17, currentY - 18, 40, 18);
-        } catch(e) {
+            doc.addImage(formData.tandatangan, 'PNG', 17, currentY - 16, 40, 16);
+        } catch (e) {
             console.warn("Gagal render tandatangan:", e);
         }
     }
@@ -826,11 +825,11 @@ export const generateFormAkujanji = (doc, logoImgBase64, formData, peperiksaanRo
     doc.text("..................................................................", 15, currentY);
     doc.text("..................................................................", 120, currentY);
 
-    currentY += 8;
+    currentY += 7;
     doc.text("Nama : " + val(formData.nama), 15, currentY);
     doc.text("Nama :", 120, currentY);
 
-    currentY += 8;
+    currentY += 7;
     doc.text("Tarikh : " + getCurrentDateStr(), 15, currentY);
     doc.text("Tarikh : " + getCurrentDateStr(), 120, currentY);
 };
