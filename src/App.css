@@ -37,11 +37,35 @@
   }
 }
 
-@keyframes loading-bar {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(250%); }
+/* Animasi Splash Screen 2026 */
+@keyframes aurora-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -25px) scale(1.08); }
+  66% { transform: translate(-20px, 20px) scale(0.95); }
 }
 
-.animate-loading-bar {
-  animation: loading-bar 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+@keyframes orbit-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes shimmer-sweep {
+  0% { transform: translateX(-150%) skewX(-20deg); }
+  100% { transform: translateX(250%) skewX(-20deg); }
+}
+
+.animate-aurora {
+  animation: aurora-float 8s ease-in-out infinite;
+}
+
+.animate-aurora-delayed {
+  animation: aurora-float 10s ease-in-out infinite reverse;
+}
+
+.animate-orbit {
+  animation: orbit-spin 3.5s linear infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer-sweep 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
