@@ -14,6 +14,7 @@ import { unitOptions, peperiksaanRoles, pegawaiDatabase, malaysiaAirports } from
 import UniversalSelect from './components/ui/UniversalSelect';
 import SplashScreen from './components/ui/SplashScreen';
 import PanduanModal from './components/ui/PanduanModal';
+import HubungiModal from './components/ui/HubungiModal';
 import FeedbackButton from './components/FeedbackButton';
 import FormTugas from './components/forms/FormTugas';
 import FormCuti from './components/forms/FormCuti';
@@ -635,50 +636,11 @@ function App() {
                         onClose={() => setShowPanduan(false)} 
                     />
 
-                    {showHubungi && (
-                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-slide-up">
-                            <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative">
-                                <button onClick={() => setShowHubungi(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 p-2 rounded-full transition-colors focus:outline-none">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                                </button>
-                                <h2 className="text-2xl font-extrabold text-slate-800 mb-6 flex items-center gap-3">
-                                    <div className="p-2 bg-indigo-100 text-indigo-600 rounded-xl">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                                    </div>
-                                    Hubungi Kami
-                                </h2>
-                                <div className="space-y-6 text-[14px] text-slate-600 font-medium">
-                                    <div className="flex gap-4 items-start">
-                                        <div className="p-2.5 bg-slate-50 border border-slate-100 rounded-xl text-slate-400 mt-1">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                                        </div>
-                                        <div className="leading-relaxed">
-                                            <strong className="text-slate-800 block mb-1">Kolej Teknologi Termaju (ADTEC)</strong>
-                                            Jabatan Tenaga Manusia,<br/>Kampus Sandakan,<br/>Batu 5 Jalan Sibuga,<br/>90000 Sandakan, Sabah.
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-4 items-center">
-                                        <div className="p-2.5 bg-slate-50 border border-slate-100 rounded-xl text-slate-400">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
-                                        </div>
-                                        <div><strong className="text-slate-800 mr-2">Tel:</strong> 089-240500</div>
-                                    </div>
-                                    <div className="flex gap-4 items-center">
-                                        <div className="p-2.5 bg-slate-50 border border-slate-100 rounded-xl text-slate-400">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                                        </div>
-                                        <div><strong className="text-slate-800 mr-2">E-mel:</strong> <a href="mailto:ilpsdk@jtm.gov.my" className="text-blue-600 hover:text-blue-700 hover:underline">ilpsdk@jtm.gov.my</a></div>
-                                    </div>
-                                    <div className="flex gap-4 items-center">
-                                        <div className="p-2.5 bg-slate-50 border border-slate-100 rounded-xl text-slate-400">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
-                                        </div>
-                                        <div><strong className="text-slate-800 mr-2">Website:</strong> <a href="https://adtecsandakan.gov.my" target="_blank" rel="noreferrer" className="text-blue-600 hover:text-blue-700 hover:underline">adtecsandakan.gov.my</a></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    {/* ✅ MODAL HUBUNGI KAMI 2026 */}
+                    <HubungiModal 
+                        isOpen={showHubungi} 
+                        onClose={() => setShowHubungi(false)} 
+                    />
                 </div>
             </>
         );
