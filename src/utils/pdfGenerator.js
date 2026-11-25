@@ -903,33 +903,29 @@ export const generateFormLaporan = (doc, logoImgBase64, formData) => {
     currentY += 5.5;
     doc.text("LAPORAN PERLAKSANAAN PENILAIAN AKHIR", 105, currentY, { align: 'center' });
 
-    // Maklumat Pusat, Sesi & Pengawas Peperiksaan
-    currentY += 11;
+    // Maklumat Pusat, Sesi & Pengawas Peperiksaan (Tanpa Underline)
+    currentY += 12;
     doc.setFontSize(10);
-    doc.setLineWidth(0.25);
 
+    // Pusat Peperiksaan
     doc.setFont("helvetica", "bold");
     doc.text("PUSAT PEPERIKSAAN", 20, currentY);
     doc.text(":", 73, currentY);
-    doc.line(76, currentY + 0.8, 190, currentY + 0.8);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(9.5);
-    doc.text("ADTEC JTM KAMPUS SANDAKAN, SABAH", 77, currentY - 0.5);
+    doc.text("ADTEC JTM KAMPUS SANDAKAN, SABAH", 77, currentY);
 
-    currentY += 7.5;
+    // Sesi
+    currentY += 7;
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
     doc.text("SESI", 20, currentY);
     doc.text(":", 73, currentY);
-    doc.line(76, currentY + 0.8, 130, currentY + 0.8);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(9.5);
     const sesiStr = cleanText(formData.sesiPeperiksaan);
-    if (sesiStr) doc.text(sesiStr, 77, currentY - 0.5);
+    if (sesiStr) doc.text(sesiStr, 77, currentY);
 
-    currentY += 7.5;
+    // Pengawas Peperiksaan
+    currentY += 7;
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
     doc.text("PENGAWAS PEPERIKSAAN", 20, currentY);
     doc.text(":", 73, currentY);
 
@@ -942,27 +938,21 @@ export const generateFormLaporan = (doc, logoImgBase64, formData) => {
     ];
 
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    for (let i = 0; i < 3; i++) {
-        const pLineY = currentY + 0.8 + i * 6;
-        doc.line(76, pLineY, 190, pLineY);
-    }
-
     if (senaraiPengawas.length > 0 && senaraiPengawas.length <= 3) {
         senaraiPengawas.forEach((namaP, idx) => {
             const labelP = senaraiPengawas.length > 1 ? `${idx + 1}. ${namaP}` : namaP;
             const clipped = doc.splitTextToSize(labelP, 112)[0];
-            doc.text(clipped, 77, currentY - 0.5 + idx * 6);
+            doc.text(clipped, 77, currentY + idx * 5.5);
         });
+        currentY += Math.max(senaraiPengawas.length - 1, 0) * 5.5;
     } else if (senaraiPengawas.length > 3) {
         const gabungPengawas = doc.splitTextToSize(senaraiPengawas.join(' / '), 112);
-        for (let i = 0; i < Math.min(gabungPengawas.length, 3); i++) {
-            doc.text(gabungPengawas[i], 77, currentY - 0.5 + i * 6);
-        }
+        doc.text(gabungPengawas, 77, currentY);
+        currentY += (gabungPengawas.length - 1) * 5.5;
     }
 
     // 1. BILANGAN KERTAS SOALAN DAN JAWAPAN
-    currentY += 23;
+    currentY += 13;
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
     doc.text("1.", 20, currentY);
@@ -1043,6 +1033,7 @@ export const generateFormLaporan = (doc, logoImgBase64, formData) => {
         }
     }
 
+    // Garisan putus-putus ruangan tandatangan sahaja
     doc.setLineDashPattern([0.8, 1.2], 0);
     doc.line(28, currentY, 85, currentY);
     doc.setLineDashPattern([], 0);
@@ -1055,33 +1046,23 @@ export const generateFormLaporan = (doc, logoImgBase64, formData) => {
         ? formData.tarikhPeperiksaan.split('-').reverse().join('/')
         : fallbackDate;
 
-    currentY += 7.5;
-    doc.text("Nama :", 28, currentY);
-    doc.line(42, currentY + 0.8, 130, currentY + 0.8);
+    // Nama, Jawatan & Tarikh (Tanpa Underline & Sejajar)
+    currentY += 8;
+    doc.text("Nama", 28, currentY);
+    doc.text(":", 45, currentY);
     const namaKetua = cleanText(formData.nama);
-    if (namaKetua) {
-        doc.setFontSize(9);
-        doc.text(doc.splitTextToSize(namaKetua, 86)[0], 43.5, currentY - 0.5);
-        doc.setFontSize(10);
-    }
+    if (namaKetua) doc.text(namaKetua, 48, currentY);
 
-    currentY += 7;
-    doc.text("Jawatan :", 28, currentY);
-    doc.line(46, currentY + 0.8, 130, currentY + 0.8);
+    currentY += 6.5;
+    doc.text("Jawatan", 28, currentY);
+    doc.text(":", 45, currentY);
     const jawatanKetua = cleanText(formData.jawatan);
-    if (jawatanKetua) {
-        doc.setFontSize(9);
-        doc.text(doc.splitTextToSize(jawatanKetua, 82)[0], 47.5, currentY - 0.5);
-        doc.setFontSize(10);
-    }
+    if (jawatanKetua) doc.text(jawatanKetua, 48, currentY);
 
-    currentY += 7;
-    doc.text("Tarikh :", 28, currentY);
-    doc.line(42, currentY + 0.8, 130, currentY + 0.8);
-    if (tDate) {
-        doc.setFontSize(9.5);
-        doc.text(tDate, 43.5, currentY - 0.5);
-    }
+    currentY += 6.5;
+    doc.text("Tarikh", 28, currentY);
+    doc.text(":", 45, currentY);
+    if (tDate) doc.text(tDate, 48, currentY);
 };
 
 // ================== MODUL BAHARU: LAMPIRAN A (PENILAIAN KURSUS) ==================
