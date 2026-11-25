@@ -715,7 +715,7 @@ export const generateFormCuti = (doc, formData, pegawaiDatabase, today) => {
 export const generateFormAkujanji = (doc, logoImgBase64, formData, peperiksaanRoles) => {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
-    doc.text("LAMPIRAN 11", 190, 14, { align: 'right' });
+    doc.text("LAMPIRAN 3", 190, 14, { align: 'right' });
 
     let currentY = 18;
     if (logoImgBase64) {
@@ -847,108 +847,241 @@ export const generateFormAkujanji = (doc, logoImgBase64, formData, peperiksaanRo
 };
 
 export const generateFormLaporan = (doc, logoImgBase64, formData) => {
-    doc.setFont("helvetica", "bold"); 
-    doc.setFontSize(10);
-    doc.text("LAMPIRAN 12", 190, 15, { align: 'right' });
+    const cleanText = (str) =>
+        str && str.toString().trim() !== '' && str.toString().trim() !== '-'
+            ? str.toString().trim().toUpperCase()
+            : '';
 
-    let currentY = 25;
-    if(logoImgBase64) { 
-        doc.addImage(logoImgBase64, 'JPEG', 92.5, currentY, 25, 20);
-        currentY += 25; 
-    } else { 
+    const drawCheckBox = (x, y, isChecked) => {
+        doc.setDrawColor(0);
+        doc.setLineWidth(0.3);
+        doc.rect(x, y, 4.8, 4.8);
+        if (isChecked) {
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(11);
+            doc.text("/", x + 2.4, y + 3.8, { align: 'center' });
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(10);
+        }
+    };
+
+    const drawLinesWithText = (startX, endX, firstLineY, numLines, lineGap, textStr) => {
+        doc.setDrawColor(0);
+        doc.setLineWidth(0.25);
+        for (let i = 0; i < numLines; i++) {
+            const lineY = firstLineY + i * lineGap;
+            doc.line(startX, lineY, endX, lineY);
+        }
+        if (textStr) {
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(9);
+            const lines = doc.splitTextToSize(textStr, endX - startX - 2);
+            for (let i = 0; i < Math.min(lines.length, numLines); i++) {
+                doc.text(lines[i], startX + 1, firstLineY + i * lineGap - 1.2);
+            }
+            doc.setFontSize(10);
+        }
+    };
+
+    // Label Lampiran 6
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.text("Lampiran 6", 190, 14, { align: 'right' });
+
+    // Logo Jata Negara & Tajuk
+    let currentY = 16;
+    if (logoImgBase64) {
+        doc.addImage(logoImgBase64, 'JPEG', 93.5, currentY, 23, 18);
+        currentY += 23;
+    } else {
         currentY += 10;
     }
 
-    doc.setFontSize(10); 
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
     doc.text("JABATAN TENAGA MANUSIA", 105, currentY, { align: 'center' });
-    currentY += 6;
-    doc.text("LAPORAN PELAKSANAAN PEPERIKSAAN AKHIR", 105, currentY, { align: 'center' });
-    
-    currentY += 15;
-    doc.setFont("helvetica", "normal"); 
+    currentY += 5.5;
+    doc.text("LAPORAN PERLAKSANAAN PENILAIAN AKHIR", 105, currentY, { align: 'center' });
+
+    // Maklumat Pusat, Sesi & Pengawas Peperiksaan
+    currentY += 11;
     doc.setFontSize(10);
-    
-    doc.text("PUSAT PEPERIKSAAN", 15, currentY); 
-    doc.text(":", 60, currentY); 
-    doc.text("KOLEJ TEKNOLOGI TERMAJU (ADTEC) JTM", 63, currentY); 
-    currentY += 5;
-    doc.text("KAMPUS SANDAKAN, SABAH", 63, currentY); 
-    currentY += 7;
-    
-    doc.text("SESI", 15, currentY); 
-    doc.text(":", 60, currentY); 
-    doc.text(val(formData.sesiPeperiksaan).toUpperCase(), 63, currentY); 
-    currentY += 7;
-    
-    const tDate = formData.tarikhPeperiksaan ? formData.tarikhPeperiksaan.split('-').reverse().join('/') : '';
-    doc.text("TARIKH PEPERIKSAAN", 15, currentY); 
-    doc.text(":", 60, currentY); 
-    doc.text(tDate, 63, currentY);
-    currentY += 7;
-    
-    doc.text("NAMA PENGAWAS", 15, currentY); 
-    doc.text(":", 60, currentY); 
-    
-    const allPengawas = formData.namaPengawasLain ? `${val(formData.nama).toUpperCase()} / ${val(formData.namaPengawasLain).toUpperCase()}` : val(formData.nama).toUpperCase();
-    const splitPengawas = doc.splitTextToSize(allPengawas, 130);
-    doc.text(splitPengawas, 63, currentY);
-    currentY += (splitPengawas.length * 5) + 5;
-    
-    autoTable(doc,{
-        startY: currentY,
-        margin: { left: 15, right: 15 },
-        theme: 'grid',
-        head: [['BIL', 'PERKARA', 'YA', 'TIDAK', 'Nyatakan jika tidak']],
-        body: [
-            ['1.', 'Bilangan kertas soalan dan jawapan mencukupi', formData.q1Status === 'YA' ? '/' : '', formData.q1Status === 'TIDAK' ? '/' : '', formData.q1Catatan.toUpperCase()],
-            ['2.', 'Kesalahan cetakan kertas soalan', formData.q2Status === 'YA' ? '/' : '', formData.q2Status === 'TIDAK' ? '/' : '', formData.q2Catatan.toUpperCase()],
-            ['3.', 'Peperiksaan berjalan lancar', formData.q3Status === 'YA' ? '/' : '', formData.q3Status === 'TIDAK' ? '/' : '', formData.q3Catatan.toUpperCase()],
-        ],
-        headStyles: { fillColor: [230, 230, 230], textColor: [0, 0, 0], halign: 'center', valign: 'middle', lineColor: [0,0,0], lineWidth: 0.3 },
-        bodyStyles: { textColor: [0, 0, 0], lineColor: [0,0,0], lineWidth: 0.3, minCellHeight: 12, valign: 'middle' },
-        columnStyles: { 
-            0: { cellWidth: 10, halign: 'center' }, 
-            1: { cellWidth: 70 }, 
-            2: { cellWidth: 15, halign: 'center', fontStyle: 'bold' }, 
-            3: { cellWidth: 15, halign: 'center', fontStyle: 'bold' }, 
-            4: { cellWidth: 'auto' } 
-        },
-        styles: { font: 'helvetica', fontSize: 9 }
-    });
-    
-    currentY = doc.lastAutoTable.finalY + 10;
-    doc.setFont("helvetica", "bold"); 
-    doc.text("4. Cadangan (jika ada)", 15, currentY); 
+    doc.setLineWidth(0.25);
+
+    doc.setFont("helvetica", "bold");
+    doc.text("PUSAT PEPERIKSAAN", 20, currentY);
+    doc.text(":", 73, currentY);
+    doc.line(76, currentY + 0.8, 190, currentY + 0.8);
     doc.setFont("helvetica", "normal");
-    currentY += 6;
-    
-    if(formData.cadanganPeperiksaan) {
-        const splitCadangan = doc.splitTextToSize(formData.cadanganPeperiksaan.toUpperCase(), 180);
-        doc.text(splitCadangan, 15, currentY);
-        currentY += (splitCadangan.length * 5) + 10;
-    } else {
-        doc.text("...................................................................................................................................................................................", 15, currentY);
-        currentY += 6;
-        doc.text("...................................................................................................................................................................................", 15, currentY);
-        currentY += 15;
+    doc.setFontSize(9.5);
+    doc.text("ADTEC JTM KAMPUS SANDAKAN, SABAH", 77, currentY - 0.5);
+
+    currentY += 7.5;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.text("SESI", 20, currentY);
+    doc.text(":", 73, currentY);
+    doc.line(76, currentY + 0.8, 130, currentY + 0.8);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.5);
+    const sesiStr = cleanText(formData.sesiPeperiksaan);
+    if (sesiStr) doc.text(sesiStr, 77, currentY - 0.5);
+
+    currentY += 7.5;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.text("PENGAWAS PEPERIKSAAN", 20, currentY);
+    doc.text(":", 73, currentY);
+
+    const extraPengawas = formData.namaPengawasLain
+        ? formData.namaPengawasLain.split(/[\n/,]+/).map((s) => s.trim()).filter(Boolean)
+        : [];
+    const senaraiPengawas = [
+        ...(cleanText(formData.nama) ? [cleanText(formData.nama)] : []),
+        ...extraPengawas.map((s) => s.toUpperCase())
+    ];
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    for (let i = 0; i < 3; i++) {
+        const pLineY = currentY + 0.8 + i * 6;
+        doc.line(76, pLineY, 190, pLineY);
     }
 
-    doc.text("Disediakan oleh Ketua Pengawas :", 15, currentY);
-    currentY += 25;
-    
+    if (senaraiPengawas.length > 0 && senaraiPengawas.length <= 3) {
+        senaraiPengawas.forEach((namaP, idx) => {
+            const labelP = senaraiPengawas.length > 1 ? `${idx + 1}. ${namaP}` : namaP;
+            const clipped = doc.splitTextToSize(labelP, 112)[0];
+            doc.text(clipped, 77, currentY - 0.5 + idx * 6);
+        });
+    } else if (senaraiPengawas.length > 3) {
+        const gabungPengawas = doc.splitTextToSize(senaraiPengawas.join(' / '), 112);
+        for (let i = 0; i < Math.min(gabungPengawas.length, 3); i++) {
+            doc.text(gabungPengawas[i], 77, currentY - 0.5 + i * 6);
+        }
+    }
+
+    // 1. BILANGAN KERTAS SOALAN DAN JAWAPAN
+    currentY += 23;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.text("1.", 20, currentY);
+    doc.text("BILANGAN KERTAS SOALAN DAN JAWAPAN", 28, currentY);
+
+    currentY += 6;
+    doc.setFont("helvetica", "normal");
+    doc.text("Ya", 91.9, currentY, { align: 'center' });
+    doc.text("Tidak", 107.9, currentY, { align: 'center' });
+
+    // i. Kuantiti kertas soalan mencukupi
+    currentY += 6;
+    doc.text("i.", 28, currentY);
+    doc.text("Kuantiti kertas soalan", 35, currentY);
+    doc.text("mencukupi", 35, currentY + 5);
+    drawCheckBox(89.5, currentY - 3.8, formData.q1Status === 'YA');
+    drawCheckBox(105.5, currentY - 3.8, formData.q1Status === 'TIDAK');
+    doc.text("Jika tidak, sila nyatakan:", 120, currentY);
+    const q1Note = formData.q1Status === 'TIDAK' ? cleanText(formData.q1Catatan) : '';
+    drawLinesWithText(120, 190, currentY + 5.5, 3, 5.5, q1Note);
+
+    // ii. Kesalahan cetakan kertas soalan
+    currentY += 24;
+    doc.text("ii.", 28, currentY);
+    doc.text("Kesalahan cetakan kertas", 35, currentY);
+    doc.text("soalan", 35, currentY + 5);
+    drawCheckBox(89.5, currentY - 3.8, formData.q2Status === 'YA');
+    drawCheckBox(105.5, currentY - 3.8, formData.q2Status === 'TIDAK');
+    doc.text("Jika ya, sila nyatakan:", 120, currentY);
+    const q2Note = formData.q2Status === 'YA' ? cleanText(formData.q2Catatan) : '';
+    drawLinesWithText(120, 190, currentY + 5.5, 3, 5.5, q2Note);
+
+    // 2. PERJALANAN PENILAIAN AKHIR
+    currentY += 26;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.text("2.", 20, currentY);
+    doc.text("PERJALANAN PENILAIAN AKHIR", 28, currentY);
+
+    currentY += 6;
+    doc.setFont("helvetica", "normal");
+    doc.text("Ya", 91.9, currentY, { align: 'center' });
+    doc.text("Tidak", 107.9, currentY, { align: 'center' });
+
+    // i. Kelancaran
+    currentY += 6;
+    doc.text("i.", 28, currentY);
+    doc.text("Kelancaran", 35, currentY);
+    drawCheckBox(89.5, currentY - 3.8, formData.q3Status === 'YA');
+    drawCheckBox(105.5, currentY - 3.8, formData.q3Status === 'TIDAK');
+    doc.text("Jika tidak, sila nyatakan:", 120, currentY);
+    const q3Note = formData.q3Status === 'TIDAK' ? cleanText(formData.q3Catatan) : '';
+    drawLinesWithText(120, 190, currentY + 5.5, 3, 5.5, q3Note);
+
+    // 3. CADANGAN
+    currentY += 26;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.text("3.", 20, currentY);
+    doc.text("CADANGAN", 28, currentY);
+    doc.text(":", 55, currentY);
+
+    const cadanganStr = cleanText(formData.cadanganPeperiksaan);
+    drawLinesWithText(28, 190, currentY + 7, 4, 6, cadanganStr);
+
+    // Disediakan oleh (Ketua Pengawas)
+    currentY += 35;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text("Disediakan oleh", 28, currentY);
+
+    currentY += 18;
     if (formData.tandatangan) {
         try {
-            doc.addImage(formData.tandatangan, 'PNG', 15, currentY - 18, 40, 18);
-        } catch(e) {}
+            doc.addImage(formData.tandatangan, 'PNG', 30, currentY - 17, 38, 16);
+        } catch (e) {
+            console.warn("Gagal render tandatangan:", e);
+        }
     }
-    
-    doc.text("..................................................................", 15, currentY);
-    currentY += 6;
-    doc.text("Nama : " + val(formData.nama).toUpperCase(), 15, currentY);
-    currentY += 6;
-    doc.text("Jawatan : " + val(formData.jawatan).toUpperCase(), 15, currentY);
-    currentY += 6;
-    doc.text("Tarikh : " + tDate, 15, currentY);
+
+    doc.setLineDashPattern([0.8, 1.2], 0);
+    doc.line(28, currentY, 85, currentY);
+    doc.setLineDashPattern([], 0);
+
+    currentY += 5;
+    doc.text("(Ketua Pengawas)", 28, currentY);
+
+    const fallbackDate = new Date().toLocaleDateString('en-GB');
+    const tDate = formData.tarikhPeperiksaan
+        ? formData.tarikhPeperiksaan.split('-').reverse().join('/')
+        : fallbackDate;
+
+    currentY += 7.5;
+    doc.text("Nama :", 28, currentY);
+    doc.line(42, currentY + 0.8, 130, currentY + 0.8);
+    const namaKetua = cleanText(formData.nama);
+    if (namaKetua) {
+        doc.setFontSize(9);
+        doc.text(doc.splitTextToSize(namaKetua, 86)[0], 43.5, currentY - 0.5);
+        doc.setFontSize(10);
+    }
+
+    currentY += 7;
+    doc.text("Jawatan :", 28, currentY);
+    doc.line(46, currentY + 0.8, 130, currentY + 0.8);
+    const jawatanKetua = cleanText(formData.jawatan);
+    if (jawatanKetua) {
+        doc.setFontSize(9);
+        doc.text(doc.splitTextToSize(jawatanKetua, 82)[0], 47.5, currentY - 0.5);
+        doc.setFontSize(10);
+    }
+
+    currentY += 7;
+    doc.text("Tarikh :", 28, currentY);
+    doc.line(42, currentY + 0.8, 130, currentY + 0.8);
+    if (tDate) {
+        doc.setFontSize(9.5);
+        doc.text(tDate, 43.5, currentY - 0.5);
+    }
 };
 
 // ================== MODUL BAHARU: LAMPIRAN A (PENILAIAN KURSUS) ==================
