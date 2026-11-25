@@ -859,7 +859,7 @@ export const generateFormLaporan = (doc, logoImgBase64, formData) => {
         if (isChecked) {
             doc.setFont("helvetica", "bold");
             doc.setFontSize(11);
-            doc.text("/", x + 2.4, y + 3.8, { align: 'center' });
+            doc.text("/", x + 3.4, y + 5.1, { align: 'center' });
             doc.setFont("helvetica", "normal");
             doc.setFontSize(10);
         }
