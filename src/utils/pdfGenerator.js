@@ -855,7 +855,7 @@ export const generateFormLaporan = (doc, logoImgBase64, formData) => {
     const drawCheckBox = (x, y, isChecked) => {
         doc.setDrawColor(0);
         doc.setLineWidth(0.3);
-        doc.rect(x, y, 4.8, 4.8);
+        doc.rect(x, y, 6.8, 6.8);
         if (isChecked) {
             doc.setFont("helvetica", "bold");
             doc.setFontSize(11);
